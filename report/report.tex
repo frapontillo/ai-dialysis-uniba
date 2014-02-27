@@ -1,0 +1,116 @@
+\documentclass{acm_proc_article-sp}
+\usepackage[italian]{babel}
+\usepackage[shortcuts]{extdash}
+\usepackage[utf8]{inputenc}
+
+\begin{document}
+
+\title{Previsione di Sintomatologie Post-Dialisi}
+\subtitle{Studio e realizzazione di un sistema supervisionato di estrazione regole}
+
+\numberofauthors{1}
+\author{
+	\alignauthor
+	Francesco Pontillo\\
+       \affaddr{Universit\'a degli Studi di Bari}\\
+       \affaddr{Dipartimento di Informatica}\\
+       \affaddr{Via E. Orabona, 4 - 70125  Bari, Italy}\\
+       \email{francescopontillo@gmail.com}
+}
+
+\maketitle
+
+%\begin{abstract}
+%TODO
+%\end{abstract}
+
+\section{Introduzione}
+Obiettivo del processo di Data Mining del sistema da sviluppare \'e di prevedere possibili sintomatologie successive ad una seduta di emodialisi.
+A partire da specifici dati registrati durante una dialisi, si vuole prevedere quali classi di sintomatologie il paziente potr\'a riscontrare dal momento in cui la dialisi termina al momento in cui esegue la seduta di dialisi successiva.
+
+In questo modo, il medico pu\'o confermare la possibilit\'a di occorrenza di una o pi\'u problematiche suggerite, ed eventualmente prescrivere una opportuna terapia per contrastare la sua insorgenza.
+
+\section{Selezione degli attributi}
+I dati a disposizione nella base di dati da analizzare sono numerosi, e devono essere selezionati appropriatamente per evitare l'introduzione di attributi poco rilevanti con lo scopo del sistema.
+
+Ogni seduta di dialisi memorizza (1) una \textbf{data} di svolgimento, (2) la \textbf{durata} della seduta stessa, (3) un identificativo del \textbf{paziente}, (4) altri \textbf{parametri} registrati durante la sessione e (5) eventuali \textbf{sintomatologie} riscontrate.
+
+\subsection{Dati del paziente}
+Le informazioni relative ai pazienti sono ricavate, anonimizzandole, dalla base di dati originale. Ai fini del processo di estrazione delle regole, \'e opportuno considerare il \textbf{sesso} del paziente e la sua \textbf{et\'a} al momento della seduta di dialisi in analisi\footnote{Ci\'o non esclude la possibilit\'a di considerare altri dati relativi al paziente; l'algoritmo da realizzare potrebbe essere esteso andando a considerare anche i dati relativi alle malattie pregresse del paziente ed eventuali comorbidit\'a registrate.}.
+
+\subsection{Parametri della seduta di dialisi}
+I parametri pi\'u rilevanti di una seduta di dialisi, al fine di prevedere eventuali sintomatologie successive, sono divisi in pi\'u categorie \cite{bellazziintelligent}  \cite{pmid15749092}.
+
+A. L'\textbf{efficienza della rimozione dei prodotti di scarto} \'e indotta dai valori dei parametri riportati in Tabella \ref{table:parametri-1}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|l|} \hline
+$KT/V$ & indice di efficienza dialitica\\ \hline
+$QB$ & flusso di sangue trattato\\ \hline
+$PWL$ & perdita di peso teorica \\ \hline
+$RWL$ & perdita di peso reale \\ \hline
+$\Delta T$ & differenza fra durata teorica e reale di dialisi\\
+\hline\end{tabular}
+\caption{Parametri di efficienza eliminazione scarti}
+\label{table:parametri-1}
+\end{table}
+
+B. L'efficienza del circuito \textbf{extra-corporeo} (ECC) \'e definito dagli attributi in Tabella \ref{table:parametri-2}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|l|} \hline
+$SAP$ & pressione arteriosa sistolica (valore medio)\\ \hline
+$DAP$ & pressione arteriosa diastolica (valore medio)\\ \hline
+$VP$ & pressione venosa (valore massimo) \\
+\hline\end{tabular}
+\caption{Parametri di efficienza circuito extracorporeo}
+\label{table:parametri-2}
+\end{table}
+
+C. L'efficienza dell'eliminazione dell'acqua all'interno del corpo del paziente \'e indotta dai parametri in Tabella \ref{table:parametri-3}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|l|} \hline
+$SP$ & pressione sistolica (valore medio)\\ \hline
+$DP$ & pressione diastolica (valore medio)\\ \hline
+$CF$ & frequenza cardiaca (valore massimo) \\ \hline
+$BV$ & volume ematico finale\\
+\hline\end{tabular}
+\caption{Parametri di efficienza eliminazione acqua}
+\label{table:parametri-3}
+\end{table}
+
+D. Altre tipologie di dati che potrebbero risultare utili a fornire previsioni significative sono riportati in Tabella \ref{table:parametri-4}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|l|} \hline
+$\Delta BF$ & differenza flusso sangue\\ \hline
+$\Delta UF$ & differenza ultrafiltrazione\\
+\hline\end{tabular}
+\caption{Altri parametri di efficienza dialitica}
+\label{table:parametri-4}
+\end{table}
+
+\subsection{Sintomatologie}
+Il sistema verr\'a addestrato con istanze di esempio pre\-/classificate. La classificazione consiste nell'assegnazione, ad ogni esempio, di una o pi\'u categorie di sintomi, ad esempio: aritmia sintomatica, aritmia asintomatica, astenia, brividi, brividi e dispnea, cefalea, collasso (PA < 30\% inizio), conati di vomito, crampi, depressione, ansia, diarrea, dispnea e molti altri.
+
+Inoltre, \'e prevista la classe `asintomatico', che definisce una sintomatologia assente corrispondente ad un esempio negativo dal punto di vista della classificazione.
+
+% The following two commands are all you need in the
+% initial runs of your .tex file to
+% produce the bibliography for the citations in your paper.
+\bibliographystyle{abbrv} % standard abbrv style
+\bibliography{bibliography}  % substitute the name of 'your' Bibliography here
+% You must have a proper ".bib" file
+% and remember to run:
+% latex bibtex latex latex (in that particular order) in order to resolve all the 'numerical values'
+% be they for figures, equation numbers, references, footnotes, etc. etc.
+%
+\balancecolumns
+
+% That's all folks! % GM Sept. 2008
+\end{document}

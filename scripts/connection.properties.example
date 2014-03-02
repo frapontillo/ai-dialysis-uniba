@@ -1,0 +1,2 @@
+arg_source_password=your_microsoft_sql_pwd
+arg_target_password=your_mysql_pwd

@@ -5,7 +5,7 @@ Running scripts
 
 The original dialysis database must be "SourceDB" and should be running on a SQL Server instance.
 
-The target data will be stored in a PostgreSQL instance, whose ODBC connection must be called "DialysisAI" and be accessible by the system.
+The target data will be stored in a MySQL instance, with the `wbcopytables` (installed by MySQL Workbench) utility binary in the environment path.
 
 ## Step 1: data normalization
 
@@ -44,15 +44,16 @@ The first step consists in normalizing the original tables data into some more m
 
 The queries can be executed launching `scripts/01-sql-server-tables.sql` on the SQL Server instance.
 
-## Step 2: PostgreSQL database creation
+## Step 2: MySQL database creation
 
-Before being able to import the data into the PostgreSQL instance, the same database structure must be replicated onto the PostgreSQL server.
+Before being able to import the data into the MySQL instance, the same database structure must be replicated onto the MySQL server.
 
-1. Execute `scripts/02-postgresql-db.sql` to create the database.
-2. Execute `scripts/03-postgresql-tables.sql` to create the tables.
+Execute `scripts/02-mysql_migration_script.sql` to create the database and the tables.
 
 ## Step 3: data import
 
-To transfer all of the data from SQL Server to PostgreSQL, simply start the `scripts/04-sql-server-to-postgresql-import.dtsx` SSIS package.
+To transfer all of the data from SQL Server to MySQL, do the following:
 
-The operation will use the connections stored in the `dtsx` file, which can be edited in a text editor.
+1. Create the `scripts/connection.properties` file (see `scripts/connection.properties.example` for an example) .
+2. Start the `scripts/03-mysql-copy_migrated_tables.cmd` to migrate all of the data.
+3. The `dialysisai` schema will be created and populated on the local machine.

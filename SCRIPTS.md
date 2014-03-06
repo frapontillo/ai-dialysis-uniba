@@ -57,3 +57,7 @@ To transfer all of the data from SQL Server to MySQL, do the following:
 1. Create the `scripts/connection.properties` file (see `scripts/connection.properties.example` for an example) .
 2. Start the `scripts/03-mysql-copy_migrated_tables.cmd` to migrate all of the data.
 3. The `dialysisai` schema will be created and populated on the local machine.
+
+## Step 4: custom view creation
+
+The analysis isn't executed on the imported data, as the information has to be normalized and filtered before a valid learning process can be started. To create the views that take care of this process, launch the `scripts/04-mysql_scores.sql` script.

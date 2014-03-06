@@ -61,26 +61,3 @@ CREATE TABLE IF NOT EXISTS `DialysisAI`.`PATIENT_DIALYSIS_SYMPTOM` (
   `SYMPTOM_ID` BIGINT NULL,
   PRIMARY KEY (`ID`));
 SET FOREIGN_KEY_CHECKS = 1;;
-
--- ----------------------------------------------------------------------------
--- View DialysisAI.PATIENT_DIALYSIS_SYMPTOM_SCORE
--- ----------------------------------------------------------------------------
-CREATE OR REPLACE VIEW `DialysisAI`.`PATIENT_DIALYSIS_SYMPTOM_SCORE` AS
-  select
-  `DialysisAI`.`PATIENT_DIALYSIS_SYMPTOM`.*,
-  (
-    if(isnull(`DialysisAI`.`PATIENT_DIALYSIS_SYMPTOM`.`KTV`),1,0) + 
-    if(isnull(`DialysisAI`.`PATIENT_DIALYSIS_SYMPTOM`.`QB`),1,0) + 
-    if(isnull(`DialysisAI`.`PATIENT_DIALYSIS_SYMPTOM`.`PROG_WEIGHT_LOSS`),1,0) + 
-    if(isnull(`DialysisAI`.`PATIENT_DIALYSIS_SYMPTOM`.`REAL_WEIGHT_LOSS`),1,0) + 
-    if(isnull(`DialysisAI`.`PATIENT_DIALYSIS_SYMPTOM`.`PROG_DURATION`),1,0) + 
-    if(isnull(`DialysisAI`.`PATIENT_DIALYSIS_SYMPTOM`.`REAL_DURATION`),1,0) + 
-    if(isnull(`DialysisAI`.`PATIENT_DIALYSIS_SYMPTOM`.`SAP_START`),1,0) + 
-    if(isnull(`DialysisAI`.`PATIENT_DIALYSIS_SYMPTOM`.`SAP_END`),1,0) + 
-    if(isnull(`DialysisAI`.`PATIENT_DIALYSIS_SYMPTOM`.`DAP_START`),1,0) + 
-    if(isnull(`DialysisAI`.`PATIENT_DIALYSIS_SYMPTOM`.`DAP_END`),1,0) + 
-    if(isnull(`DialysisAI`.`PATIENT_DIALYSIS_SYMPTOM`.`BLOOD_VOLUME`),1,0) + 
-    if(isnull(`DialysisAI`.`PATIENT_DIALYSIS_SYMPTOM`.`DELTA_BLOOD_FLOW`),1,0) + 
-    if(isnull(`DialysisAI`.`PATIENT_DIALYSIS_SYMPTOM`.`DELTA_UF`),1,0)
-  ) AS `SCORE` 
-  from `DialysisAI`.`PATIENT_DIALYSIS_SYMPTOM`;

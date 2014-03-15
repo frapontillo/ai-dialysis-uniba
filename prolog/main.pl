@@ -1,3 +1,3 @@
-:- ['database.pl'].
+:- ['database.pl', 'util.pl'].
 
-main :- connect, session_db(row(ID, Patient, Center, Sex, Race, Age)), write(row(ID, Patient, Center, Sex, Race, Age)), nl, disconnect.
+main :- connect, update_symptoms, update_records.

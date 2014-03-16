@@ -1,2 +1,6 @@
+driver={MySQL ODBC 5.2 ANSI Driver}
+server=localhost
+port=3306
+database=dialysisai
 username=theusername
 password=thepassword

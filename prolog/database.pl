@@ -1,10 +1,11 @@
 % read database parameters
-read_database_params :-
-	new_table('database.properties', [ attribute(string), value(string) ], [field_separator(61), record_separator(10)], PropertiesFile),
+read_database_params(Driver, Server, Port, Database, User, Password) :-
+	new_table('database.properties', [ attribute(atom), value(atom) ], [field_separator(61), record_separator(10)], PropertiesFile),
 	open_table(PropertiesFile),
 	println('Reading database parameters...'),
 	read_database_param(PropertiesFile, 0),
 	close_table(PropertiesFile),
+	db_param(driver, Driver), db_param(server, Server), db_param(port, Port), db_param(database, Database), db_param(username, User), db_param(password, Password),
 	println('Database parameters read.'), nl.
 % iterate over parameters to read
 read_database_param(PropertiesFile, Row) :-
@@ -13,17 +14,18 @@ read_database_param(PropertiesFile, Row) :-
 	% read it and parse it
 	read_table_fields(PropertiesFile, Row, Next, [attribute(Attribute), value(Value)]),
 	% print it
-	println([Attribute, '=', Value]),
+	% println([Attribute, '=', Value]),
 	% save it
-	assertz(database_param(Attribute, Value)),
+	assertz(db_param(Attribute, Value)),
 	% get the next record
 	read_database_param(PropertiesFile, Next), !.
 % always satisfy
-read_database_param(PropertiesFile, Row).
+read_database_param(_, _).
 % connect to the database
 connect :-
-	read_database_params,
-	odbc_driver_connect( 'DRIVER={MySQL ODBC 5.2 ANSI Driver};SERVER=localhost;PORT=3306;DATABASE=dialysisai;USER=root;PASSWORD=mysql;', _, [ alias(dialysis_connection) ]),
+	read_database_params(Driver, Server, Port, Database, User, Password),
+	concat_string_list([ 'DRIVER=', Driver, ';', 'SERVER=', Server, ';', 'PORT=', Port, ';', 'DATABASE=', Database, ';', 'USER=', User, ';', 'PASSWORD=', Password, ';' ], ConnectionString),
+	odbc_driver_connect(ConnectionString, _, [ alias(dialysis_connection) ]),
 	println(['Connected to ', dialysis_connection]).
 % disconnect from the database
 disconnect :- odbc_current_connection(dialysis_connection, _), odbc_disconnect(dialysis_connection), println(['Disconnected from ', dialysis_connection]).

@@ -11,7 +11,7 @@ measure_time.
 % ---------------- %
 println([]) :- nl.
 println([Head|Tail]) :- write(Head), println(Tail), !.
-println(Element) :- not(Element = [Head|Tail]), println([Element]).
+println(Element) :- not(Element = [_|_]), println([Element]).
 
 
 % ---------------- %

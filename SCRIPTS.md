@@ -61,3 +61,11 @@ To transfer all of the data from SQL Server to MySQL, do the following:
 ## Step 4: custom view creation
 
 The analysis isn't executed on the imported data, as the information has to be normalized and filtered before a valid learning process can be started. To create the views that take care of this process, launch the `scripts/04-mysql_scores.sql` script.
+
+## Step 5: to the clouds!
+
+You can export the database from a local instance to a cloud-based one using the MySQL Export/Import Data tool that will generate the necessary scripts:
+
+1. Export the tables only.
+2. Import the tables.
+3. Execute the `scripts/04-mysql_scores.sql` script on the new database.

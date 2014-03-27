@@ -159,3 +159,9 @@ update_records :-
 exists_record(RecordName, ID) :- RecordList =..[RecordName, ID, 'ID', ID], RecordList.
 % count the number of records
 count_records(RecordName, Count) :- RecordList =..[RecordName, ID, 'ID', ID], aggregate_all(count, RecordList, Count).
+
+% ------------------ %
+%      ACCESSORY     %
+% ------------------ %
+example(positive, ID, Attribute, Value) :- positive(ID, Attribute, Value).
+example(negative, ID, Attribute, Value) :- negative(ID, Attribute, Value).

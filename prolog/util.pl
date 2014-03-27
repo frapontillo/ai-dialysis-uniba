@@ -9,9 +9,10 @@ measure_time.
 % ---------------- %
 %    PRINT LIST    %
 % ---------------- %
-println([]) :- nl.
-println([Head|Tail]) :- write(Head), println(Tail), !.
-println(Element) :- not(Element = [_|_]), println([Element]).
+println([], Separator) :- nl.
+println([Head|Tail], Separator) :- write(Head), write(Separator), println(Tail, Separator), !.
+println(Element, Separator) :- not(Element = [_|_]), println([Element], Separator).
+println(Element) :- println(Element, '').
 
 % ---------------- %
 %     LIST MIN     %

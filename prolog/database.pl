@@ -1,6 +1,23 @@
-% read database parameters
+% read the location of the config file
+get_config_path(ConfigPath) :-
+	println([
+		'Type the name of the connection config file in the config directory.\n',
+		'Remember to use single quotes (e.g. ''my-connection.properties'').']),
+	read_term(ConfigFile, [syntax_errors(quiet)]),
+	string_concat('config/', ConfigFile, ConfigPathString),
+	atom_string(ConfigPath, ConfigPathString).
+% read database parameters with fallback on 'config/database.properties'
 read_database_params(Driver, Server, Port, Database, User, Password) :-
-	new_table('database.properties', [ attribute(atom), value(atom) ], [field_separator(61), record_separator(10)], PropertiesFile),
+	get_config_path(ConfigPath),
+	access_file(ConfigPath, read),
+	println('\nWIN: yo, the config file exists and can be read.\n'),
+	read_database_params(ConfigPath, Driver, Server, Port, Database, User, Password), !.
+read_database_params(Driver, Server, Port, Database, User, Password) :-
+	println(['\nFAIL: could not read custom parameter config file, falling back to database.properties.\n']),
+	read_database_params('config/database.properties', Driver, Server, Port, Database, User, Password).
+% read database parameters from a given file
+read_database_params(ConfigPath, Driver, Server, Port, Database, User, Password) :-
+	new_table(ConfigPath, [ attribute(atom), value(atom) ], [ field_separator(61), record_separator(10) ], PropertiesFile),
 	open_table(PropertiesFile),
 	println('Reading database parameters...'),
 	read_database_param(PropertiesFile, 0),
@@ -82,7 +99,7 @@ save_records(Statement, RecordName) :-
 			SAPStart, SAPEnd, SAPAverage, DAPStart, DAPEnd, DAPAverage, BloodVolume, DeltaBloodFlow, DeltaUF,
 			SymptomID, Score),
 			IDList =..[RecordName, ID, 'ID', ID], assertz(IDList),
-			PatientList =..[RecordName, ID, 'Center', Patient], assertz(PatientList),
+			PatientList =..[RecordName, ID, 'Patient', Patient], assertz(PatientList),
 			CenterList =..[RecordName, ID, 'Center', Center], assertz(CenterList),
 			PatientSexList =..[RecordName, ID, 'PatientSex', PatientSex], assertz(PatientSexList),
 			PatientRaceList =..[RecordName, ID, 'PatientRace', PatientRace], assertz(PatientRaceList),
@@ -131,9 +148,13 @@ get_records(SymptomID, RecordName) :-
 	save_records(Statement, RecordName),
 	measure_time(Time), count_records(RecordName, CountRecords), println([CountRecords, ' records fetched in ', Time, ' ms']), nl.
 % print the record facts
-print_records :- record(ID, Attribute, Value), println([ID, '.', Attribute, ' = ', Value]), fail; true.
+print_records(RecordName) :- _RecordList =..[RecordName, ID, Attribute, Value], println([ID, '.', Attribute, ' = ', Value]), fail; true.
 % clear, updates and prints the record facts
-update_records :- clear_records(negative), clear_records(positive), get_records('1', negative), get_records('2', positive).
+update_records :-
+	clear_records(negative),			% clear negative records
+	clear_records(positive),			% clear positive records
+	get_records('1', negative),		% get negative records
+	get_records('2', positive).		% get positive records
 % check if the given record ID exists
 exists_record(RecordName, ID) :- RecordList =..[RecordName, ID, 'ID', ID], RecordList.
 % count the number of records

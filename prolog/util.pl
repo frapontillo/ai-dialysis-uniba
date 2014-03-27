@@ -13,6 +13,31 @@ println([]) :- nl.
 println([Head|Tail]) :- write(Head), println(Tail), !.
 println(Element) :- not(Element = [_|_]), println([Element]).
 
+% ---------------- %
+%     LIST MIN     %
+% ---------------- %
+% start condition, Min is a variable, start with Min = Head
+list_min([Head|Tail], Min) :- number(Head), CurMin = Head, list_min(Tail, CurMin, Min), !.
+list_min([_Head|Tail], Min) :- list_min(Tail, Min), !.
+% end condition, return the CurMin
+list_min([], CurMin, Min) :- Min = CurMin.
+% loop condition with a min update
+list_min([Head|Tail], CurMin, FinalMin) :- number(Head), <(Head, CurMin), list_min(Tail, Head, FinalMin), !.
+% loop condition without a min update (Head >= CurMax OR Head NaN)
+list_min([_Head|Tail], CurMin, FinalMin) :- list_min(Tail, CurMin, FinalMin), !.
+
+% ---------------- %
+%     LIST MAX     %
+% ---------------- %
+% start condition, Max is a variable, start with Max = Head
+list_max([Head|Tail], Max) :- number(Head), CurMax = Head, list_max(Tail, CurMax, Max), !.
+list_max([_Head|Tail], Max) :- list_max(Tail, Max), !.
+% end condition, return the CurMax
+list_max([], CurMax, Max) :- Max = CurMax.
+% loop condition with a max update
+list_max([Head|Tail], CurMax, FinalMax) :- number(Head), >(Head, CurMax), list_max(Tail, Head, FinalMax), !.
+% loop condition without a max update (Head < CurMax OR Head NaN)
+list_max([_Head|Tail], CurMax, FinalMax) :- list_max(Tail, CurMax, FinalMax), !.
 
 % ---------------- %
 %  STRING CONCAT   %

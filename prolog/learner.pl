@@ -68,14 +68,14 @@ info_gain(IncludedValues, Attribute, InfoGain) :-
 	% sum all of the partial gains
 	findall(PartialInfoGain, PartialGains, GainList),
 	sum_list(GainList, PartialGainSum),
-	InfoGain = TotalEntropy - PartialGainSum
+	InfoGain is TotalEntropy - PartialGainSum
 	.
 
 partial_info_gain(IncludedValues, Attribute, Range, PartialInfoGain) :-
 	% get all the examples that satisfy the given Range
 	CandidateValues = (
 		example(_, ID, Attribute, Value),
-		Range = [Bottom, Top],
+		Range = range(Bottom, Top),
 		Value >= Bottom,
 		Value =< Top
 	),

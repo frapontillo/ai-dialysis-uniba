@@ -139,7 +139,7 @@ get_records(SymptomID, RecordName) :-
     `KTV`, `QB`, `PROG_WEIGHT_LOSS`, `REAL_WEIGHT_LOSS`, `DELTA_WEIGHT`, `PROG_DURATION`, `REAL_DURATION`, `DELTA_DURATION`,\c
     `SAP_START`, `SAP_END`, `AVG_SAP`, `DAP_START`, `DAP_END`, `AVG_DAP`, `BLOOD_VOLUME`, `DELTA_BLOOD_FLOW`, `DELTA_UF`,\c
     `SYMPTOM_ID`, `SCORE`\c
-		FROM `dialysisai`.`patient_dialysis_symptom_for_analysis` WHERE `SYMPTOM_ID` = ? ORDER BY `SCORE` DESC;',
+		FROM `dialysisai`.`patient_dialysis_symptom_for_analysis` WHERE `SYMPTOM_ID` = ? ORDER BY `SCORE` DESC LIMIT 1000;',
 		[default], Statement, [fetch(fetch)]),
 	println(['Statement prepared.']),
 	% execute the statement

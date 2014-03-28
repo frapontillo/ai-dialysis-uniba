@@ -9,7 +9,7 @@ measure_time.
 % ---------------- %
 %    PRINT LIST    %
 % ---------------- %
-println([], Separator) :- nl.
+println([], _) :- nl.
 println([Head|Tail], Separator) :- write(Head), write(Separator), println(Tail, Separator), !.
 println(Element, Separator) :- not(Element = [_|_]), println([Element], Separator).
 println(Element) :- println(Element, '').
@@ -50,3 +50,17 @@ concat_string_list([Head|Tail], Temp, Result) :-
 	string_concat(Temp, Head, NewString),
 	concat_string_list(Tail, NewString, Result).
 concat_string_list([], Temp, Result) :- Result = Temp.
+
+/**
+ * list_push/3
+ * 
+ * @param A list to append the element to
+ * @param The element to be appended
+ * @param The resulting list
+ */
+% appending an element to an empty list results in a list with that only element
+list_push([], Element, [Element]).
+% appending an Element to a list made by Head|Tail results in a list with:
+%  - the same Head
+%  - its NewTail made by appending Tail and Element
+list_push([Head|Tail], Element, [Head|NewTail]) :- list_push(Tail, Element, NewTail).

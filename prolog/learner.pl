@@ -48,3 +48,46 @@ entropy(IncludedValues, Entropy) :-
 entropy(Entropy) :-
 	findall(ID, example(_, ID, 'ID', ID), CompleteSet),
 	entropy(CompleteSet, Entropy).
+
+/**
+ * Calculate the Information Gain for a set of values and a given attribute.
+ *
+ * @param IncludedValues 	A list of IDs to be included when considering the information gain calculus.
+ * @param Attribute 			The attribute to calculate the information gain for.
+ * @Return InfoGain 			The calculated information gain.
+ */
+info_gain(IncludedValues, Attribute, InfoGain) :- 
+	% first off, let's calculate the total entropy
+	entropy(IncludedValues, TotalEntropy),
+	% calculate the partial information gain on each split of the Attribute (category or class)
+	PartialGains = (
+		class(Attribute, RangeList),																											% get the list of splits for the given Attribute
+		member(Range, RangeList),																													% loop through every range in the list
+		partial_info_gain(IncludedValues, Attribute, Range, PartialInfoGain)							% calculate the current partial info gain
+	),
+	% sum all of the partial gains
+	findall(PartialInfoGain, PartialGains, GainList),
+	sum_list(GainList, PartialGainSum),
+	InfoGain = TotalEntropy - PartialGainSum
+	.
+
+partial_info_gain(IncludedValues, Attribute, Range, PartialInfoGain) :-
+	% get all the examples that satisfy the given Range
+	CandidateValues = (
+		example(_, ID, Attribute, Value),
+		Range = [Bottom, Top],
+		Value >= Bottom,
+		Value =< Top
+	),
+	% get a list of the IDs
+	findall(ID, CandidateValues, IDList),
+	% intersect and find the useful IDs
+	intersection(IncludedValues, IDList, Values),
+	% get the entropy of the subset
+	entropy(Values, EntropyValues),
+	% get the size of the subset
+	length(Values, SizeValues),
+	% get the size of the original set
+	length(IDList, SizeIncludedValues),
+	PartialInfoGain is (EntropyValues * SizeValues / SizeIncludedValues)
+	.

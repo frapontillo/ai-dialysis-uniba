@@ -2,6 +2,7 @@
 :- use_module(library('dialect/hprolog')).
 
 main :-
+	println('Welcome!'),
 	connect,								% connect to the database
 	update_symptoms,				% update all of the possible symptoms
 	update_records,					% get positive and negative examples

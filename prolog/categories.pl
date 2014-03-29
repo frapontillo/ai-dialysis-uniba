@@ -44,14 +44,17 @@ target_class('SymptomID').
  * For a number: use ranges that span (|max-min|/10) values
  */
 update_categories :-
+	log_v('categories', 'Updating categories...'),
 	data_type(Attribute, Type),																% for each data
 	make_class(Attribute, Type),   														% make a class
 	fail																											% and iterate
 	.
-update_categories.																								% always succeed
+update_categories :-																				% always succeed
+	log_i('categories', 'Categories updated.').
 
 % classify a generic attribute
 make_class(Attribute, _) :-
+	log_v('categories', ['Making class ', Attribute]),
 	retractall(class(Attribute, _)),													% delete old ranges, if any
 	assertz(class(Attribute, []))															% init the list of ranges
 	.

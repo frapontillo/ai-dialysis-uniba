@@ -7,6 +7,26 @@ measure_time :- measure_time(_), !.
 measure_time.
 
 % ---------------- %
+%   TIME CONVERT   %
+% ---------------- %
+format_ms(Time, Minutes, Seconds, Milliseconds) :-
+	% calculate the minutes
+	MinutesFloat is (Time / (1000*60)),
+	Minutes is floor(MinutesFloat),
+	% calculate the seconds
+	SecondsFloat is (Time mod (1000*60) / 1000),
+	Seconds is floor(SecondsFloat),
+	% calculate the milliseconds
+	Milliseconds is (Time mod 1000)
+	.
+
+format_ms(Time, String) :-
+	format_ms(Time, Minutes, Seconds, Milliseconds),
+	TimeList = [Minutes, 'm ', Seconds, 's ', Milliseconds, 'ms'],
+	atomic_list_concat(TimeList, String)
+	.
+
+% ---------------- %
 %    PRINT LIST    %
 % ---------------- %
 println([], _) :- nl.

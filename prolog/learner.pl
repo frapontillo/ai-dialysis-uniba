@@ -65,12 +65,15 @@ entropy(Entropy) :-
  * @return Attribute    The best attribute for the given set
  */
 best_attribute(Set, Attribute) :-
+    measure_time,
     % collect the whole set of possible information gains for the given Set
     GainsSet = (target_class(Target), data_type(Attribute, _), Attribute \= Target, info_gain(Set, Attribute, InfoGain)),
     % calculate the maximum InfoGain from GainsSet and get the Attribute
     aggregate_all(max(InfoGain, Attribute), GainsSet, BestSet),
     BestSet = max(InfoGain, Attribute),
-    println(['The best resulting info gain is achieved with attribute ', Attribute, ' with a value of ', InfoGain])
+    log_i('learner', ['Best info gain is achieved with attribute ', Attribute, ' with a value of ', InfoGain]),
+    measure_time(Time), format_ms(Time, TimeString),
+    log_d('learner', ['Best attribute calculus took ', TimeString, '.'])
     .
 
 % shortcut for best_attribute to the complete set
@@ -87,6 +90,7 @@ best_attribute(Attribute) :-
  * @Return InfoGain             The calculated information gain.
  */
 info_gain(Set, Attribute, InfoGain) :- 
+    log_v('learner', ['Calculating info gain for ', Attribute, '...']),
     % first off, let's calculate the total entropy
     entropy(Set, TotalEntropy),
     % calculate the partial information gain on each split of the Attribute (category or class)
@@ -99,7 +103,7 @@ info_gain(Set, Attribute, InfoGain) :-
     findall(PartialInfoGain, PartialGains, GainList),
     sum_list(GainList, PartialGainSum),
     InfoGain is TotalEntropy - PartialGainSum,
-    println(['Info gain for ', Attribute, ' is ', InfoGain])
+    log_i('learner', ['Info gain for ', Attribute, ' is ', InfoGain])
     .
 
 % shortcut for info_gain to the complete set
@@ -117,6 +121,7 @@ info_gain(Attribute, InfoGain) :-
  * @return              The PartialInfoGain, to be used to compute the whole Attribute Information Gain.  
  */
 partial_info_gain(Set, Attribute, Range, PartialInfoGain) :-
+    log_v('learner', ['Calculating partial info gain for ', Attribute, ' with ', Range, '...']),
     clean_set(Set, Attribute, CleanSet),
     % get all the examples that satisfy the given Range
     Subset = (
@@ -133,7 +138,7 @@ partial_info_gain(Set, Attribute, Range, PartialInfoGain) :-
     % get the size of the original set
     length(CleanSet, SetLength),
     PartialInfoGain is (SubsetEntropy * SubsetLength / SetLength),
-    println(['Partial info gain for ', Attribute, ' with ', Range, ' is ', PartialInfoGain])
+    log_d('learner', ['Partial info gain for ', Attribute, ' with ', Range, ' is ', PartialInfoGain])
     .
 
 /**

@@ -64,3 +64,9 @@ list_push([], Element, [Element]).
 %  - the same Head
 %  - its NewTail made by appending Tail and Element
 list_push([Head|Tail], Element, [Head|NewTail]) :- list_push(Tail, Element, NewTail).
+
+%* concat two generic elements in one list
+list_append(A, B, List) :-
+    (not(is_list(A)) -> NewA = [A]; NewA = A),
+    (not(is_list(B)) -> NewB = [B]; NewB = B),
+    append([NewA, NewB], List).

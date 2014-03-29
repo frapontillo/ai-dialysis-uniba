@@ -27,6 +27,8 @@ data_type('DeltaBloodFlow', number).
 data_type('DeltaUF', number).
 data_type('SymptomID', category).
 
+target_class('SymptomID').
+
 
 % ------------------- %
 %        class        %
@@ -91,3 +93,24 @@ add_to_class(Attribute, Bottom, Top) :-
 	retractall(class(Attribute, RangeList)),									% replace the list
 	assertz(class(Attribute, NewRangeList))
 	.
+
+/**
+ * Check if the given Value is included in the given Range.
+ * If Range is a category, Bottom equals Top, so only a check on Bottom = Value is performed.
+ * If Range is a number, Value must be higher or equal than Bottom and 
+ * 
+ * @param Value 	A value, can be a number or a category.
+ * @param Range 	A Range structure, as range(Bottom, Top).
+ */	
+is_in_range(Value, Range) :-
+	%Value \= '$null$',
+	Range = range(Bottom, Top),
+	is_in_range(Value, Bottom, Top).
+
+is_in_range(Value, Bottom, Top) :-
+	Bottom = Top,
+	Value = Bottom, !.
+
+is_in_range(Value, Bottom, Top) :-
+	Value >= Bottom,
+    Value < Top, !.

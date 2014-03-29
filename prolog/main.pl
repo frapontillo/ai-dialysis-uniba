@@ -1,4 +1,5 @@
-:- ['database.pl', 'categories.pl', 'util.pl', 'learner.pl'].
+:- ['database.pl', 'categories.pl', 'util.pl', 'learner.pl', 'log.pl'].
+:- use_module(library('dialect/hprolog')).
 
 main :-
 	connect,								% connect to the database

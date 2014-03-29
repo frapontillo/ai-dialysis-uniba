@@ -68,8 +68,9 @@ best_attribute(Set, Attribute) :-
     % collect the whole set of possible information gains for the given Set
     GainsSet = (target_class(Target), data_type(Attribute, _), Attribute \= Target, info_gain(Set, Attribute, InfoGain)),
     % calculate the maximum InfoGain from GainsSet and get the Attribute
-    aggregate_all(max(InfoGain, Attribute), GainsSet, BestInfoGain),
-    println(['The best resulting info gain is achieved with attribute ', Attribute, ' with a value of ', BestInfoGain])
+    aggregate_all(max(InfoGain, Attribute), GainsSet, BestSet),
+    BestSet = max(InfoGain, Attribute),
+    println(['The best resulting info gain is achieved with attribute ', Attribute, ' with a value of ', InfoGain])
     .
 
 % shortcut for best_attribute to the complete set

@@ -1,3 +1,5 @@
+:- dynamic db_param/2.
+
 % read the location of the config file
 get_config_path(ConfigPath) :-
 	println([
@@ -166,5 +168,6 @@ count_records(RecordName, Count) :- RecordList =..[RecordName, ID, 'ID', ID], ag
 % ------------------ %
 %      ACCESSORY     %
 % ------------------ %
+:- dynamic positive/3, negative/3.
 example(positive, ID, Attribute, Value) :- positive(ID, Attribute, Value).
 example(negative, ID, Attribute, Value) :- negative(ID, Attribute, Value).

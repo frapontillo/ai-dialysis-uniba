@@ -59,15 +59,17 @@ entropy(Entropy) :-
     entropy(CompleteSet, Entropy).
 
 /**
- * Select the best attribute from the given set, using information gain.
+ * Select the best attribute from the given sets of attributes and examples,
+ * using information gain.
  * 
  * @param Set           The set of example IDs to calculate the best attribute for.
+ * @param Set           The set of attributes to select the best attribute from.
  * @return Attribute    The best attribute for the given set
  */
-best_attribute(Set, Attribute) :-
+best_attribute(Set, Attributes, Attribute) :-
     measure_time,
     % collect the whole set of possible information gains for the given Set
-    GainsSet = (target_class(Target), data_type(Attribute, _), Attribute \= Target, info_gain(Set, Attribute, InfoGain)),
+    GainsSet = (target_class(Target), member(Attribute, Attributes), Attribute \= Target, info_gain(Set, Attribute, InfoGain)),
     % calculate the maximum InfoGain from GainsSet and get the Attribute
     aggregate_all(max(InfoGain, Attribute), GainsSet, BestSet),
     BestSet = max(InfoGain, Attribute),
@@ -76,10 +78,11 @@ best_attribute(Set, Attribute) :-
     log_d('learner', ['Best attribute calculus took ', TimeString, '.'])
     .
 
-% shortcut for best_attribute to the complete set
+% shortcut for best_attribute to the complete set of examples and attributes
 best_attribute(Attribute) :-
     complete_set(CompleteSet),
-    best_attribute(CompleteSet, Attribute)
+    findall(Attribute, data_type(Attribute, _), Attributes),
+    best_attribute(CompleteSet, Attributes, Attribute)
     .
 
 /**
@@ -159,3 +162,37 @@ clean_set(Set, Attribute, CleanSet) :-
     % make a list of it
     findall(ID, CleanSetGoal, CleanSet)
     .
+
+% ------------------ %
+%    LEARN PROCESS   %
+% ------------------ %
+learn :-
+    log_e('learner', 'YOU DIDN''T SAY THE MAGIC WORD!').
+
+learn_please :-
+    retractall(node(_)),
+    assertz(node('root')),
+    % TODO: continue here
+    true.
+
+/**
+ * C4.5
+ * Examples:    training examples
+ * Target:      target attribute (to be predicted)
+ * Attributes:  list of attributes to be tested
+ * 
+ * If all examples are in class 
+ * 
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+ % TODO: continue here
+ c45(Examples, Target, Attributes) :- true.

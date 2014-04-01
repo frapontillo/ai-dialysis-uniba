@@ -90,3 +90,14 @@ list_append(A, B, List) :-
     (not(is_list(A)) -> NewA = [A]; NewA = A),
     (not(is_list(B)) -> NewB = [B]; NewB = B),
     append([NewA, NewB], List).
+
+% ---------------- %
+%    MATHEMATICS   %
+% ---------------- %
+/**
+ * Base-2 logarithm.
+ *
+ * @param Expr the expression to calculate the log2 for.
+ * @return R the result of the calculation.
+ */
+log2(Expr, R) :- R is log10(Expr) / log10(2).

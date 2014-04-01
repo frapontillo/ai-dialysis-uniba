@@ -1,12 +1,4 @@
 /**
- * Base-2 logarithm.
- *
- * @param Expr the expression to calculate the log2 for.
- * @return R the result of the calculation.
- */
-log2(Expr, R) :- R is log10(Expr) / log10(2).
-
-/**
  * Get the complete set of example IDs as a list.
  *
  * @return CompleteSet, list of all the example IDs.

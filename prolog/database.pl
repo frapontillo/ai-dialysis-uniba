@@ -170,8 +170,10 @@ print_records(RecordName) :- _RecordList =..[RecordName, ID, Attribute, Value], 
 update_records :-
 	clear_records(negative),			% clear negative records
 	clear_records(positive),			% clear positive records
-	get_records('1', negative),		% get negative records
-	get_records('2', positive).		% get positive records
+	negative_target(NegNumb), atom_number(Neg, NegNumb),
+	get_records(Neg, negative),		% get negative records
+	positive_target(PosNumb), atom_number(Pos, PosNumb),
+	get_records(Pos, positive).		% get positive records
 % check if the given record ID exists
 exists_record(RecordName, ID) :- RecordList =..[RecordName, ID, 'ID', ID], RecordList.
 % count the number of records

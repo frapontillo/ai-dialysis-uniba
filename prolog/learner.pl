@@ -175,33 +175,43 @@ clean_set(Set, Attribute, CleanSet) :-
 %    LEARN PROCESS   %
 % ------------------ %
 
-:- dynamic node/1, node_label/2, node_selection/2.
+% node/1 hold the node and the parent node
+:- dynamic node/2.
+% node_label/2 holds the node result
+:- dynamic node_label/2.
+% node_selection/3 holds the node, the attribute and the selection range
+:- dynamic node_selection/3.
 
 /**
  * Bootstrap the learning process on the root node.
  */
 learn_please :-
     % clear old facts
-    retractall(node(_)), retractall(node_label(_,_)), retractall(node_selection(_,_)),
+    retractall(node(_,_)), retractall(node_label(_,_)), retractall(node_selection(_,_,_)),
     % get a list of every valid attribute (the ones with at least one range)
     findall(Attribute, class(Attribute, _), Attributes),
     % get a list of every example
     complete_set(Examples),
     % create the root node
     log_d('learner', 'Create root node.'),
-    assertz(node('root')),
+    RootNode = node('root', ground),
+    assertz(RootNode),
     % bootstrap the algorithm with the root node
     log_i('learner', 'Bootstrap C4.5'),
-    c45('root', Examples, Attributes)
+    measure_time,
+    c45(RootNode, Examples, Attributes),
+    measure_time(Elapsed), format_ms(Elapsed, Time),
+    log_i('learn_please', ['Learning algorithm finished in ', Time])
     .
 
 /**
  * C4.5
- * NodeName:    name of the node to build
+ * Node:        node to build
  * Examples:    training examples
  * Attributes:  list of attributes to be tested
  */
- c45(NodeName, Examples, Attributes) :- 
+ c45(Node, Examples, Attributes) :- 
+    Node = node(NodeName, _),
     log_d('c45', ['Executing C4.5 for node ', NodeName, '.']),
     % STEP 1: check if every example is in the same class
     % find all the different target values in the current subset
@@ -214,7 +224,7 @@ learn_please :-
         DifferentValues = 1 ->
         TargetValues = [SingleValue|_],
         log_d('c45', ['All examples are in the same class: ', SingleValue, '.']),
-        assertz(node_label(NodeName, SingleValue)),
+        assertz(node_label(Node, SingleValue)),
         fail
         ;
         true
@@ -227,7 +237,7 @@ learn_please :-
         AttributesNumber = 0 ->
         log_d('c45', ['There are no more attributes to analyze.']),
         list_most_common(TargetValues, MostCommonValue, _),
-        assertz(node_label(NodeName, MostCommonValue)),
+        assertz(node_label(Node, MostCommonValue)),
         fail
         ;
         true
@@ -237,9 +247,6 @@ learn_please :-
     log_d('c45', ['Looking for the best attribute to split ', NodeName]),
     % get the best attribute
     best_attribute(Examples, Attributes, BestAttribute),
-    % save the current node attribute used for splitting
-    % TODO: remove and add with both attribute and range
-    assertz(node_selection(NodeName, BestAttribute)),
     % save the remaining attributes for later use
     list_remove(Attributes, BestAttribute, RemainingAttributes),
     % get all the ranges of the best attribute
@@ -254,7 +261,12 @@ learn_please :-
             atomic_list_concat([BestAttribute, Position], '-', ChildNodeName),
             % create the new node
             log_d('c45', ['Create node ', ChildNodeName, '.']),
-            assertz(node(ChildNodeName)),
+            ChildNode = node(ChildNodeName, Node),
+            assertz(ChildNode),
+            % save the current node attribute and range used for splitting
+            assertz(node_selection(ChildNode, BestAttribute, Range)),
+            % save the father and the son
+            % assertz(node_branch(NodeName, ChildNodeName)),
             % partition the examples on the given best attribute and range
             partition_examples(Examples, BestAttribute, Range, NewExamples),
             % if the new example set is empty
@@ -263,10 +275,10 @@ learn_please :-
                 NewExamplesLength = 0 ->
                 log_d('c45', ['There are no more examples to analyze for attribute ', BestAttribute, ' in range ', Range, '.']),
                 list_most_common(TargetValues, MostCommonValue, _),
-                assertz(node_label(ChildNodeName, MostCommonValue))
+                assertz(node_label(ChildNode, MostCommonValue))
                 ;
                 log_d('c45', ['Recursively calling C4.5 on ', ChildNodeName, '.']),
-                c45(ChildNodeName, NewExamples, RemainingAttributes)
+                c45(ChildNode, NewExamples, RemainingAttributes)
             ),
         % loop until all ranges are analyzed and nodes are created
         fail
@@ -279,3 +291,46 @@ c45(_,_,_) :- true.
 % funfunfun
 learn :-
     log_e('learner', 'YOU DIDN''T SAY THE MAGIC WORD!').
+
+print_le_tree :-
+    write('root'), nl,
+    RootNode = node('root', ground),
+    node(ChildNodeName, RootNode),
+    ChildNode = node(ChildNodeName, RootNode),
+    print_le_branch(ChildNode, 0),
+    fail;
+    true.
+
+print_le_branch(Node, NestLevel) :-
+    % print spaces
+    between(1, NestLevel, _), write(' '), fail;
+
+    % print connector
+    write('  '), fail;
+
+    % if it is a leaf node, print the result
+    node_label(Node, Result),
+    positive_target(Pos),
+    (
+        Result = Pos -> ansi_format([bold, bg(green), fg(white)], ' + ', []), write(' ')
+    ), fail;
+
+    % print the node name
+    Node = node(NodeName, _),
+    write(NodeName), fail;
+
+    % print the attribute and range
+    node_selection(Node, Attribute, Range),
+    write(' [ '), write(Attribute), write(' : '),
+    write(Range), write(' ]'), fail;
+    % always go to new line
+    nl, fail;
+
+    % loop through the children and print them
+    node(ChildNodeName, Node),
+    ChildNode = node(ChildNodeName, Node),
+    NextNest is NestLevel + 1,
+    print_le_branch(ChildNode, NextNest), fail;
+
+    % always succeed
+    true.

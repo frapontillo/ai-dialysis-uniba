@@ -175,32 +175,30 @@ clean_set(Set, Attribute, CleanSet) :-
 %    LEARN PROCESS   %
 % ------------------ %
 
-% node/1 hold the node and the parent node
-:- dynamic node/2.
+% node/4 holds the node, the parent node, the splitting attribute and range
+:- dynamic node/4.
 % node_label/2 holds the node result
 :- dynamic node_label/2.
-% node_selection/3 holds the node, the attribute and the selection range
-:- dynamic node_selection/3.
 
 /**
  * Bootstrap the learning process on the root node.
  */
 learn_please :-
     % clear old facts
-    retractall(node(_,_)), retractall(node_label(_,_)), retractall(node_selection(_,_,_)),
+    retractall(node(_,_,_,_)), retractall(node_label(_,_)),
     % get a list of every valid attribute (the ones with at least one range)
     findall(Attribute, class(Attribute, _), Attributes),
     % get a list of every example
     complete_set(Examples),
     % create the root node
     log_d('learner', 'Create root node.'),
-    RootNode = node('root', ground),
+    RootNode = node('root', root, root, root),
     assertz(RootNode),
     % bootstrap the algorithm with the root node
     log_i('learner', 'Bootstrap C4.5'),
-    measure_time,
+    timer_start(learn),
     c45(RootNode, Examples, Attributes),
-    measure_time(Elapsed), format_ms(Elapsed, Time),
+    timer_stop(learn, Elapsed), format_s(Elapsed, Time),
     log_i('learn_please', ['Learning algorithm finished in ', Time])
     .
 
@@ -211,7 +209,7 @@ learn_please :-
  * Attributes:  list of attributes to be tested
  */
  c45(Node, Examples, Attributes) :- 
-    Node = node(NodeName, _),
+    Node = node(NodeName, _, _, _),
     log_d('c45', ['Executing C4.5 for node ', NodeName, '.']),
     % STEP 1: check if every example is in the same class
     % find all the different target values in the current subset
@@ -255,18 +253,13 @@ learn_please :-
         % for each range of the BestAttribute
         member(Range, BestAttributeRanges),
             log_v('c45', ['Looping over range ', Range]),
-            % get the range index in the range list
-            index_of(BestAttributeRanges, Range, Position),
-            % get a node name in the 'AttributeName-RangeIndex' format
-            atomic_list_concat([BestAttribute, Position], '-', ChildNodeName),
-            % create the new node
+            % get a node name in the '[ AttributeName : Range ]' format
+            term_to_atom(Range, RangeString),
+            atomic_list_concat(['[ ', BestAttribute, ' : ', RangeString, ' ]'], ChildNodeName),
+            % create the new node with the parent node, the splitting attribute and range
             log_d('c45', ['Create node ', ChildNodeName, '.']),
-            ChildNode = node(ChildNodeName, Node),
+            ChildNode = node(ChildNodeName, Node, BestAttribute, Range),
             assertz(ChildNode),
-            % save the current node attribute and range used for splitting
-            assertz(node_selection(ChildNode, BestAttribute, Range)),
-            % save the father and the son
-            % assertz(node_branch(NodeName, ChildNodeName)),
             % partition the examples on the given best attribute and range
             partition_examples(Examples, BestAttribute, Range, NewExamples),
             % if the new example set is empty
@@ -293,42 +286,43 @@ learn :-
     log_e('learner', 'YOU DIDN''T SAY THE MAGIC WORD!').
 
 print_le_tree :-
-    write('root'), nl,
-    RootNode = node('root', ground),
-    node(ChildNodeName, RootNode),
-    ChildNode = node(ChildNodeName, RootNode),
-    print_le_branch(ChildNode, 0),
-    fail;
-    true.
+    RootNode = node('root', root, root, root),
+    print_le_branch(RootNode, 0).
 
 print_le_branch(Node, NestLevel) :-
-    % print spaces
-    between(1, NestLevel, _), write(' '), fail;
-
-    % print connector
-    write('  '), fail;
+    % print 4 spaces for each level
+    between(0, NestLevel, Current), Current > 0, write('    '), fail;
 
     % if it is a leaf node, print the result
     node_label(Node, Result),
     positive_target(Pos),
     (
-        Result = Pos -> ansi_format([bold, bg(green), fg(white)], ' + ', []), write(' ')
-    ), fail;
+        Result = Pos -> 
+            string_codes(Check, [32, 10004, 32]), Opts = [bold, bg(green), fg(white)];
+            string_codes(Check, [32, 10008, 32]), Opts = [bold]
+    ),
+    ansi_format(Opts, Check, []),
+    fail;
 
-    % print the node name
-    Node = node(NodeName, _),
-    write(NodeName), fail;
+    % if it's not a leaf node, print a down triangle to indent properly
+    not(node_label(Node, _)), NestLevel > 0,
+    atom_codes(Triangle, [32, 9660, 32]), write(Triangle),
+    fail;
 
-    % print the attribute and range
-    node_selection(Node, Attribute, Range),
-    write(' [ '), write(Attribute), write(' : '),
-    write(Range), write(' ]'), fail;
+    % print the attribute and the range]), 
+    Node = node(_, _, Attribute, Range),
+    write('[ '),
+    write(Attribute),
+    write(' : '),
+    write(Range),
+    write(' ]'), fail;
+
     % always go to new line
     nl, fail;
 
     % loop through the children and print them
-    node(ChildNodeName, Node),
-    ChildNode = node(ChildNodeName, Node),
+    node(ChildNodeName, Node, Attribute, Range),
+    ChildNode = node(ChildNodeName, Node, Attribute, Range),
     NextNest is NestLevel + 1,
     print_le_branch(ChildNode, NextNest), fail;
 

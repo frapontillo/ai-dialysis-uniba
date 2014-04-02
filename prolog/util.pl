@@ -6,6 +6,58 @@ measure_time(_).
 measure_time :- measure_time(_), !.
 measure_time.
 
+:- dynamic timer_time/2.
+
+/**
+ * Start a new timer with a given name.
+ * If another timer with the given name exists, an error is raised.
+ * 
+ * @param Name 		The name of the timer.
+ */
+timer_start(Name) :-
+	timer_exists(Name),
+	statistics(real_time,[Time|_]),
+	assertz(timer_time(Name, Time)).
+
+/**
+ * Get the time from a given timer.
+ * 
+ * @param Name 		The name of the timer.
+ * @param Elapsed The number of elapsed seconds since the timer was started.
+ */
+timer_get(Name, Elapsed) :-
+	timer_not_exists(Name),
+	timer_time(Name, Time),
+	statistics(real_time,[NowTime|_]),
+	Elapsed is NowTime - Time.
+
+/**
+ * Stop and destroy a given timer.
+ * 
+ * @param Name 		The name of the timer to be stopped.
+ * @param Elapsed The number of elapsed seconds since the timer was started.
+ */
+timer_stop(Name, Elapsed) :-
+	timer_not_exists(Name),
+	timer_get(Name, Elapsed),
+	retractall(timer_time(Name, _)).
+
+/**
+ * Check if a timer exists and logs an error if it does not.
+ *
+ * @param Name 		The name of the timer to check for.
+ */
+timer_exists(Name) :-
+	( timer_time(Name, _) -> log_e('timer', ['A timer with the name ', Name, ' already exists.']), fail; true ).
+
+/**
+ * Check if a timer doesn't exists and logs an error if it does.
+ *
+ * @param Name 		The name of the timer to check for.
+ */
+timer_not_exists(Name) :-
+	( not(timer_time(Name, _)) -> log_e('timer', ['A timer with the name ', Name, ' does not exists.']), fail; true ).
+
 % ---------------- %
 %   TIME CONVERT   %
 % ---------------- %
@@ -19,6 +71,10 @@ format_ms(Time, Minutes, Seconds, Milliseconds) :-
 	% calculate the milliseconds
 	Milliseconds is (Time mod 1000)
 	.
+
+format_s(Time, String) :-
+	Ms is (Time * 1000),
+	format_ms(Ms, String).
 
 format_ms(Time, String) :-
 	format_ms(Time, Minutes, Seconds, Milliseconds),

@@ -8,6 +8,7 @@ get_config_path(ConfigPath) :-
 	read_term(ConfigFile, [syntax_errors(quiet)]),
 	string_concat('config/', ConfigFile, ConfigPathString),
 	atom_string(ConfigPath, ConfigPathString).
+	
 % read database parameters with fallback on 'config/database.properties'
 read_database_params(Driver, Server, Port, Database, User, Password) :-
 	log_v('database','Asking for the config path.'),
@@ -21,6 +22,7 @@ read_database_params(Driver, Server, Port, Database, User, Password) :-
 	read_database_params('config/database.properties', Driver, Server, Port, Database, User, Password).
 % read database parameters from a given file
 read_database_params(ConfigPath, Driver, Server, Port, Database, User, Password) :-
+	retractall(db_param(_,_)),
 	new_table(ConfigPath, [ attribute(atom), value(atom) ], [ field_separator(61), record_separator(10) ], PropertiesFile),
 	open_table(PropertiesFile),
 	log_v('database','Reading database parameters...'),
@@ -42,14 +44,24 @@ read_database_param(PropertiesFile, Row) :-
 	read_database_param(PropertiesFile, Next), !.
 % always satisfy
 read_database_param(_, _).
-% connect to the database
+
+% connect to the database by using the user provided config file
 connect :-
 	read_database_params(Driver, Server, Port, Database, User, Password),
+	connect(Driver, Server, Port, Database, User, Password).
+% connect to the database by using the input config file
+connect(ConfigPath) :-
+	read_database_params(ConfigPath, Driver, Server, Port, Database, User, Password),
+	connect(Driver, Server, Port, Database, User, Password).
+% connect to the database with explicit parameters
+connect(Driver, Server, Port, Database, User, Password) :-
 	concat_string_list([ 'DRIVER=', Driver, ';', 'SERVER=', Server, ';', 'PORT=', Port, ';', 'DATABASE=', Database, ';', 'USER=', User, ';', 'PASSWORD=', Password, ';' ], ConnectionString),
 	odbc_driver_connect(ConnectionString, _, [ alias(dialysis_connection) ]),
 	log_i('database', ['Connected to ', dialysis_connection]).
+
 % disconnect from the database
 disconnect :- odbc_current_connection(dialysis_connection, _), odbc_disconnect(dialysis_connection), println(['Disconnected from ', dialysis_connection]).
+
 % check if it is connected
 is_connected :- odbc_current_connection(dialysis_connection, _).
 

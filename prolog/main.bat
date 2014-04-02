@@ -1,1 +1,1 @@
-swipl -f main.pl -g main
+swipl -f main.pl -g main(default)

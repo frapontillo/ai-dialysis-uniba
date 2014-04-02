@@ -61,16 +61,30 @@ list_max([Head|Tail], CurMax, FinalMax) :- number(Head), >(Head, CurMax), list_m
 list_max([_Head|Tail], CurMax, FinalMax) :- list_max(Tail, CurMax, FinalMax), !.
 
 % ---------------- %
-%  STRING CONCAT   %
+%    LIST COMMON   %
 % ---------------- %
-% concat_string_list/2 is used to begin the string concatenation
-concat_string_list([Head|Tail], Result) :- concat_string_list([Head|Tail], '', Result).
-% concat_string_list/3 is used to recurse the string concatenation
-concat_string_list([Head|Tail], Temp, Result) :-
-	string_concat(Temp, Head, NewString),
-	concat_string_list(Tail, NewString, Result).
-concat_string_list([], Temp, Result) :- Result = Temp.
+list_most_common(List, Element, Count) :-
+	% remove duplicates
+	setof(X, member(X,List), Set),
+	% make a list of count(Element, Count)
+	findall(
+		count(TempElement, TempCount),
+		(member(TempElement, Set), aggregate_all(count, member(TempElement, List), TempCount)),
+		AllCounts),
+	aggregate_all(max(MaxCount, MaxElement), member(count(MaxElement, MaxCount), AllCounts), Result),
+	Result = max(Count, Element).
 
+% ---------------- %
+%    LIST INDEX    %
+% ---------------- %
+index_of([Element|_], Element, 0):- !.
+index_of([_|Tail], Element, Index):-
+  index_of(Tail, Element, OtherIndex), !,
+  Index is OtherIndex + 1.
+
+% ---------------- %
+%     LIST PUSH    %
+% ---------------- %
 /**
  * list_push/3
  * 
@@ -85,11 +99,41 @@ list_push([], Element, [Element]).
 %  - its NewTail made by appending Tail and Element
 list_push([Head|Tail], Element, [Head|NewTail]) :- list_push(Tail, Element, NewTail).
 
+% ---------------- %
+%    LIST CONCAT   %
+% ---------------- %
 %* concat two generic elements in one list
 list_append(A, B, List) :-
     (not(is_list(A)) -> NewA = [A]; NewA = A),
     (not(is_list(B)) -> NewB = [B]; NewB = B),
     append([NewA, NewB], List).
+
+% ---------------- %
+%    LIST REMOVE   %
+% ---------------- %
+/*
+ * remove/3
+ * @param A list to remove the element from
+ * @param The element to be removed
+ * @param The resulting list
+ */
+% removing an Element from an empty List returns an empty list
+list_remove([], _, []).
+% if the Element is the Head of the list, return NewTail, which is the Tail after calling remove on it again
+list_remove([Element|Tail], Element, NewTail) :- list_remove(Tail, Element, NewTail), !.
+% if the Element is not the Head of the list, return the original Head and a NewTail, which is the Tail after calling remove on it again
+list_remove([Head|Tail], Element, [Head|NewTail]) :- list_remove(Tail, Element, NewTail).
+
+% ---------------- %
+%  STRING CONCAT   %
+% ---------------- %
+% concat_string_list/2 is used to begin the string concatenation
+concat_string_list([Head|Tail], Result) :- concat_string_list([Head|Tail], '', Result).
+% concat_string_list/3 is used to recurse the string concatenation
+concat_string_list([Head|Tail], Temp, Result) :-
+	string_concat(Temp, Head, NewString),
+	concat_string_list(Tail, NewString, Result).
+concat_string_list([], Temp, Result) :- Result = Temp.
 
 % ---------------- %
 %    MATHEMATICS   %

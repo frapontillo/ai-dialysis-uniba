@@ -328,3 +328,84 @@ print_le_branch(Node, NestLevel) :-
 
     % always succeed
     true.
+
+% ------------------ %
+%   RULE GENERATOR   %
+% ------------------ %
+
+/**
+ * For each node_label with a positive outcome, generate the corresponding rule
+ * by going up from the leaf to the tree root node.
+ */
+gen_all_the_rulez :- 
+    retractall(is_positive(_)),
+    log_d('gen_all_rules', 'Starting to generate rules...'),
+    positive_target(PositiveID),                % get the positive ID
+    node_label(Node, PositiveID),               % for every positive node
+    gen_rule(Node),                             % generate corresponding rule
+    fail                                        % loop
+    ;
+    log_i('gen_all_rules', 'Rules generation complete.'),
+    true                                        % always succeed
+    .
+
+/**
+ * Generate the rule for the corresponding input Node.
+ *
+ * @param Node      The leaf Node that holds the rule information.
+ */
+gen_rule(Node) :-
+    Node = node(Name, _, _, _),
+    log_v('gen_rule', ['Generating rule for node ', Name, '...']),
+    get_rule_list(Node, [], Conditions),
+    assertz(is_positive(ID) :- (check_condition_list(ID, Conditions))),
+    log_v('gen_rule', ['Rule for node ', Name, ' generated.'])
+    .
+
+/**
+ * Builds a list of condition(Attribute, Range).
+ * 
+ * @param Node      The Node to build the condition list for.
+ * @param PrevList  The temporary list for recursion.
+ * @param List      The list of conditions to return.
+ */
+get_rule_list(Node, PrevList, List) :-
+    Node = node(root, root, root, root),
+    List = PrevList, !
+    ;
+    Node = node(_, Parent, Attribute, Range),
+    Element = condition(Attribute, Range),
+    list_append(PrevList, Element, NewPrevList),
+    get_rule_list(Parent, NewPrevList, List)
+    .
+
+/**
+ * Check if a given fact with an ID matches all the conditions in the input list.
+ * 
+ * @param ID        The ID of the fact/3.
+ * @param List      The List of condition/2.
+ */
+check_condition_list(ID, List) :-
+    fact(ID, 'ID', ID), !,
+    forall(
+        member(Condition, List),
+        (
+            % get Attribute and Range to test
+            Condition = condition(Attribute, Range),
+            % test the Attribute and the Range
+            fact(ID, Attribute, Value),
+            log_v('check', ['Testing ID ', ID, ' on Attribute ', Attribute, ' with value ', Value, ' on ', Range, '.']),
+            is_in_range(Value, Range)
+        )
+    )
+    .
+
+/**
+ * Generate a set of Prolog conditions from a list.
+ * 
+ * @param List      The list of conditions.
+ * @param Set       The set of Prolog conditions.
+ */
+get_conditions_from_list([Condition], Condition).
+get_conditions_from_list([Head | Tail],(Head, OtherConditions)) :-
+    get_conditions_from_list(Tail, OtherConditions).

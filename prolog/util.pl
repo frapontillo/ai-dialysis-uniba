@@ -155,6 +155,16 @@ list_push([], Element, [Element]).
 %  - its NewTail made by appending Tail and Element
 list_push([Head|Tail], Element, [Head|NewTail]) :- list_push(Tail, Element, NewTail).
 
+/**
+ * Add an element to the top of the list.
+ * 
+ * @param List 			the original list
+ * @param Element 	the element to add
+ * @param NewList		the list to return
+ */
+list_unshift(List, Element, NewList) :-
+	NewList = [Element|List].
+
 % ---------------- %
 %    LIST CONCAT   %
 % ---------------- %

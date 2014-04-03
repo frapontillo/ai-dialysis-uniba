@@ -116,9 +116,7 @@ is_in_range(Value, Range) :-
     Range = range(Bottom, Top),
     is_in_range(Value, Bottom, Top).
 
-is_in_range(Value, Bottom, Top) :-
-    Bottom = Top,
-    Value = Bottom, !.
+is_in_range(Value, Value, Value) :- !.
 
 is_in_range(Value, Bottom, Top) :-
     Value >= Bottom,

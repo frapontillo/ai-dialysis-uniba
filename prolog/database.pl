@@ -1,5 +1,8 @@
 :- dynamic db_param/2.
 
+/**
+ * TODO: write doc
+ */
 % read the location of the config file
 get_config_path(ConfigPath) :-
     println([
@@ -8,7 +11,10 @@ get_config_path(ConfigPath) :-
     read_term(ConfigFile, [syntax_errors(quiet)]),
     string_concat('config/', ConfigFile, ConfigPathString),
     atom_string(ConfigPath, ConfigPathString).
-    
+
+/**
+ * TODO: write doc
+ */
 % read database parameters with fallback on 'config/database.properties'
 read_database_params(Driver, Server, Port, Database, User, Password) :-
     log_v('database','Asking for the config path.'),
@@ -20,6 +26,10 @@ read_database_params(Driver, Server, Port, Database, User, Password) :-
 read_database_params(Driver, Server, Port, Database, User, Password) :-
     log_w('database', 'FAIL: could not read custom parameter config file, falling back to database.properties.'),
     read_database_params('config/database.properties', Driver, Server, Port, Database, User, Password).
+
+/**
+ * TODO: write doc
+ */
 % read database parameters from a given file
 read_database_params(ConfigPath, Driver, Server, Port, Database, User, Password) :-
     retractall(db_param(_,_)),
@@ -30,6 +40,10 @@ read_database_params(ConfigPath, Driver, Server, Port, Database, User, Password)
     close_table(PropertiesFile),
     db_param(driver, Driver), db_param(server, Server), db_param(port, Port), db_param(database, Database), db_param(username, User), db_param(password, Password),
     log_i('database', 'Database parameters read.').
+
+/**
+ * TODO: write doc
+ */
 % iterate over parameters to read
 read_database_param(PropertiesFile, Row) :-
     % if there is another record
@@ -45,23 +59,40 @@ read_database_param(PropertiesFile, Row) :-
 % always satisfy
 read_database_param(_, _).
 
+/**
+ * TODO: write doc
+ */
 % connect to the database by using the user provided config file
 connect :-
     read_database_params(Driver, Server, Port, Database, User, Password),
     connect(Driver, Server, Port, Database, User, Password).
+
+/**
+ * TODO: write doc
+ */
 % connect to the database by using the input config file
 connect(ConfigPath) :-
     read_database_params(ConfigPath, Driver, Server, Port, Database, User, Password),
     connect(Driver, Server, Port, Database, User, Password).
+
+/**
+ * TODO: write doc
+ */
 % connect to the database with explicit parameters
 connect(Driver, Server, Port, Database, User, Password) :-
     concat_string_list([ 'DRIVER=', Driver, ';', 'SERVER=', Server, ';', 'PORT=', Port, ';', 'DATABASE=', Database, ';', 'USER=', User, ';', 'PASSWORD=', Password, ';' ], ConnectionString),
     odbc_driver_connect(ConnectionString, _, [ alias(dialysis_connection) ]),
     log_i('database', ['Connected to ', dialysis_connection]).
 
+/**
+ * TODO: write doc
+ */
 % disconnect from the database
 disconnect :- odbc_current_connection(dialysis_connection, _), odbc_disconnect(dialysis_connection), println(['Disconnected from ', dialysis_connection]).
 
+/**
+ * TODO: write doc
+ */
 % check if it is connected
 is_connected :- odbc_current_connection(dialysis_connection, _).
 
@@ -73,8 +104,16 @@ is_connected :- odbc_current_connection(dialysis_connection, _).
 % 3rd arg: Attr val  %
 % ------------------ %
 :- dynamic symptom/3.
+
+/**
+ * TODO: write doc
+ */
 % clear the symptom facts
 clear_symptoms :- retractall(symptom(_,_,_)).
+
+/**
+ * TODO: write doc
+ */
 % assert the symptom facts
 get_symptoms :-
     log_v('database', ['Fetching symptoms...']),
@@ -86,18 +125,38 @@ get_symptoms :-
 get_symptoms :-
     measure_time(Time), count_symptoms(Count), format_ms(Time, TimeString),
     log_i('database', [Count, ' symptoms fetched in ', TimeString, '.']).
+
+/**
+ * TODO: write doc
+ */
 % print the symptom facts
 print_symptoms :- symptom(ID, 'Description', Description), ID \= 1, println([ID, ':', Description]), fail; true.
+
+/**
+ * TODO: write doc
+ */
 % clear, updates and prints the symptom facts
 update_symptoms :- clear_symptoms, get_symptoms.
+
+/**
+ * TODO: write doc
+ */
 % check if the given symptom ID exists
 exists_symptom(ID) :- symptom(ID, 'ID', ID).
+
+/**
+ * TODO: write doc
+ */
 % count the number of symptoms
 count_symptoms(Count) :- aggregate_all(count, symptom(ID, 'ID', ID), Count).
 
 % ------------------ %
 %     POS/NEG IDS    %
 % ------------------ %
+
+/**
+ * TODO: write doc
+ */
 update_target :-
     retractall(negative_target(_)), retractall(positive_target(_)),
     println('The following is a list of possible symptoms:'),
@@ -108,10 +167,16 @@ update_target :-
     assertz(negative_target(1)),
     assertz(positive_target(ID)).
 
+/**
+ * TODO: write doc
+ */
 fallback_default_target :-
     log_w('target', 'The target ID you typed is not a number, falling back to the default one.'), default_target.
 
- default_target :-
+/**
+ * TODO: write doc
+ */
+default_target :-
     retractall(negative_target(_)), retractall(positive_target(_)),
     assertz(negative_target(1)),
     assertz(positive_target(2)).
@@ -123,8 +188,16 @@ fallback_default_target :-
 % 2nd arg: Attr name %
 % 3rd arg: Attr val  %
 % ------------------ %
+
+/**
+ * TODO: write doc
+ */
 % clear the record facts
 clear_records(RecordName) :- RecordList =..[RecordName, _, _, _], retractall(RecordList).
+
+/**
+ * TODO: write doc
+ */
 % fetch next row
 save_records(Statement, RecordName) :-
     odbc_fetch(Statement, Row, next), 
@@ -164,6 +237,10 @@ save_records(Statement, RecordName) :-
             ScoreList =..[RecordName, ID, 'Score', Score], assertz(ScoreList),
             save_records(Statement, RecordName)
     ).
+
+/**
+ * TODO: write doc
+ */
 % assert the record facts
 get_records(SymptomID, RecordName) :-
     measure_time,
@@ -184,8 +261,16 @@ get_records(SymptomID, RecordName) :-
     % loop over the records and store them
     save_records(Statement, RecordName),
     measure_time(Time), count_records(RecordName, CountRecords), format_ms(Time, TimeString), log_i('database', [CountRecords, ' records fetched in ', TimeString, '.']).
+
+/**
+ * TODO: write doc
+ */
 % print the record facts
 print_records(RecordName) :- _RecordList =..[RecordName, ID, Attribute, Value], println([ID, '.', Attribute, ' = ', Value]), fail; true.
+
+/**
+ * TODO: write doc
+ */
 % clear, updates and prints the record facts
 update_records :-
     clear_records(negative),            % clear negative records
@@ -194,8 +279,16 @@ update_records :-
     get_records(Neg, negative),     % get negative records
     positive_target(PosNumb), atom_number(Pos, PosNumb),
     get_records(Pos, positive).     % get positive records
+
+/**
+ * TODO: write doc
+ */
 % check if the given record ID exists
 exists_record(RecordName, ID) :- RecordList =..[RecordName, ID, 'ID', ID], RecordList.
+
+/**
+ * TODO: write doc
+ */
 % count the number of records
 count_records(RecordName, Count) :- RecordList =..[RecordName, ID, 'ID', ID], aggregate_all(count, RecordList, Count).
 
@@ -203,5 +296,9 @@ count_records(RecordName, Count) :- RecordList =..[RecordName, ID, 'ID', ID], ag
 %      ACCESSORY     %
 % ------------------ %
 :- dynamic positive/3, negative/3.
+
+/**
+ * TODO: write doc
+ */
 example(positive, ID, Attribute, Value) :- positive(ID, Attribute, Value).
 example(negative, ID, Attribute, Value) :- negative(ID, Attribute, Value).

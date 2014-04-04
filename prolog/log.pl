@@ -30,10 +30,12 @@ log_at(Level, Tag, Log) :-
     write(' '),
     % log the actual message
     println(Log), !.
-
 % always succeed (even if the log cannot be printed)
 log_at(_, _, _).
 
+/**
+ * TODO: write doc
+ */
 % shortcut method to avoid the logging of the tag
 log_at(Level, Log) :-
     log_at(Level, '', Log).
@@ -80,21 +82,60 @@ log_tag(Level, Tag, Max) :-
     .
 
 % log a message and a tag at different levels
+/**
+ * TODO: write doc
+ */
 log_v(Tag, Log) :- log_at(verbose, Tag, Log).
+/**
+ * TODO: write doc
+ */
 log_d(Tag, Log) :- log_at(debug, Tag, Log).
+/**
+ * TODO: write doc
+ */
 log_i(Tag, Log) :- log_at(info, Tag, Log).
+/**
+ * TODO: write doc
+ */
 log_w(Tag, Log) :- log_at(warn, Tag, Log).
+/**
+ * TODO: write doc
+ */
 log_e(Tag, Log) :- log_at(error, Tag, Log).
+/**
+ * TODO: write doc
+ */
 log_wtf(Tag, Log) :- log_at(assert, Tag, Log).
 
 % log a message at different levels
+/**
+ * TODO: write doc
+ */
 log_v(Log) :- log_v('', Log).
+/**
+ * TODO: write doc
+ */
 log_d(Log) :- log_d('', Log).
+/**
+ * TODO: write doc
+ */
 log_i(Log) :- log_i('', Log).
+/**
+ * TODO: write doc
+ */
 log_w(Log) :- log_w('', Log).
+/**
+ * TODO: write doc
+ */
 log_e(Log) :- log_e('', Log).
+/**
+ * TODO: write doc
+ */
 log_wtf(Log) :- log_wtf('', Log).
 
+/**
+ * TODO: write doc
+ */
 % test the logging system
 test_log :-
     log_v(verboseLog, 'this is a verbose log'),

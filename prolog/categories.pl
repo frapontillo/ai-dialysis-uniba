@@ -52,11 +52,12 @@ update_categories :-
     fail                                                                                    % and iterate
     )
     .
-
 update_categories :-                                                                        % always succeed
     log_i('categories', 'Categories updated.').
 
-% classify a generic attribute
+/**
+ * classify a generic attribute
+ */
 make_class(Attribute, _) :-
     log_v('categories', ['Making class ', Attribute]),
     retractall(class(Attribute, _)),                                                        % delete old ranges, if any
@@ -78,9 +79,16 @@ make_class(Attribute, number) :-
     .
 make_class(_,_).                                                                            % always succeed
 
+/**
+ * TODO: write doc
+ */
 % calculate Difference/10 as the range span
 get_range_span(Difference, Span) :-
     Span is /(Difference,10).
+
+/**
+ * TODO: write doc
+ */
 % generate a range for the given class with the given CurrentMax until the Max is reached
 generate_range(Attribute, Min, Max, Span) :-
     RangeMin = Min, RangeMax is Min + Span,
@@ -89,8 +97,9 @@ generate_range(Attribute, Min, Max, Span) :-
     NewMin = RangeMax,                                                                      % the NewMin is the old RangeMax
     generate_range(Attribute, NewMin, Max, Span).                                           % generate the next range, until RangeMax passes Max
 
-make_number_class_span(_, _).
-
+/**
+ * TODO: write doc
+ */
 % class(Attribute, [range(top, bottom), ...])
 add_to_class(Attribute, Bottom, Top) :-
     (class(Attribute, TheRangeList) ->
@@ -115,9 +124,7 @@ is_in_range(Value, Range) :-
     %Value \= '$null$',
     Range = range(Bottom, Top),
     is_in_range(Value, Bottom, Top).
-
 is_in_range(Value, Value, Value) :- !.
-
 is_in_range(Value, Bottom, Top) :-
     Value >= Bottom,
     Value < Top, !.

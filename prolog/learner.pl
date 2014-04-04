@@ -40,7 +40,6 @@ entropy(IncludedValues, Entropy) :-
     )
     .
 
-% 
 /**
  * Calculate the entropy of the whole set of examples.
  * 
@@ -65,11 +64,14 @@ best_attribute(Set, Attributes, Attribute) :-
     % calculate the maximum InfoGain from GainsSet and get the Attribute
     aggregate_all(max(InfoGain, Attribute), GainsSet, BestSet),
     BestSet = max(InfoGain, Attribute),
-    log_d('learner', ['Best info gain is achieved with attribute ', Attribute, ' with a value of ', InfoGain]),
+    log_d('best_attribute', ['Best info gain is achieved with attribute ', Attribute, ' with a value of ', InfoGain]),
     measure_time(Time), format_ms(Time, TimeString),
-    log_d('learner', ['Best attribute calculus took ', TimeString, '.'])
+    log_d('best_attribute', ['Best attribute calculus took ', TimeString, '.'])
     .
 
+/**
+ * TODO: write doc
+ */
 % shortcut for best_attribute to the complete set of examples and attributes (only the one with ranges)
 best_attribute(Attribute) :-
     complete_set(CompleteSet),
@@ -85,7 +87,7 @@ best_attribute(Attribute) :-
  * @Return InfoGain             The calculated information gain.
  */
 info_gain(Set, Attribute, InfoGain) :- 
-    log_v('learner', ['Calculating info gain for ', Attribute, '...']),
+    log_v('info_gain', ['Calculating info gain for ', Attribute, '...']),
     % first off, let's calculate the total entropy
     entropy(Set, TotalEntropy),
     % calculate the partial information gain on each split of the Attribute (category or class)
@@ -98,9 +100,12 @@ info_gain(Set, Attribute, InfoGain) :-
     findall(PartialInfoGain, PartialGains, GainList),
     sum_list(GainList, PartialGainSum),
     InfoGain is TotalEntropy - PartialGainSum,
-    log_v('learner', ['Info gain for ', Attribute, ' is ', InfoGain])
+    log_v('info_gain', ['Info gain for ', Attribute, ' is ', InfoGain])
     .
 
+/**
+ * TODO: write doc
+ */
 % shortcut for info_gain to the complete set
 info_gain(Attribute, InfoGain) :-
     complete_set(CompleteSet),
@@ -116,7 +121,7 @@ info_gain(Attribute, InfoGain) :-
  * @return              The PartialInfoGain, to be used to compute the whole Attribute Information Gain.  
  */
 partial_info_gain(Set, Attribute, Range, PartialInfoGain) :-
-    log_v('learner', ['Calculating partial info gain for ', Attribute, ' with ', Range, '...']),
+    log_v('partial_info_gain', ['Calculating partial info gain for ', Attribute, ' with ', Range, '...']),
     clean_set(Set, Attribute, CleanSet),
     % get all the examples that satisfy the given Range
     Subset = (
@@ -133,7 +138,7 @@ partial_info_gain(Set, Attribute, Range, PartialInfoGain) :-
     % get the size of the original set
     length(CleanSet, SetLength),
     PartialInfoGain is (SubsetEntropy * SubsetLength / SetLength),
-    log_v('learner', ['Partial info gain for ', Attribute, ' with ', Range, ' is ', PartialInfoGain])
+    log_v('partial_info_gain', ['Partial info gain for ', Attribute, ' with ', Range, ' is ', PartialInfoGain])
     .
 
 /**
@@ -191,15 +196,15 @@ learn_please :-
     % get a list of every example
     complete_set(Examples),
     % create the root node
-    log_d('learner', 'Create root node.'),
+    log_d('learn', 'Create root node.'),
     RootNode = node('root', root, root, root),
     assertz(RootNode),
     % bootstrap the algorithm with the root node
-    log_i('learner', 'Bootstrap C4.5'),
+    log_i('learn', 'Bootstrap C4.5'),
     timer_start(learn),
     c45(RootNode, Examples, Attributes),
     timer_stop(learn, Elapsed), format_s(Elapsed, Time),
-    log_i('learn_please', ['Learning algorithm finished in ', Time])
+    log_i('learn', ['Learning algorithm finished in ', Time])
     .
 
 /**
@@ -281,14 +286,23 @@ learn_please :-
 % always succeed
 c45(_,_,_) :- true.
 
+/**
+ * TODO: write doc
+ */
 % funfunfun
 learn :-
     log_e('learner', 'YOU DIDN''T SAY THE MAGIC WORD!').
 
+/**
+ * TODO: write doc
+ */
 print_le_tree :-
     RootNode = node('root', root, root, root),
     print_le_branch(RootNode, 0).
 
+/**
+ * TODO: write doc
+ */
 print_le_branch(Node, NestLevel) :-
     % print 4 spaces for each level
     between(0, NestLevel, Current), Current > 0, write('    '), fail;

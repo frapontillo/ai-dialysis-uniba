@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>AI Dialyisis Symptomatology</title>
+
+<link rel="stylesheet" type="text/css" href="pldoc.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+</head>
+<body>
+
+
+<h1 class="file"><span style="float:right"></span>categories.pl</h1>
+
+<dl>
+<dt class="pubdef"><span style="float:right"></span><a name="data_type/2"><b class="pred">data_type</b><var class="arglist">(?Attribute, ?Type)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Define the type of the attribute data.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Attribute</var></td><td class="argdescr">- The <var>Attribute</var> name.</td></tr>
+<tr><td><var>Type</var></td><td class="argdescr">- The <var>Type</var> of the <var>Attribute</var>, can be category or number.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="target_class/1"><b class="pred">target_class</b><var class="arglist">(?Attribute)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Holds information of the target <var>Attribute</var> to predict for.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Attribute</var></td><td class="argdescr">- The <var>Attribute</var> name holding the target information (always 'SymptomID').</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="class/2"><b class="pred">class</b><var class="arglist">(?Attribute, ?RangeList:list)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Holds range information for each attribute.
+Note: only attributes with at least one value will be classified
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Attribute</var></td><td class="argdescr">- The <var>Attribute</var> name.</td></tr>
+<tr><td><var>RangeList</var></td><td class="argdescr">- The (ordered) list of ranges the attribute was split into.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="update_categories/0"><b class="pred">update_categories</b></a> is <b class="det">det</b></dt><dd class="defbody">Make ranges for all of the available attributes.
+For a category: every possible value is both the start and end of the class
+For a number: use ranges that span (|max-min|/10) values</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="make_class/2"><b class="pred">make_class</b><var class="arglist">(+Attribute, +Type)</var></a> is <b class="det">det</b></dt><dd class="defbody">Make ranges for a generic <var>Attribute</var> with a given <var>Type</var>.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Attribute</var></td><td class="argdescr">- The <var>Attribute</var> name.</td></tr>
+<tr><td><var>Type</var></td><td class="argdescr">- The <var>Type</var> of the <var>Attribute</var>.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="get_range_span/2"><b class="pred">get_range_span</b><var class="arglist">(+Difference, -Span)</var></a> is <b class="det">det</b></dt><dd class="defbody">Calculate <var>Difference</var>/10 as the range <var>Span</var>.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Difference</var></td><td class="argdescr">- The difference between a minimum and maximum value.</td></tr>
+<tr><td><var>Span</var></td><td class="argdescr">- The resulting range cardinality.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="generate_range/4"><b class="pred">generate_range</b><var class="arglist">(+Attribute, +Min, +Max, +Span)</var></a> is <b class="det">det</b></dt><dd class="defbody">Recursively generate ranges for the given <var>Attribute</var>.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Attribute</var></td><td class="argdescr">- The <var>Attribute</var> to generate ranges for.</td></tr>
+<tr><td><var>Min</var></td><td class="argdescr">- The current minimum value of the range.</td></tr>
+<tr><td><var>Max</var></td><td class="argdescr">- The current maximum value of the range.</td></tr>
+<tr><td><var>Span</var></td><td class="argdescr">- The calculated range cardinality.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="add_to_class/3"><b class="pred">add_to_class</b><var class="arglist">(+Attribute, +Bottom, +Top)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Add the input range to the ranges of the <var>Attribute</var> (<a href="/doc_for?object=user:class/2">class/2</a>).
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Attribute</var></td><td class="argdescr">- The <var>Attribute</var> to add the range to.</td></tr>
+<tr><td><var>Bottom</var></td><td class="argdescr">- The minimum value of the range.</td></tr>
+<tr><td><var>Top</var></td><td class="argdescr">- The maximum value of the range.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="is_in_range/2"><b class="pred">is_in_range</b><var class="arglist">(+Value, ?Range)</var></a> is <b class="det">nondet</b></dt><dd class="defbody">Check if the given <var>Value</var> is included in the given <var>Range</var>.
+If <var>Range</var> is a category, Bottom equals Top, so only a check on Bottom = <var>Value</var> is performed.
+If <var>Range</var> is a number, <var>Value</var> must be higher or equal than Bottom and
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Value</var></td><td class="argdescr">- A value, can be a number or a category.</td></tr>
+<tr><td><var>Range</var></td><td class="argdescr">- A <var>Range</var> structure, as <code>range(Bottom, Top)</code>.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+</dl>
+
+</body>
+</html>

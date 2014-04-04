@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>AI Dialyisis Symptomatology</title>
+
+<link rel="stylesheet" type="text/css" href="pldoc.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+</head>
+<body>
+
+
+<h1 class="file"><span style="float:right"></span>database.pl</h1>
+
+<dl>
+<dt class="pubdef"><span style="float:right"></span><a name="db_param/2"><b class="pred">db_param</b><var class="arglist">(?Name, ?Value)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Holds database parameters in the form <code>db_param(Name, Value)</code>.
+Relevant names are: server, port, database, username, password.</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="get_config_path/1"><b class="pred">get_config_path</b><var class="arglist">(-ConfigPath)</var></a> is <b class="det">det</b></dt><dd class="defbody">Ask the user to insert the configuration file name, to be found under the 'config' folder.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>ConfigPath</var></td><td class="argdescr">- The name of the database configuration file. The file has to be in the
+'.properties' format.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="read_database_params/6"><b class="pred">read_database_params</b><var class="arglist">(-Driver, -Server, -Port, -Database, -User, -Password)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Retrieves all the database connection parameters from a config file whose name is entered
+by the user when requested.
+If the user-entered configuration file doesn't exist, fall back on 'config/database.properties'.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Driver</var></td><td class="argdescr">- The ODBC driver name.</td></tr>
+<tr><td><var>Server</var></td><td class="argdescr">- The server address.</td></tr>
+<tr><td><var>Port</var></td><td class="argdescr">- The server port.</td></tr>
+<tr><td><var>Database</var></td><td class="argdescr">- The database to connect to.</td></tr>
+<tr><td><var>User</var></td><td class="argdescr">- The username to use.</td></tr>
+<tr><td><var>Password</var></td><td class="argdescr">- The password to use.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="read_database_params/7"><b class="pred">read_database_params</b><var class="arglist">(+Path, -Driver, -Server, -Port, -Database, -User, -Password)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Retrieves all the database connection parameters from a given config file.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Path</var></td><td class="argdescr">- The database configuration file name.</td></tr>
+<tr><td><var>Driver</var></td><td class="argdescr">- The ODBC driver name.</td></tr>
+<tr><td><var>Server</var></td><td class="argdescr">- The server address.</td></tr>
+<tr><td><var>Port</var></td><td class="argdescr">- The server port.</td></tr>
+<tr><td><var>Database</var></td><td class="argdescr">- The database to connect to.</td></tr>
+<tr><td><var>User</var></td><td class="argdescr">- The username to use.</td></tr>
+<tr><td><var>Password</var></td><td class="argdescr">- The password to use.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="read_database_param/2"><b class="pred">read_database_param</b><var class="arglist">(+PropertiesFile, +Row)</var></a> is <b class="det">det</b></dt><dd class="defbody">Read database params from an open '.properties' file at the given index.
+Every read property is asserts into the Prolog in-memory database.
+It always iterates until the reading is over. Then, always succeeds.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>PropertiesFile</var></td><td class="argdescr">- An open '.properties' file.</td></tr>
+<tr><td><var>Row</var></td><td class="argdescr">- The row to start reading from.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="connect/1"><b class="pred">connect</b><var class="arglist">(+ConfigPath)</var></a> is <b class="det">det</b></dt><dd class="defbody">Connect to the database by relying on the <var>ConfigPath</var> variable.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>ConfigPath</var></td><td class="argdescr">- The name of the database configuration file to be found in the
+'config' folder, or:
+<ul>
+<li>default, use the 'config/database.properties' file</li>
+<li>ask, prompt the user for a file name</li>
+</ul>
+</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="connect/6"><b class="pred">connect</b><var class="arglist">(-Driver, -Server, -Port, -Database, -User, -Password)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Try to connect to the database by using the provided prameters.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Driver</var></td><td class="argdescr">- The ODBC driver name.</td></tr>
+<tr><td><var>Server</var></td><td class="argdescr">- The server address.</td></tr>
+<tr><td><var>Port</var></td><td class="argdescr">- The server port.</td></tr>
+<tr><td><var>Database</var></td><td class="argdescr">- The database to connect to.</td></tr>
+<tr><td><var>User</var></td><td class="argdescr">- The username to use.</td></tr>
+<tr><td><var>Password</var></td><td class="argdescr">- The password to use.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="disconnect/0"><b class="pred">disconnect</b></a> is <b class="det">semidet</b></dt><dd class="defbody">If there is an open connection, disconnects from it.</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="is_connected/0"><b class="pred">is_connected</b></a> is <b class="det">semidet</b></dt><dd class="defbody">Check if there is a currently open connection.</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="symptom/3"><b class="pred">symptom</b><var class="arglist">(?ID, ?Attribute, ?Value)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Holds information for all retrieved symptoms.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>ID</var></td><td class="argdescr">- The <var>ID</var> of the symptom.</td></tr>
+<tr><td><var>Attribute</var></td><td class="argdescr">- The name of the attribute (can be '<var>ID</var>' or 'Description').</td></tr>
+<tr><td><var>Value</var></td><td class="argdescr">- The value of the cell.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="clear_symptoms/0"><b class="pred">clear_symptoms</b></a> is <b class="det">det</b></dt><dd class="defbody">Retract all <a class="extmanual" href="http://www.swi-prolog.org/pldoc/man?predicate=symptoms/3">symptoms/3</a>.</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="get_symptoms/0"><b class="pred">get_symptoms</b></a> is <b class="det">semidet</b></dt><dd class="defbody">Fetch and assert all <a class="extmanual" href="http://www.swi-prolog.org/pldoc/man?predicate=symptom/2">symptom/2</a> from the database.
+Requires an open connection named dialysis_connection.</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="print_symptoms/0"><b class="pred">print_symptoms</b></a> is <b class="det">det</b></dt><dd class="defbody">Print all the symptom facts in the 'ID:Description' format.</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="update_symptoms/0"><b class="pred">update_symptoms</b></a> is <b class="det">semidet</b></dt><dd class="defbody">Clear (with <a href="/doc_for?object=user:clear_symptoms/0">clear_symptoms/0</a>) and refresh (with <a href="/doc_for?object=user:get_symptoms/0">get_symptoms/0</a>) all symptoms.</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="exists_symptom/1"><b class="pred">exists_symptom</b><var class="arglist">(+ID)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Check if the given symptom <var>ID</var> exists.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>ID</var></td><td class="argdescr">- <var>ID</var> of the symptom to check for.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="exists_symptom/1"><b class="pred">exists_symptom</b><var class="arglist">(-Count)</var></a> is <b class="det">det</b></dt><dd class="defbody"><var>Count</var> the number of symptoms.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Count</var></td><td class="argdescr">- The number of existing symptoms.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="ask_target/0"><b class="pred">ask_target</b></a> is <b class="det">semidet</b></dt><dd class="defbody">Print all existing symptoms and ask the user to choose the one to predict outcomes for.
+If the user-entered symptom is not valid, the default one is selected, by calling
+<a href="/doc_for?object=user:fallback_default_target/0">fallback_default_target/0</a>.</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="fallback_default_target/0"><b class="pred">fallback_default_target</b></a> is <b class="det">det</b></dt><dd class="defbody">Fall back to the default target symptom, after printing a warning.</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="update_target/1"><b class="pred">update_target</b><var class="arglist">(+PositiveID)</var></a> is <b class="det">det</b></dt><dd class="defbody">Save the positive and negative symptom IDs to be used for the learning step.</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="positive/3"><b class="pred">positive</b><var class="arglist">(?ID, ?Attribute, ?Value)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Hold positive examples information.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>ID</var></td><td class="argdescr">- The <var>ID</var> of the example.</td></tr>
+<tr><td><var>Attribute</var></td><td class="argdescr">- The <var>Attribute</var> for the cell, can be: '<var>ID</var>', 'Patient', 'Center',
+'PatientSex', 'PatientRace', 'PatientAge', 'SessionID', 'SessionDate',
+'KTV', 'QB', 'ProgWeightLoss', 'RealWeightLoss', 'DeltaWeight',
+'ProgDuration', 'RealDuration', 'DeltaDuration', 'SAPStart', 'SAPEnd',
+'SAPAverage', 'DAPStart', 'DAPEnd', 'DAPAverage', 'DeltaBloodFlow',
+'DeltaUF', 'SymptomID', 'Score'</td></tr>
+<tr><td><var>Value</var></td><td class="argdescr">- The <var>Value</var> for the cell.</td></tr>
+</table>
+
+</dd>
+<dt class="keyword-see">See also</dt><dd class="keyword-see">- <a href="/doc_for?object=user:negative/3">negative/3</a></dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="negative/3"><b class="pred">negative</b><var class="arglist">(?ID, ?Attribute, ?Value)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Hold negative examples information.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>ID</var></td><td class="argdescr">- The <var>ID</var> of the example.</td></tr>
+<tr><td><var>Attribute</var></td><td class="argdescr">- The <var>Attribute</var> for the cell, can be: '<var>ID</var>', 'Patient', 'Center',
+'PatientSex', 'PatientRace', 'PatientAge', 'SessionID', 'SessionDate',
+'KTV', 'QB', 'ProgWeightLoss', 'RealWeightLoss', 'DeltaWeight',
+'ProgDuration', 'RealDuration', 'DeltaDuration', 'SAPStart', 'SAPEnd',
+'SAPAverage', 'DAPStart', 'DAPEnd', 'DAPAverage', 'DeltaBloodFlow',
+'DeltaUF', 'SymptomID', 'Score'</td></tr>
+<tr><td><var>Value</var></td><td class="argdescr">- The <var>Value</var> for the cell.</td></tr>
+</table>
+
+</dd>
+<dt class="keyword-see">See also</dt><dd class="keyword-see">- <a href="/doc_for?object=user:positive/3">positive/3</a></dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="clear_records/1"><b class="pred">clear_records</b><var class="arglist">(+RecordName)</var></a> is <b class="det">det</b></dt><dd class="defbody">Clear the records from the in-memory Prolog database.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>RecordName</var></td><td class="argdescr">- The name of the record, can be positive or negative.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="save_records/2"><b class="pred">save_records</b><var class="arglist">(+Statement, +RecordName)</var></a> is <b class="det">det</b></dt><dd class="defbody">Fetch all records from a prepared <var>Statement</var>.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Statement</var></td><td class="argdescr">- The prepared statement to fetch records from.</td></tr>
+<tr><td><var>RecordName</var></td><td class="argdescr">- The name of the record to assert rows into; can be positive or negative.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="get_records/2"><b class="pred">get_records</b><var class="arglist">(+SymptomID, +RecordName)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Get all records for a given <var>SymptomID</var> and assert them with a given <var>RecordName</var>.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>SymptomID</var></td><td class="argdescr">- The ID of the target attribute of the record.</td></tr>
+<tr><td><var>RecordName</var></td><td class="argdescr">- The name of the record to assert rows into; can be positive or negative.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="print_records/1"><b class="pred">print_records</b><var class="arglist">(RecordName)</var></a> is <b class="det">det</b></dt><dd class="defbody">Print all records with the given <var>RecordName</var>
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>RecordName</var></td><td class="argdescr">- The name of the record to assert rows into; can be positive or negative.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="update_records/1"><b class="pred">update_records</b><var class="arglist">(+SymptomID)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Update both positive and negative examples by fetching them from the database.
+The negative ID is fixed (1), but the positive can be passed to this predicate.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>SymptomID</var></td><td class="argdescr">- The ID of the symptom to be used as positive target, or:
+<ul>
+<li>default, use the 2</li>
+<li>ask, let the user decide</li>
+</ul>
+</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="update_records/0"><b class="pred">update_records</b></a> is <b class="det">semidet</b></dt><dd class="defbody">Clear (<a href="/doc_for?object=user:clear_records/1">clear_records/1</a>) and updates (<a href="/doc_for?object=user:get_records/2">get_records/2</a>) all positive and negative examples.</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="exists_record/2"><b class="pred">exists_record</b><var class="arglist">(?RecordName, ?ID)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Check if the given record <var>ID</var> was asserted with the given <var>RecordName</var>.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>RecordName</var></td><td class="argdescr">- The name the record was asserted with; can be positive or negative.</td></tr>
+<tr><td><var>ID</var></td><td class="argdescr">- The <var>ID</var> of the record.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="count_records/2"><b class="pred">count_records</b><var class="arglist">(?RecordName, ?Count)</var></a> is <b class="det">det</b></dt><dd class="defbody"><var>Count</var> the number of existing records with a given name.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>RecordName</var></td><td class="argdescr">- The name of the record to count; can be positive or negative.</td></tr>
+<tr><td><var>Count</var></td><td class="argdescr">- The number of records.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="example/4"><b class="pred">example</b><var class="arglist">(Kind, ID, Attribute, Value)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Accessory predicate to access any kind of example by specifying the name the record was
+asserted with (negative or positive).
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Kind</var></td><td class="argdescr">- The name the record was asserted with; can be positive or negative.</td></tr>
+<tr><td><var>ID</var></td><td class="argdescr">- The <var>ID</var> of the example.</td></tr>
+<tr><td><var>Attribute</var></td><td class="argdescr">- The <var>Attribute</var> of the example.</td></tr>
+<tr><td><var>Value</var></td><td class="argdescr">- The <var>Value</var> of the example.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+</dl>
+
+</body>
+</html>

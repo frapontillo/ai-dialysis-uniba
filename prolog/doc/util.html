@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>AI Dialyisis Symptomatology</title>
+
+<link rel="stylesheet" type="text/css" href="pldoc.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+</head>
+<body>
+
+
+<h1 class="file"><span style="float:right"></span>util.pl</h1>
+
+<dl>
+<dt class="pubdef"><span style="float:right"></span><a name="measure_time/0"><b class="pred">measure_time</b></a> is <b class="det">det</b></dt><dd class="defbody">Reset the global timer.</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="measure_time/1"><b class="pred">measure_time</b><var class="arglist">(-Time)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Return the time (in milliseconds) elapsed from the last call to <a href="/doc_for?object=user:measure_time/0">measure_time/0</a>.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Time</var></td><td class="argdescr">- The elapsed time, in milliseconds.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="timer_time/2"><b class="pred">timer_time</b><var class="arglist">(?Name, ?Time)</var></a> is <b class="det">nondet</b></dt><dd class="defbody">Holds information for existing timers.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>TimerName</var></td><td class="argdescr">- The name of the timer.</td></tr>
+<tr><td><var>TimerStart</var></td><td class="argdescr">- The date (in seconds, UNIX epoch time) when the timer was started.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="timer_start/1"><b class="pred">timer_start</b><var class="arglist">(+Name)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Start a new timer with a given name.
+If another timer with the given name exists, an error is raised.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Name</var></td><td class="argdescr">- The name of the new timer.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="timer_get/2"><b class="pred">timer_get</b><var class="arglist">(+Name, -Elapsed)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Get the elapsed time from a given timer.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Name</var></td><td class="argdescr">- The name of the timer.</td></tr>
+<tr><td><var>Elapsed</var></td><td class="argdescr">- The number of elapsed seconds since the timer was started.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="timer_stop/2"><b class="pred">timer_stop</b><var class="arglist">(+Name, -Elapsed)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Stop and destroy a given timer.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Name</var></td><td class="argdescr">- The name of the timer to be stopped.</td></tr>
+<tr><td><var>Elapsed</var></td><td class="argdescr">- The number of elapsed seconds since the timer was started.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="timer_must_not_exist/1"><b class="pred">timer_must_not_exist</b><var class="arglist">(+Name)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Check if a timer exists and logs an error if it does.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Name</var></td><td class="argdescr">- The name of the timer to check for.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="timer_must_exist/1"><b class="pred">timer_must_exist</b><var class="arglist">(+Name)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Check if a timer doesn't exists and logs an error if it does not.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Name</var></td><td class="argdescr">- The name of the timer to check for.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="format_ms/4"><b class="pred">format_ms</b><var class="arglist">(?Time, ?Minutes, ?Seconds, ?Milliseconds)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Convert a bunch of milliseconds into minutes, seconds an milliseconds.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Time</var></td><td class="argdescr">- The time in milliseconds.</td></tr>
+<tr><td><var>Minutes</var></td><td class="argdescr">- The number of minutes in <var>Time</var>.</td></tr>
+<tr><td><var>Seconds</var></td><td class="argdescr">- The number of seconds in <var>Time</var>.</td></tr>
+<tr><td><var>Milliseconds</var></td><td class="argdescr">- The number of remaining milliseconds in <var>Time</var>.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="format_s/2"><b class="pred">format_s</b><var class="arglist">(?Time, ?String)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Convert a bunch of seconds into a string representation.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Time</var></td><td class="argdescr">- The time in seconds.</td></tr>
+<tr><td><var>Minutes</var></td><td class="argdescr">- The string representation of <var>Time</var>, in the '{M}m {S}s {MS}ms' format.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="format_ms/2"><b class="pred">format_ms</b><var class="arglist">(?Time, ?String)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Convert a bunch of seconds into a string representation.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Time</var></td><td class="argdescr">- The time in milliseconds.</td></tr>
+<tr><td><var>Minutes</var></td><td class="argdescr">- The string representation of <var>Time</var>, in the '{M}m {S}s {MS}ms' format.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="println/1"><b class="pred">println</b><var class="arglist">(+Element)</var></a> is <b class="det">det</b></dt><dd class="defbody">Print something without a separator.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Element</var></td><td class="argdescr">- The element to print.</td></tr>
+</table>
+
+</dd>
+<dt class="keyword-see">See also</dt><dd class="keyword-see">- <a class="extmanual" href="http://www.swi-prolog.org/pldoc/man?predicate=println/2">println/2</a>.</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="list_min/2"><b class="pred">list_min</b><var class="arglist">(+List:list, ?Min)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Get the minimum element from a numeric list.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>List</var></td><td class="argdescr">- The list to look the minimum into.</td></tr>
+<tr><td><var>Min</var></td><td class="argdescr">- The minimum element of the list.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="list_max/2"><b class="pred">list_max</b><var class="arglist">(+List:list, ?Max)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Get the maximum element from a numeric list.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>List</var></td><td class="argdescr">- The list to look the minimum into.</td></tr>
+<tr><td><var>Max</var></td><td class="argdescr">- The maximum element of the list.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="list_most_common/3"><b class="pred">list_most_common</b><var class="arglist">(+List:list, ?Element, ?Count)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Get the most common <var>Element</var> from a <var>List</var>, returning the <var>Count</var>.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>List</var></td><td class="argdescr">- The list to look into.</td></tr>
+<tr><td><var>Element</var></td><td class="argdescr">- The most common element of the list.</td></tr>
+<tr><td><var>Count</var></td><td class="argdescr">- The number of times the most common element was found in the list.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="index_of/3"><b class="pred">index_of</b><var class="arglist">(+List:list, +Element, ?Index)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Get the position of an element in a list.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>List</var></td><td class="argdescr">- The list to look into.</td></tr>
+<tr><td><var>Element</var></td><td class="argdescr">- The element to find the position for.</td></tr>
+<tr><td><var>Index</var></td><td class="argdescr">- The index of the element in the list.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="list_push/3"><b class="pred">list_push</b><var class="arglist">(+List:list, +Element, -ResultingList:list)</var></a> is <b class="det">det</b></dt><dd class="defbody">Add an element to the end of a list.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>List</var></td><td class="argdescr">- The list to append the element to.</td></tr>
+<tr><td><var>Element</var></td><td class="argdescr">- The element to be appended.</td></tr>
+<tr><td><var>ResultingList</var></td><td class="argdescr">- The resulting list.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="list_unshift/3"><b class="pred">list_unshift</b><var class="arglist">(+List:list, +Element, -ResultingList:list)</var></a> is <b class="det">det</b></dt><dd class="defbody">Add an element to the top of a list.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>List</var></td><td class="argdescr">- The list to unshift the element to.</td></tr>
+<tr><td><var>Element</var></td><td class="argdescr">- The element to be unshifted.</td></tr>
+<tr><td><var>NewList</var></td><td class="argdescr">- The resulting list.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="list_append/3"><b class="pred">list_append</b><var class="arglist">(+A, +B, -ResultingList:list)</var></a> is <b class="det">det</b></dt><dd class="defbody">Concat two generic elements in one list. Both elements can be lists or atoms, indipendently.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>A</var></td><td class="argdescr">- The first element (atom or list).</td></tr>
+<tr><td><var>B</var></td><td class="argdescr">- The second element (atom or list).</td></tr>
+<tr><td><var>List</var></td><td class="argdescr">- The resulting list.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="log2/2"><b class="pred">log2</b><var class="arglist">(+Expr, -R)</var></a> is <b class="det">det</b></dt><dd class="defbody">Calculate the base-2 logarithm of <var>Expr</var>.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Expr</var></td><td class="argdescr">- The expression to calculate the log2 for.</td></tr>
+<tr><td><var>R</var></td><td class="argdescr">- The result of the calculation.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+</dl>
+
+</body>
+</html>

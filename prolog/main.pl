@@ -1,48 +1,54 @@
-/** <module> main
+/**
+ * <module> main
  *
- *  This module initializes all needed configuratins, facts and rules 
- *  by calling other modules' predicates.
+ * This module initializes all needed configuratins, facts and rules 
+ * by calling other modules' predicates.
  *
- *  @author Francesco Pontillo
- *  @license Apache License, Version 2.0
+ * @author Francesco Pontillo
+ * @license Apache License, Version 2.0
 */
 
-:- ['database.pl', 'categories.pl', 'util.pl', 'learner.pl', 'log.pl'].
-:- use_module(library('dialect/hprolog')).
+:- ['database.pl', 'categories.pl', 'util.pl', 'learner.pl', 'log.pl', library('dialect/hprolog')].
 
 :- println('Welcome!').
 
 /**
- * TODO: write doc
+ * main(+Config, +SymptomID) is det.
+ * 
+ * Start the main process with custom parameters.
+ *
+ * @param Config            The name of the configuration file. It can be:
+ *                            - default, for the default 'database.properties' file
+ *                            - ask, in order to type in the file name
+ *                            - a proper configuration file name
+ * @param Symptom           The symptom ID to use as positive target. It can be:
+ *                            - default, for the default (2)
+ *                            - ask, in order to type in the ID
+ *                            - a proper ID
  */
-main(Config) :-
-    (
-        Config = default ->                         % if the configuration is the default one
-        Path = 'config/database.properties';        % use the default file
-        Path = Config                               % otherwise use the provided one
-    ),
-    connect(Path),                                  % connect to the database
-    after_connection(Config).                       % do other stuff
+main(Config, Symptom) :-
+    connect(Config),                            % connect to the database
+    update_symptoms,                            % update all of the possible symptoms
+    update_records(Symptom),                    % get positive and negative examples
+    update_categories,                          % update categories based on retrieved examples
+    learn_please,                               % learn!
+    true.
 
 /**
- * TODO: write doc
+ * main_def is det.
+ *
+ * Start main/2 with default parameters.
+ */
+main_def :-
+    main(default, default).
+
+/**
+ * main is det.
+ *
+ * Start main/2 and asks for configurations.
  */
 main :-
-    connect,                                        % connect to the database
-    after_connection(not_default).                  % do other stuff
+    main(ask, ask).
 
-/**
- * TODO: write doc
- */
-after_connection(Default) :-
-    update_symptoms,                                % update all of the possible symptoms
-    (
-        Default = default ->                        % update the target (positive) ID to learn for
-        default_target;
-        update_target
-    ),
-    update_records,                                 % get positive and negative examples
-    update_categories,                              % update the categories based on the retrieved examples
-    %learn_please,                                   % learn!
-    true
-    .
+make_doc :-
+	doc_save(., [doc_root('doc'), title('AI Dialyisis Symptomatology')]).

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>AI Dialyisis Symptomatology</title>
+
+<link rel="stylesheet" type="text/css" href="pldoc.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+</head>
+<body>
+
+
+<h1 class="file"><span style="float:right"></span>learner.pl</h1>
+
+<dl>
+<dt class="pubdef"><span style="float:right"></span><a name="complete_set/1"><b class="pred">complete_set</b><var class="arglist">(?CompleteSet:list)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Get the complete set of example IDs as a list.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>CompleteSet</var></td><td class="argdescr">- The list of all the example IDs.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="entropy/2"><b class="pred">entropy</b><var class="arglist">(+IncludedValues, -Entropy)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Calculate the entropy of a given list of examples (by IDs).
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>IncludedValues</var></td><td class="argdescr">- A list of the example IDs to be included when considering the entropy
+calculus. The resulting examples will be intersected with the positive
+and negative examples.
+If you don't want to filter anything, pass in all of the example IDs:
+
+<pre class="code" ext="">
+findall(ID, (example(_, ID, 'ID', ID),
+example(_, ID, 'DeltaWeight', 1)), IncludedValues).
+</pre>
+
+</td></tr>
+<tr><td><var>Entropy</var></td><td class="argdescr">- The resulting entropy of the examples passed by IDs.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="entropy/1"><b class="pred">entropy</b><var class="arglist">(-Entropy)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Calculate the entropy of the whole set of examples. This is a shortcut clause for:
+
+<pre class="code" ext="">
+findall(ID, example(ID,'ID',ID), List), entropy(List, Entropy).
+</pre>
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Entropy</var></td><td class="argdescr">- The resulting entropy of the whole set of examples.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="best_attribute/3"><b class="pred">best_attribute</b><var class="arglist">(+Set:list, +Attributes:list, -Attribute)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Select the best attribute from the given lists of attributes and examples,
+using the information gain measure.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Set</var></td><td class="argdescr">- The list of example IDs to calculate the best attribute for.</td></tr>
+<tr><td><var>Set</var></td><td class="argdescr">- The list of attributes to select the best attribute from.</td></tr>
+<tr><td><var>Attribute</var></td><td class="argdescr">- The best attribute for the given set.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="best_attribute/1"><b class="pred">best_attribute</b><var class="arglist">(-Attribute)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Select the best attribute from the whole set of attributes and examples.
+This is a shortcut clause for:
+
+<pre class="code" ext="">
+findall(ID, example(ID,'ID',ID), Examples),
+findall(Attribute, class(Attribute, _), Attributes),
+best_attribute(Examples, Attributes, Entropy).
+</pre>
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Attribute</var></td><td class="argdescr">- The best attribute for all of the exmmples and attributes.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="info_gain/3"><b class="pred">info_gain</b><var class="arglist">(+Set:list, +Attribute, -InfoGain)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Calculate the Information Gain for a set of exampes and a given attribute.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Set</var></td><td class="argdescr">- A list of IDs to be included when considering the info gain calculus.</td></tr>
+<tr><td><var>Attribute</var></td><td class="argdescr">- The attribute to calculate the information gain for.</td></tr>
+<tr><td><var>InfoGain</var></td><td class="argdescr">- The calculated information gain.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="info_gain/2"><b class="pred">info_gain</b><var class="arglist">(+Attribute, -InfoGain)</var></a> is <b class="det">det</b></dt><dd class="defbody">Calculate the Information Gain for all examples and one attribute.
+This is a shortcut clause for:
+
+<pre class="code" ext="">
+findall(ID, example(ID,'ID',ID), Examples),
+info_gain(CompleteSet, Attribute, InfoGain).
+</pre>
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Attribute</var></td><td class="argdescr">- The attribute to calculate the information gain for.</td></tr>
+<tr><td><var>InfoGain</var></td><td class="argdescr">- The calculated information gain.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="partial_info_gain/4"><b class="pred">partial_info_gain</b><var class="arglist">(+Set:list, +Attribute, +Range, -PartialInfoGain)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Calculate a partial value used to compute the info gain for a given attribute.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Set</var></td><td class="argdescr">- The list of example IDs to calculate the value for.</td></tr>
+<tr><td><var>Attribute</var></td><td class="argdescr">- The attribute name to calculate the value for.</td></tr>
+<tr><td><var>Range</var></td><td class="argdescr">- The specific <code>range(Bottom, Top)</code> for the given <var>Attribute</var>.</td></tr>
+<tr><td><var>PartialInfoGain</var></td><td class="argdescr">- The partial value to be used to compute the whole <var>Attribute</var> Info Gain.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="clean_set/3"><b class="pred">clean_set</b><var class="arglist">(+Set:list, +Attribute, -CleanSet)</var></a> is <b class="det">det</b></dt><dd class="defbody">Clean the given list of example IDs from '$null$' values.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Set</var></td><td class="argdescr">- The set of example IDs to clean.</td></tr>
+<tr><td><var>Attribute</var></td><td class="argdescr">- The attribute whose $null$ value must be deleted.</td></tr>
+<tr><td><var>CleanSet</var></td><td class="argdescr">- The <var>CleanSet</var>, a list whose <var>Attribute</var> does not have '$null$'' values.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="partition_examples/4"><b class="pred">partition_examples</b><var class="arglist">(+InExamples:list, +Attribute, +Range, -OutExamples)</var></a> is <b class="det">det</b></dt><dd class="defbody">Partition a list of example IDs by analyzing an attribute in a given range.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>InExamples</var></td><td class="argdescr">- List of example IDs to analyze and filter.</td></tr>
+<tr><td><var>Attribute</var></td><td class="argdescr">- The attribute to filter on.</td></tr>
+<tr><td><var>Range</var></td><td class="argdescr">- The range to filter with.</td></tr>
+<tr><td><var>OutExamples</var></td><td class="argdescr">- List of example IDs to return.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="node/4"><b class="pred">node</b><var class="arglist">(?NodeName, ?ParentNode, ?SplitAttribute, ?SplitRange)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Holds the node name information, the parent node, and the splitting attribute and range.</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="node_label/2"><b class="pred">node_label</b><var class="arglist">(?Node, ?Label)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Holds the node name information, the parent node, and the splitting attribute and range.</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="learn_please/0"><b class="pred">learn_please</b></a> is <b class="det">det</b></dt><dd class="defbody">Start the learning process by adding <a href="/doc_for?object=user:node/4">node/4</a> and <a href="/doc_for?object=user:node_label/2">node_label/2</a> clauses to the database.</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="c45/3"><b class="pred">c45</b><var class="arglist">(+Node, +Examples:list, +Attributes:list)</var></a> is <b class="det">det</b></dt><dd class="defbody">Apply the C4.5 algorithm to a given node, that will be split according
+to the examples passed and the available attributes still left.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Node</var></td><td class="argdescr">- The node to build.</td></tr>
+<tr><td><var>Examples</var></td><td class="argdescr">- The training examples.</td></tr>
+<tr><td><var>Attributes</var></td><td class="argdescr">- The list of attributes to be tested.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="learn/0"><b class="pred">learn</b></a> is <b class="det">failure</b></dt><dd class="defbody">A funfunfunfunction.</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="print_le_tree/0"><b class="pred">print_le_tree</b></a> is <b class="det">semidet</b></dt><dd class="defbody">Print the learnt tree, if there is a <code>node('root', root, root, root)</code>.</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="print_le_branch/2"><b class="pred">print_le_branch</b><var class="arglist">(+Node, +NestLevel)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Print a given node with a nest level that decides how much left space
+the node representation must have.
+
+<p>
+A node will be printed with:</p>
+<ul>
+<li>a check character, if the node is terminal and classifies positive examples</li>
+<li>a uncheck character, if the node is terminal and doesn't classify positive examples</li>
+<li>a down arrow, if the node is not terminal</li>
+</ul>
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Node</var></td><td class="argdescr">- The node to print.</td></tr>
+<tr><td><var>NestLevel</var></td><td class="argdescr">- The nesting level to be used.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="gen_all_the_rulez/0"><b class="pred">gen_all_the_rulez</b></a> is <b class="det">semidet</b></dt><dd class="defbody">For each <a href="/doc_for?object=user:node_label/2">node_label/2</a> with a positive outcome, generate the corresponding rule
+by going up from the leaf to the tree root node.</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="gen_rule/1"><b class="pred">gen_rule</b><var class="arglist">(+Node)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Generate the rule for the corresponding input <var>Node</var>.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Node</var></td><td class="argdescr">- The leaf <var>Node</var> that holds the rule information.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="condition/2"><b class="pred">condition</b><var class="arglist">(?Attribute, ?Range)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Holds information about a condition of success for an <var>Attribute</var> in a given <var>Range</var>.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Attribute</var></td><td class="argdescr">- The attribute to test the condition onto.</td></tr>
+<tr><td><var>Range</var></td><td class="argdescr">- The range to be used for the test.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="get_rule_list/3"><b class="pred">get_rule_list</b><var class="arglist">(+Node, +PrevList:list, -List:list)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Builds a list of <code>condition(Attribute, Range)</code> given a node, concatenating
+the conditions to the given <var>PrevList</var> (can be empty).
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Node</var></td><td class="argdescr">- The <var>Node</var> to build the condition list for.</td></tr>
+<tr><td><var>PrevList</var></td><td class="argdescr">- The temporary list for recursion.</td></tr>
+<tr><td><var>List</var></td><td class="argdescr">- The list of conditions to return.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="check_condition_list/2"><b class="pred">check_condition_list</b><var class="arglist">(+ID, +List)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Check if a given fact with an <var>ID</var> matches all the conditions in the input list.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>ID</var></td><td class="argdescr">- The <var>ID</var> of the <a class="extmanual" href="http://www.swi-prolog.org/pldoc/man?predicate=fact/3">fact/3</a>.</td></tr>
+<tr><td><var>List</var></td><td class="argdescr">- The <var>List</var> of <a href="/doc_for?object=user:condition/2">condition/2</a>.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="get_conditions_from_list/2"><b class="pred">get_conditions_from_list</b><var class="arglist">(+Conditions:list, -Condition)</var></a> is <b class="det">det</b></dt><dd class="defbody">Generate a set of Prolog conjunctives from a list of <a href="/doc_for?object=user:condition/2">condition/2</a>.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>List</var></td><td class="argdescr">- The list of <a href="/doc_for?object=user:condition/2">condition/2</a>.</td></tr>
+<tr><td><var>Set</var></td><td class="argdescr">- The set of Prolog conjunctives.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+</dl>
+
+</body>
+</html>

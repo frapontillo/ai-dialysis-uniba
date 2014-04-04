@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>AI Dialyisis Symptomatology</title>
+
+<link rel="stylesheet" type="text/css" href="pldoc.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+</head>
+<body>
+
+
+<h1 class="file"><span style="float:right"></span>log.pl</h1>
+
+<dl>
+<dt class="pubdef"><span style="float:right"></span><a name="log_level/4"><b class="pred">log_level</b><var class="arglist">(?Priority, ?Name, ?StringRepr, ?OptList:list)</var></a> is <b class="det">nondet</b></dt><dd class="defbody">Holds information for every logging level.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Priority</var></td><td class="argdescr">- The priority value, the higher the better.</td></tr>
+<tr><td><var>Name</var></td><td class="argdescr">- The logging level name.</td></tr>
+<tr><td><var>StringRepr</var></td><td class="argdescr">- The string representation of the log level, to be used for printing.</td></tr>
+<tr><td><var>OptList</var></td><td class="argdescr">- The options for color printing the level.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="log_at/3"><b class="pred">log_at</b><var class="arglist">(+Level, +Tag, +Log)</var></a> is <b class="det">det</b></dt><dd class="defbody"><var>Log</var> a message at a certain level with a given tag.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Level</var></td><td class="argdescr">- The level to log the message with, choose between verbose, debug, info,
+warn, error, assert.</td></tr>
+<tr><td><var>Tag</var></td><td class="argdescr">- The tag to use as the log header.</td></tr>
+<tr><td><var>Log</var></td><td class="argdescr">- The actual log message.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="log_at/2"><b class="pred">log_at</b><var class="arglist">(+Level, +Log)</var></a> is <b class="det">det</b></dt><dd class="defbody"><var>Log</var> a message at a certain level without a tag.
+Shortcut method to avoid the logging of the tag.
+
+<dl class="tags">
+<dt class="keyword-see">See also</dt><dd class="keyword-see">- <a href="/doc_for?object=user:log_at/3">log_at/3</a>.</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="log_tag/3"><b class="pred">log_tag</b><var class="arglist">(+Level, +Tag, +Max)</var></a> is <b class="det">det</b></dt><dd class="defbody">Log a tag with a certain level (used for the color) and with a character limit, beyond which
+ellipsis are added.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Level</var></td><td class="argdescr">- The level to log the tag with, choose between verbose, debug, info,
+warn, error, assert.</td></tr>
+<tr><td><var>Tag</var></td><td class="argdescr">- The tag to print.</td></tr>
+<tr><td><var>Max</var></td><td class="argdescr">- The maximum tag length.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="log_v/2"><b class="pred">log_v</b><var class="arglist">(+Tag, +Log)</var></a> is <b class="det">det</b></dt><dd class="defbody"><var>Log</var> a tag and a message at verbose level.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Tag</var></td><td class="argdescr">- The tag to be used in the logging entry.</td></tr>
+<tr><td><var>Log</var></td><td class="argdescr">- The log message to be printed.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="log_d/2"><b class="pred">log_d</b><var class="arglist">(+Tag, +Log)</var></a> is <b class="det">det</b></dt><dd class="defbody"><var>Log</var> a tag and a message at debug level.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Tag</var></td><td class="argdescr">- The tag to be used in the logging entry.</td></tr>
+<tr><td><var>Log</var></td><td class="argdescr">- The log message to be printed.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="log_i/2"><b class="pred">log_i</b><var class="arglist">(+Tag, +Log)</var></a> is <b class="det">det</b></dt><dd class="defbody"><var>Log</var> a tag and a message at info level.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Tag</var></td><td class="argdescr">- The tag to be used in the logging entry.</td></tr>
+<tr><td><var>Log</var></td><td class="argdescr">- The log message to be printed.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="log_w/2"><b class="pred">log_w</b><var class="arglist">(+Tag, +Log)</var></a> is <b class="det">det</b></dt><dd class="defbody"><var>Log</var> a tag and a message at warn level.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Tag</var></td><td class="argdescr">- The tag to be used in the logging entry.</td></tr>
+<tr><td><var>Log</var></td><td class="argdescr">- The log message to be printed.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="log_e/2"><b class="pred">log_e</b><var class="arglist">(+Tag, +Log)</var></a> is <b class="det">det</b></dt><dd class="defbody"><var>Log</var> a tag and a message at error level.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Tag</var></td><td class="argdescr">- The tag to be used in the logging entry.</td></tr>
+<tr><td><var>Log</var></td><td class="argdescr">- The log message to be printed.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="log_wtf/2"><b class="pred">log_wtf</b><var class="arglist">(+Tag, +Log)</var></a> is <b class="det">det</b></dt><dd class="defbody"><var>Log</var> a tag and a message at assert level.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Tag</var></td><td class="argdescr">- The tag to be used in the logging entry.</td></tr>
+<tr><td><var>Log</var></td><td class="argdescr">- The log message to be printed.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="log_v/1"><b class="pred">log_v</b><var class="arglist">(+Log)</var></a> is <b class="det">det</b></dt><dd class="defbody"><var>Log</var> a message at verbose level.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Log</var></td><td class="argdescr">- The log message to be printed.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="log_d/1"><b class="pred">log_d</b><var class="arglist">(+Log)</var></a> is <b class="det">det</b></dt><dd class="defbody"><var>Log</var> a message at debug level.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Log</var></td><td class="argdescr">- The log message to be printed.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="log_i/1"><b class="pred">log_i</b><var class="arglist">(+Log)</var></a> is <b class="det">det</b></dt><dd class="defbody"><var>Log</var> a message at info level.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Log</var></td><td class="argdescr">- The log message to be printed.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="log_w/1"><b class="pred">log_w</b><var class="arglist">(+Log)</var></a> is <b class="det">det</b></dt><dd class="defbody"><var>Log</var> a message at warn level.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Log</var></td><td class="argdescr">- The log message to be printed.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="log_e/1"><b class="pred">log_e</b><var class="arglist">(+Log)</var></a> is <b class="det">det</b></dt><dd class="defbody"><var>Log</var> a message at error level.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Log</var></td><td class="argdescr">- The log message to be printed.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="log_wtf/1"><b class="pred">log_wtf</b><var class="arglist">(+Log)</var></a> is <b class="det">det</b></dt><dd class="defbody"><var>Log</var> a message at assert level.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Log</var></td><td class="argdescr">- The log message to be printed.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="log_level/1"><b class="pred">log_level</b><var class="arglist">(+Level)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Set the log level, any level lesser than this will not be printed.
+This is a setter that checks that the input parameter is instantiated and that the specified
+level exists.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Level</var></td><td class="argdescr">- The level to set the logging information to.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="log_level/1"><b class="pred">log_level</b><var class="arglist">(-Level)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Return the current log level, checking that the input parameter is an unbound variable that can
+be instantiated.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Level</var></td><td class="argdescr">- The current minumum log level.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="can_log/1"><b class="pred">can_log</b><var class="arglist">(?Level)</var></a> is <b class="det">nondet</b></dt><dd class="defbody">Checks if a specified level can be currently printed.
+Succeed if the input log has a higher or equal priority than the current minimum level.
+Fails otherwise.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Level</var></td><td class="argdescr">- The level to be checked.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="test_log/0"><b class="pred">test_log</b></a> is <b class="det">det</b></dt><dd class="defbody">Test the logging system by printing some messages.</dd>
+</dl>
+
+</body>
+</html>

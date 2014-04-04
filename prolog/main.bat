@@ -1,1 +1,1 @@
-swipl -f main.pl -g main(default)
+swipl -f main.pl -g main_def

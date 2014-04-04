@@ -1,90 +1,140 @@
 /**
+ * <module> learner
+ *
+ * The learner module contains all clauses used for starting the learning
+ * process, once all of the examples and symptoms have been asserted by the
+ * database.pl module and all classes have been extracted by the categories.pl
+ * module.
+ *
+ * @author Francesco Pontillo
+ * @license Apache License, Version 2.0
+ */
+
+% --------------------------------------------------------------------------- %
+%                                ENTROPY MEASURES                             %
+% --------------------------------------------------------------------------- %
+
+/**
+ * complete_set(?CompleteSet:list) is semidet.
+ * 
  * Get the complete set of example IDs as a list.
  *
- * @return CompleteSet, list of all the example IDs.
+ * @param CompleteSet The list of all the example IDs.
  */
 complete_set(CompleteSet) :-
     findall(ID, example(_, ID, 'ID', ID), CompleteSet).
 
 /**
+ * entropy(+IncludedValues, -Entropy) is semidet.
+ * 
  * Calculate the entropy of a given list of examples (by IDs).
  * 
- * @param IncludedValues    A list of the example IDs to be included when considering the entropy calculus.
- *                          The resulting examples will be intersected with the positive and negative examples.
- *                          If you don't want to filter anything, pass in all of the example IDs.
- *                          e.g. findall(ID, (example(_, ID, 'ID', ID), example(_, ID, 'DeltaWeight', 1)), IncludedValues).
- * @return Entropy          The resulting entropy of the examples passed by IDs.
+ * @param IncludedValues    A list of the example IDs to be included when considering the entropy
+ *                          calculus. The resulting examples will be intersected with the positive 
+ *                          and negative examples.
+ *                          If you don't want to filter anything, pass in all of the example IDs:
+ *                          ==
+ *                          findall(ID, (example(_, ID, 'ID', ID),
+ *                          example(_, ID, 'DeltaWeight', 1)), IncludedValues).
+ *                          ==
+ * @param Entropy           The resulting entropy of the examples passed by IDs.
  */
 entropy(IncludedValues, Entropy) :- 
+    % calculate the number of positive examples (filtered)
     findall(ID, example(positive, ID, 'ID', ID), PositiveList),
     intersection(PositiveList, IncludedValues, PositiveSubset),
-    length(PositiveSubset, PositiveCount),                                                                                          % calculate the number of positive examples (filtered)
+    length(PositiveSubset, PositiveCount),
 
+    % calculate the number of negative examples (filtered)
     findall(ID, example(negative, ID, 'ID', ID), NegativeList),
     intersection(NegativeList, IncludedValues, NegativeSubset),
-    length(NegativeSubset, NegativeCount),                                                                                          % calculate the number of negative examples (filtered)
+    length(NegativeSubset, NegativeCount),
 
+    % calculate the number of all the examples (filtered)
     findall(ID, example(_, ID, 'ID', ID), CompleteSet),
     intersection(CompleteSet, IncludedValues, Subset),
-    length(Subset, SubsetCount),                                                                                                    % calculate the number of all the examples (filtered)
+    length(Subset, SubsetCount),
 
     catch(
         (
             P is PositiveCount / SubsetCount,
             N is NegativeCount / SubsetCount,
-            log2(P, LogP),                                                                                                          % if there's an error calculating the logarithm, assume
-            log2(N, LogN),                                                                                                          % it's because P or N are 0, so the entropy is 0
+            log2(P, LogP),
+            log2(N, LogN),
             Entropy is (-P*LogP)+(-N*LogN)
         ),
+        % if there's an error calculating the log, assume because P or N are 0, so entropy is 0
         _, Entropy is 0
     )
     .
 
 /**
- * Calculate the entropy of the whole set of examples.
+ * entropy(-Entropy) is semidet.
  * 
- * @return Entropy              The resulting entropy of the whole set of examples.
+ * Calculate the entropy of the whole set of examples. This is a shortcut clause for:
+ * ==
+ * findall(ID, example(ID,'ID',ID), List), entropy(List, Entropy).
+ * ==
+ * 
+ * @param Entropy           The resulting entropy of the whole set of examples.
  */
 entropy(Entropy) :-
     complete_set(CompleteSet),
     entropy(CompleteSet, Entropy).
 
 /**
- * Select the best attribute from the given sets of attributes and examples,
- * using information gain.
+ * best_attribute(+Set:list, +Attributes:list, -Attribute) is semidet.
  * 
- * @param Set           The set of example IDs to calculate the best attribute for.
- * @param Set           The set of attributes to select the best attribute from.
- * @return Attribute    The best attribute for the given set
+ * Select the best attribute from the given lists of attributes and examples,
+ * using the information gain measure.
+ * 
+ * @param Set               The list of example IDs to calculate the best attribute for.
+ * @param Set               The list of attributes to select the best attribute from.
+ * @param Attribute         The best attribute for the given set.
  */
 best_attribute(Set, Attributes, Attribute) :-
     measure_time,
     % collect the whole set of possible information gains for the given Set
-    GainsSet = (target_class(Target), member(Attribute, Attributes), Attribute \= Target, info_gain(Set, Attribute, InfoGain)),
+    GainsSet = (target_class(Target), 
+        member(Attribute, Attributes), Attribute \= Target, info_gain(Set, Attribute, InfoGain)),
     % calculate the maximum InfoGain from GainsSet and get the Attribute
     aggregate_all(max(InfoGain, Attribute), GainsSet, BestSet),
     BestSet = max(InfoGain, Attribute),
-    log_d('best_attribute', ['Best info gain is achieved with attribute ', Attribute, ' with a value of ', InfoGain]),
+    log_d('best_attribute', [
+        'Best info gain is achieved with attribute ', Attribute, ' with a value of ', InfoGain]),
     measure_time(Time), format_ms(Time, TimeString),
     log_d('best_attribute', ['Best attribute calculus took ', TimeString, '.'])
     .
 
 /**
- * TODO: write doc
+ * best_attribute(-Attribute) is semidet.
+ * 
+ * Select the best attribute from the whole set of attributes and examples.
+ * This is a shortcut clause for:
+ * ==
+ * findall(ID, example(ID,'ID',ID), Examples),
+ * findall(Attribute, class(Attribute, _), Attributes),
+ * best_attribute(Examples, Attributes, Entropy).
+ * ==
+ * 
+ * @param Attribute         The best attribute for all of the exmmples and attributes.
  */
-% shortcut for best_attribute to the complete set of examples and attributes (only the one with ranges)
 best_attribute(Attribute) :-
     complete_set(CompleteSet),
-    findall(Attribute, class(Attribute, _), Attributes),        % only consider class with a range list (avoid null values altogether)
-    best_attribute(CompleteSet, Attributes, Attribute)          % make the actual call implementation
+    % only consider class with a range list (avoid null values altogether)
+    findall(Attribute, class(Attribute, _), Attributes),
+    % make the actual call implementation
+    best_attribute(CompleteSet, Attributes, Attribute)
     .
 
 /**
- * Calculate the Information Gain for a set of values and a given attribute.
+ * info_gain(+Set:list, +Attribute, -InfoGain) is semidet.
+ * 
+ * Calculate the Information Gain for a set of exampes and a given attribute.
  *
- * @param Set                   A list of IDs to be included when considering the information gain calculus.
- * @param Attribute             The attribute to calculate the information gain for.
- * @Return InfoGain             The calculated information gain.
+ * @param Set               A list of IDs to be included when considering the info gain calculus.
+ * @param Attribute         The attribute to calculate the information gain for.
+ * @param InfoGain          The calculated information gain.
  */
 info_gain(Set, Attribute, InfoGain) :- 
     log_v('info_gain', ['Calculating info gain for ', Attribute, '...']),
@@ -92,9 +142,12 @@ info_gain(Set, Attribute, InfoGain) :-
     entropy(Set, TotalEntropy),
     % calculate the partial information gain on each split of the Attribute (category or class)
     PartialGains = (
-        class(Attribute, RangeList),                                                % get the list of splits for the given Attribute
-        member(Range, RangeList),                                                   % loop through every range in the list
-        partial_info_gain(Set, Attribute, Range, PartialInfoGain)                   % calculate the current partial info gain
+        % get the list of splits for the given Attribute
+        class(Attribute, RangeList),
+        % loop through every range in the list
+        member(Range, RangeList),
+        % calculate the current partial info gain
+        partial_info_gain(Set, Attribute, Range, PartialInfoGain)
     ),
     % sum all of the partial gains
     findall(PartialInfoGain, PartialGains, GainList),
@@ -104,7 +157,17 @@ info_gain(Set, Attribute, InfoGain) :-
     .
 
 /**
- * TODO: write doc
+ * info_gain(+Attribute, -InfoGain) is det.
+ * 
+ * Calculate the Information Gain for all examples and one attribute.
+ * This is a shortcut clause for:
+ * ==
+ * findall(ID, example(ID,'ID',ID), Examples),
+ * info_gain(CompleteSet, Attribute, InfoGain).
+ * ==
+ *
+ * @param Attribute         The attribute to calculate the information gain for.
+ * @param InfoGain          The calculated information gain.
  */
 % shortcut for info_gain to the complete set
 info_gain(Attribute, InfoGain) :-
@@ -113,15 +176,18 @@ info_gain(Attribute, InfoGain) :-
     .
 
 /**
- * Calculate a value used to compute the info gain for a given attribute.
+ * partial_info_gain(+Set:list, +Attribute, +Range, -PartialInfoGain) is semidet.
+ * 
+ * Calculate a partial value used to compute the info gain for a given attribute.
  *
- * @param Set           The set of example IDs to calculate the value for.
- * @param Attribute     The attribute name to calculate the value for.
- * @param Range         The specific range(Bottom, Top) for the given Attribute.
- * @return              The PartialInfoGain, to be used to compute the whole Attribute Information Gain.  
+ * @param Set               The list of example IDs to calculate the value for.
+ * @param Attribute         The attribute name to calculate the value for.
+ * @param Range             The specific range(Bottom, Top) for the given Attribute.
+ * @param PartialInfoGain   The partial value to be used to compute the whole Attribute Info Gain.  
  */
 partial_info_gain(Set, Attribute, Range, PartialInfoGain) :-
-    log_v('partial_info_gain', ['Calculating partial info gain for ', Attribute, ' with ', Range, '...']),
+    log_v('partial_info_gain', [
+        'Calculating partial info gain for ', Attribute, ' with ', Range, '...']),
     clean_set(Set, Attribute, CleanSet),
     % get all the examples that satisfy the given Range
     Subset = (
@@ -138,15 +204,18 @@ partial_info_gain(Set, Attribute, Range, PartialInfoGain) :-
     % get the size of the original set
     length(CleanSet, SetLength),
     PartialInfoGain is (SubsetEntropy * SubsetLength / SetLength),
-    log_v('partial_info_gain', ['Partial info gain for ', Attribute, ' with ', Range, ' is ', PartialInfoGain])
+    log_v('partial_info_gain', [
+        'Partial info gain for ', Attribute, ' with ', Range, ' is ', PartialInfoGain])
     .
 
 /**
- * Clean the given Set from $null$ values.
+ * clean_set(+Set:list, +Attribute, -CleanSet) is det.
+ * 
+ * Clean the given list of example IDs from '$null$' values.
  *
- * @param Set           The set of example IDs to clean.
- * @param Attribute     The attribute whose $null$ value must be deleted.
- * @return              The CleanSet, a set whose Attribute does not have $null$ values.
+ * @param Set               The set of example IDs to clean.
+ * @param Attribute         The attribute whose $null$ value must be deleted.
+ * @param CleanSet          The CleanSet, a list whose Attribute does not have '$null$'' values.
  */
 clean_set(Set, Attribute, CleanSet) :-
     CleanSetGoal = (
@@ -161,12 +230,14 @@ clean_set(Set, Attribute, CleanSet) :-
     .
 
 /**
- * Partition a set of examples by analyzing an attribute in a given range.
+ * partition_examples(+InExamples:list, +Attribute, +Range, -OutExamples) is det.
  * 
- * @param InExamples    List of example IDs to analyze and filter
- * @param Attribute     The attribute to filter on
- * @param Range         The range to filter with
- * @param OutExamples   List of example IDs to return
+ * Partition a list of example IDs by analyzing an attribute in a given range.
+ * 
+ * @param InExamples        List of example IDs to analyze and filter.
+ * @param Attribute         The attribute to filter on.
+ * @param Range             The range to filter with.
+ * @param OutExamples       List of example IDs to return.
  */
  partition_examples(InExamples, Attribute, Range, OutExamples) :-
     findall(Ex, (
@@ -176,17 +247,28 @@ clean_set(Set, Attribute, CleanSet) :-
         is_in_range(Value, Range)),             % is in the given range
     OutExamples).                               % return as list
 
-% ------------------ %
-%    LEARN PROCESS   %
-% ------------------ %
+% --------------------------------------------------------------------------- %
+%                                 LEARN PROCESS                               %
+% --------------------------------------------------------------------------- %
 
-% node/4 holds the node, the parent node, the splitting attribute and range
+/**
+ * node(?NodeName, ?ParentNode, ?SplitAttribute, ?SplitRange) is semidet.
+ * 
+ * Holds the node name information, the parent node, and the splitting attribute and range.
+ */
 :- dynamic node/4.
-% node_label/2 holds the node result
+
+/**
+ * node_label(?Node, ?Label) is semidet.
+ * 
+ * Holds the node name information, the parent node, and the splitting attribute and range.
+ */
 :- dynamic node_label/2.
 
 /**
- * Bootstrap the learning process on the root node.
+ * learn_please is det.
+ * 
+ * Start the learning process by adding node/4 and node_label/2 clauses to the database.
  */
 learn_please :-
     % clear old facts
@@ -208,10 +290,14 @@ learn_please :-
     .
 
 /**
- * C4.5
- * Node:        node to build
- * Examples:    training examples
- * Attributes:  list of attributes to be tested
+ * c45(+Node, +Examples:list, +Attributes:list) is det.
+ * 
+ * Apply the C4.5 algorithm to a given node, that will be split according
+ * to the examples passed and the available attributes still left.
+ *
+ * @param Node              The node to build.
+ * @param Examples          The training examples.
+ * @param Attributes        The list of attributes to be tested.
  */
  c45(Node, Examples, Attributes) :- 
     Node = node(NodeName, _, _, _),
@@ -271,7 +357,10 @@ learn_please :-
             length(NewExamples, NewExamplesLength),
             (
                 NewExamplesLength = 0 ->
-                log_d('c45', ['There are no more examples to analyze for attribute ', BestAttribute, ' in range ', Range, '.']),
+                log_d('c45', [
+                    'There are no more examples to analyze for attribute ', 
+                    BestAttribute, ' in range ', Range, '.']
+                ),
                 list_most_common(TargetValues, MostCommonValue, _),
                 assertz(node_label(ChildNode, MostCommonValue))
                 ;
@@ -287,21 +376,35 @@ learn_please :-
 c45(_,_,_) :- true.
 
 /**
- * TODO: write doc
+ * learn is failure.
+ *
+ * A funfunfunfunction.
  */
-% funfunfun
 learn :-
-    log_e('learner', 'YOU DIDN''T SAY THE MAGIC WORD!').
+    log_e('learner', 'YOU DIDN''T SAY THE MAGIC WORD!'), fail.
 
 /**
- * TODO: write doc
+ * print_le_tree is semidet.
+ *
+ * Print the learnt tree, if there is a `node('root', root, root, root)`.
  */
 print_le_tree :-
     RootNode = node('root', root, root, root),
     print_le_branch(RootNode, 0).
 
 /**
- * TODO: write doc
+ * print_le_branch(+Node, +NestLevel) is semidet.
+ *
+ * Print a given node with a nest level that decides how much left space
+ * the node representation must have.
+ *
+ * A node will be printed with:
+ *   - a check character, if the node is terminal and classifies positive examples
+ *   - a uncheck character, if the node is terminal and doesn't classify positive examples
+ *   - a down arrow, if the node is not terminal
+ *
+ * @param Node              The node to print.
+ * @param NestLevel         The nesting level to be used.
  */
 print_le_branch(Node, NestLevel) :-
     % print 4 spaces for each level
@@ -343,12 +446,14 @@ print_le_branch(Node, NestLevel) :-
     % always succeed
     true.
 
-% ------------------ %
-%   RULE GENERATOR   %
-% ------------------ %
+% --------------------------------------------------------------------------- %
+%                                 RULE GENERATOR                              %
+% --------------------------------------------------------------------------- %
 
 /**
- * For each node_label with a positive outcome, generate the corresponding rule
+ * gen_all_the_rulez is semidet.
+ * 
+ * For each node_label/2 with a positive outcome, generate the corresponding rule
  * by going up from the leaf to the tree root node.
  */
 gen_all_the_rulez :- 
@@ -364,9 +469,11 @@ gen_all_the_rulez :-
     .
 
 /**
+ * gen_rule(+Node) is semidet.
+ * 
  * Generate the rule for the corresponding input Node.
  *
- * @param Node      The leaf Node that holds the rule information.
+ * @param Node              The leaf Node that holds the rule information.
  */
 gen_rule(Node) :-
     Node = node(Name, _, _, _),
@@ -377,11 +484,23 @@ gen_rule(Node) :-
     .
 
 /**
- * Builds a list of condition(Attribute, Range).
+ * condition(?Attribute, ?Range) is semidet.
+ *
+ * Holds information about a condition of success for an Attribute in a given Range.
+ *
+ * @param Attribute         The attribute to test the condition onto.
+ * @param Range             The range to be used for the test.
+ */
+
+/**
+ * get_rule_list(+Node, +PrevList:list, -List:list) is semidet.
  * 
- * @param Node      The Node to build the condition list for.
- * @param PrevList  The temporary list for recursion.
- * @param List      The list of conditions to return.
+ * Builds a list of `condition(Attribute, Range)` given a node, concatenating
+ * the conditions to the given PrevList (can be empty).
+ * 
+ * @param Node              The Node to build the condition list for.
+ * @param PrevList          The temporary list for recursion.
+ * @param List              The list of conditions to return.
  */
 get_rule_list(Node, PrevList, List) :-
     Node = node(root, root, root, root),
@@ -394,10 +513,12 @@ get_rule_list(Node, PrevList, List) :-
     .
 
 /**
+ * check_condition_list(+ID, +List) is semidet.
+ * 
  * Check if a given fact with an ID matches all the conditions in the input list.
  * 
- * @param ID        The ID of the fact/3.
- * @param List      The List of condition/2.
+ * @param ID                The ID of the fact/3.
+ * @param List              The List of condition/2.
  */
 check_condition_list(ID, List) :-
     fact(ID, 'ID', ID), !,
@@ -408,17 +529,22 @@ check_condition_list(ID, List) :-
             Condition = condition(Attribute, Range),
             % test the Attribute and the Range
             fact(ID, Attribute, Value),
-            log_v('check', ['Testing ID ', ID, ' on Attribute ', Attribute, ' with value ', Value, ' on ', Range, '.']),
+            log_v('check', [
+                'Testing ID ', ID, ' on Attribute ', Attribute, 
+                ' with value ', Value, ' on ', Range, '.']
+            ),
             is_in_range(Value, Range)
         )
     )
     .
 
 /**
- * Generate a set of Prolog conditions from a list.
+ * get_conditions_from_list(+Conditions:list, -Condition) is det.
  * 
- * @param List      The list of conditions.
- * @param Set       The set of Prolog conditions.
+ * Generate a set of Prolog conjunctives from a list of condition/2.
+ * 
+ * @param List              The list of condition/2.
+ * @param Set               The set of Prolog conjunctives.
  */
 get_conditions_from_list([Condition], Condition).
 get_conditions_from_list([Head | Tail],(Head, OtherConditions)) :-

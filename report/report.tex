@@ -20,11 +20,11 @@
 
 \maketitle
 
-%\begin{abstract}
-%TODO
-%\end{abstract}
+\begin{abstract}
+Implementazione Prolog dell'algoritmo di Intelligenza Artificiale C4.5, con k-fold test e confronto con altri sistemi pre-esistenti di classificazione.
+\end{abstract}
 
-\section{Introduzione}
+\section{Obiettivo}
 Obiettivo del processo di Data Mining del sistema da sviluppare \'e di prevedere possibili sintomatologie successive ad una seduta di emodialisi.
 A partire da specifici dati registrati durante una dialisi, si vuole prevedere quali classi di sintomatologie il paziente potr\'a riscontrare dal momento in cui la dialisi termina al momento in cui esegue la seduta di dialisi successiva.
 
@@ -48,57 +48,153 @@ A. L'\textbf{efficienza della rimozione dei prodotti di scarto} \'e indotta dai 
 \begin{tabular}{|c|l|} \hline
 $KT/V$ & indice di efficienza dialitica\\ \hline
 $QB$ & flusso di sangue trattato\\ \hline
-$PWL$ & perdita di peso teorica \\ \hline
-$RWL$ & perdita di peso reale \\ \hline
-$\Delta T$ & differenza fra durata teorica e reale di dialisi\\
+$WS$ & peso iniziale \\ \hline
+$WE$ & peso finale \\ \hline
+$PWE$ & peso finale ottimale \\ \hline
+$PT$ & durata ottimale \\ \hline
+$T$ & durata reale \\
 \hline\end{tabular}
 \caption{Parametri di efficienza eliminazione scarti}
 \label{table:parametri-1}
 \end{table}
 
-B. L'efficienza del circuito \textbf{extra-corporeo} (ECC) \'e definito dagli attributi in Tabella \ref{table:parametri-2}.
+B. L'efficienza dell'eliminazione dell'acqua all'interno del corpo del paziente \'e indotta dai parametri in Tabella \ref{table:parametri-2}.
 
 \begin{table}[h]
 \centering
 \begin{tabular}{|c|l|} \hline
-$SAP$ & pressione arteriosa sistolica (valore medio)\\ \hline
-$DAP$ & pressione arteriosa diastolica (valore medio)\\ \hline
-$VP$ & pressione venosa (valore massimo) \\
-\hline\end{tabular}
-\caption{Parametri di efficienza circuito extracorporeo}
-\label{table:parametri-2}
-\end{table}
-
-C. L'efficienza dell'eliminazione dell'acqua all'interno del corpo del paziente \'e indotta dai parametri in Tabella \ref{table:parametri-3}.
-
-\begin{table}[h]
-\centering
-\begin{tabular}{|c|l|} \hline
-$SP$ & pressione sistolica (valore medio)\\ \hline
-$DP$ & pressione diastolica (valore medio)\\ \hline
-$CF$ & frequenza cardiaca (valore massimo) \\ \hline
+$SPS$ & pressione sistolica iniziale \\ \hline
+$SPE$ & pressione sistolica finale \\ \hline
+$DPS$ & pressione diastolica iniziale\\ \hline
+$DPE$ & pressione diastolica finale\\ \hline
 $BV$ & volume ematico finale\\
 \hline\end{tabular}
 \caption{Parametri di efficienza eliminazione acqua}
-\label{table:parametri-3}
+\label{table:parametri-2}
 \end{table}
 
-D. Altre tipologie di dati che potrebbero risultare utili a fornire previsioni significative sono riportati in Tabella \ref{table:parametri-4}.
+C. Altre tipologie di dati che potrebbero risultare utili a fornire previsioni significative sono riportati in Tabella \ref{table:parametri-3}.
 
 \begin{table}[h]
 \centering
 \begin{tabular}{|c|l|} \hline
-$\Delta BF$ & differenza flusso sangue\\ \hline
-$\Delta UF$ & differenza ultrafiltrazione\\
+$PBF$ & flusso sangue teorico\\ \hline
+$BF$ & flusso sangue reale\\ \hline
+$PUF$ & ultrafiltrazione media teorica\\ \hline
+$UF$ & ultrafiltrazione media reale\\
 \hline\end{tabular}
 \caption{Altri parametri di efficienza dialitica}
-\label{table:parametri-4}
+\label{table:parametri-3}
+\end{table}
+
+\subsection{Attributi derivati}\label{attributi-derivati}
+A partire dalle informazioni disponibili nella base di dati, risulta evidente la presenza di alcuni attributi ``nascosti'' che possono essere più utili ai fini dell'apprendimento.
+
+In tabella \ref{table:parametri-derivati} sono elencati gli attributi derivati dalle precedenti tabelle; ad esempio, $\Delta WL$ rappresenta la differenza fra la perdita di peso programmata e quella effettiva, a sua volta calcolata come differenza fra peso iniziale e peso finale.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|l|} \hline
+$PWL$ & perdita peso programmata\\ \hline
+$RWL$ & perdita peso reale\\ \hline
+$\Delta WL$ & differenza perdita peso\\ \hline
+$\Delta T$ & differenza durata trattamento\\ \hline
+$SPA$ & pressione sistolica media \\ \hline
+$DPA$ & pressione diastolica media \\ \hline
+$\Delta BF$ & differenza flusso sangue \\ \hline
+$\Delta UF$ & differenza UF medio \\
+\hline\end{tabular}
+\caption{Parametri derivati}
+\label{table:parametri-derivati}
 \end{table}
 
 \subsection{Sintomatologie}
 Il sistema verr\'a addestrato con istanze di esempio pre\-/classificate. La classificazione consiste nell'assegnazione, ad ogni esempio, di una o pi\'u categorie di sintomi, ad esempio: aritmia sintomatica, aritmia asintomatica, astenia, brividi, brividi e dispnea, cefalea, collasso (PA < 30\% inizio), conati di vomito, crampi, depressione, ansia, diarrea, dispnea e molti altri.
 
 Inoltre, \'e prevista la classe `asintomatico', che definisce una sintomatologia assente corrispondente ad un esempio negativo dal punto di vista della classificazione.
+
+\section{Selezione dei dati}
+Le informazioni sottoposte all'algoritmo di apprendimento sono state selezionate a partire da una base dati molto ricca\footnote{Circa dal 1999 ai primi mesi del 2014.} e sono stati sottoposti ad una serie di passaggi\footnote{Tutte le trasformazioni e selezioni di dati descritte in questa sezione sono codificate nel \texttt{scripts/01-sql-server-tables.sql}.}.
+
+\subsection{Creazione dei valori derivati}
+Per poter istanziare i valori degli attributi definiti in \ref{attributi-derivati}, \'e stata eseguita una query di tipo \texttt{SELECT} che preleva informazioni dalla tabella di origine ed effettua semplici calcoli di trasformazione.
+
+In questo modo, alla fine del processo di trasformazione, gli attributi per ogni seduta di dialisi sono:
+
+\begin{itemize}
+\item \verb|SESSION_ID|, l'ID della seduta di dialisi, utile per identificare la seduta in ogni momento
+\item \verb|SESSION_DATE|, la data di esecuzione
+\item \verb|KTV|, il valore di KT/V
+\item \verb|QB|, il valore di QB
+\item \verb|PROG_WEIGHT_LOSS|, la perdita peso programmata
+\item \verb|REAL_WEIGHT_LOSS|, la perdita peso reale
+\item \verb|DELTA_WEIGHT|, la differenza fra la perdita di peso reale e quella programmata
+\item \verb|PROG_DURATION|, la durata programmata della dialisi
+\item \verb|REAL_DURATION|, la durata effettiva della dialisi
+\item \verb|DELTA_DURATION|, la differenza fra la durata reale e quella programmata
+\item \verb|SAP_START|, la pressione sistolica arteriosa prima della seduta
+\item \verb|SAP_END|, la pressione sistolica arteriosa dopo la seduta
+\item \verb|AVG_SAP|, la pressione sistolica arteriosa media
+\item \verb|DAP_START|, la pressione diastolica arteriosa prima della seduta
+\item \verb|DAP_END|, la pressione diastolica arteriosa dopo la seduta
+\item \verb|AVG_DAP|, la pressione diastolica arteriosa media
+\item \verb|BLOOD_VOLUME|, il volume di sangue trattato
+\item \verb|DELTA_BLOOD_FLOW|, la differenza fra flusso di sangue teorico ed effettivo
+\item \verb|DELTA_UF|, la differenza dell'ultrafiltrazione media reale e teorica
+\end{itemize}
+
+Come si nota, sono stati eliminati alcuni attributi originali: il flusso di sangue teorico e reale e l'ultrafiltrazione media teorica e reale.
+
+\subsection{Associazione con sintomatologie}
+\label{associazione-sintomi}
+Nel programma che genera i dati, le sintomatologie vengono comunicate e quindi inserite, dal medico o dall'infermiere, qualche momento prima della dialisi successiva del paziente. 
+Per poter mettere a confronto i dati della seduta di dialisi, di cui sopra, con i dati della sintomatologia rilevata, \'e stato necessario eseguire una query molto complessa per mettere in correlazione:
+\begin{itemize}
+\item il paziente
+\item la data di dialisi
+\item la data di dialisi minore fra quelle successive alla data di riferimento della seduta originaria
+\end{itemize}
+
+\subsection{Associazione con dati del paziente}
+Infine, il dato della sintomatologia singola è stato associato univocamente con il paziente di riferimento, tramite l'apposito identificativo.
+
+Tutte queste operazioni sono state eseguite staticamente, ovvero andando a creare una copia dei record in altre tabelle; ci\'o si \'e reso necessario in quanto, anche utilizzando macchine potenti, una selezione di circa 1000 righe impiegava interi minuti per completare, soprattutto a causa dell'associazione poco ottimizzata con le date (cfr. \ref{associazione-sintomi}).
+
+\subsection{Migrazione dei dati}
+Per una gestione pi\'u libera dei dati, si \'e scelto di migrare le tabelle create da Microsoft SQL Server a MySQL\footnote{Lo script di migrazione \'e presente in \texttt{scripts/02-mysql-migration-script.sql} e viene richiamato in automatico, tramite appositi parametri di connessione, dal file batch \texttt{03-mysql-copy-migrated-tables.cmd}.}, anche in ottica futura (cfr. \ref{sviluppi-futuri}).
+
+\section{Pulizia dei dati}
+\label{pulizia-dati}
+Una volta spostati i dati su un database MySQL, si \'e scelto di eliminare alcuni record e mantenerne altri pi\'u rilevanti\footnote{Gli script rilevanti sono contenuti nel file \texttt{scripts/04-mysql-scores.sql}.}. La base dati originaria, infatti, contiene $185476$ record.
+
+\subsection{Calcolo dello score}
+Ad ogni riga di rilevazione sintomo \'e stato associato un punteggio, o \textit{score}, che permetta di capire quanto quella riga \'e completa (e quindi pi\'u o meno rilevante rispetto alle altre).
+
+Fissato il numero degli attributi (di dialisi) a $15$, un record con score pi\'u elevato sar\'a selezionato con pi\'u probabilit\'a per avviare il processo di apprendimento.
+
+\subsection{Pazienti rilevanti}
+Inoltre, lo \textit{score} \'e stato utilizzato anche per poter eliminare, dai record gi\'a selezionati, tutti quelli che appartengono a pazienti che hanno meno di $5$ rilevazioni di sintomi con uno \textit{score} percentuale pi\'u basso dell'$80\%$.
+
+Tutti i dati selezionati fino a questo punto, quindi, appartengono a pazienti che hanno almeno $5$ rilevazioni di sintomi ottimali.
+
+\subsection{Gestione dei valori nulli}
+I valori nulli sono stati gestiti ``staticamente'', ovvero per ogni paziente sono state calcolate le medie dei valori di ogni attributo (ignorando quindi i valori nulli); in un passo successivo, sono stati scansionati tutti i record e, qualora fosse rilevato un valore nullo, \'e stato inserito il valore medio relativo al paziente associato.
+
+Tutto ci\'o, tuttavia, ha portato comunque a mantenere alcuni valori nulli all'interno della base dati. Ad esempio, poche rilevazioni di sintomatologia contengono valori effettivi di \verb|KTV|, probabilmente perch\'e si tratta di una misura di difficile calcolo da parte dei medici.
+
+Alcuni record, inoltre, non contenevano l'ID del sintomo target rilevato, e si \'e pertanto assunto che l'utente avesse erroneamente cancellato (dall'interfaccia del sistema) la dicitura ``asintomatico'', aggiungendo comunque una sintomatologia nulla (con ID uguale a $1$).
+
+\section{Apprendimento di regole in Prolog}
+Per apprendere regole utili a classificare appositamente una seduta di dialisi si \'e scelto di utilizzare l'algoritmo C4.5 di Ross Quinlan \cite{quinlan}.
+
+\section{Sviluppi futuri}
+\label{sviluppi-futuri}
+
+\begin{itemize}
+\item Migliore gestione dei valori nulli (a runtime, tramite misura dell'information gain)
+\item Gestione multi-classe dell'albero di decisione
+\item Aggregazione dati ottimi da pi\'u database italiani e non (quando disponibili)
+\end{itemize}
 
 % The following two commands are all you need in the
 % initial runs of your .tex file to

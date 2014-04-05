@@ -48,19 +48,19 @@ The queries can be executed launching `scripts/01-sql-server-tables.sql` on the 
 
 Before being able to import the data into the MySQL instance, the same database structure must be replicated onto the MySQL server.
 
-Execute `scripts/02-mysql_migration_script.sql` to create the database and the tables.
+Execute `scripts/02-mysql-migration-script.sql` to create the database and the tables.
 
 ## Step 3: data import
 
 To transfer all of the data from SQL Server to MySQL, do the following:
 
 1. Create the `scripts/connection.properties` file (see `scripts/connection.properties.example` for an example) .
-2. Start the `scripts/03-mysql-copy_migrated_tables.cmd` to migrate all of the data.
+2. Start the `scripts/03-mysql-copy-migrated-tables.cmd` to migrate all of the data.
 3. The `dialysisai` schema will be created and populated on the local machine.
 
 ## Step 4: custom view creation
 
-The analysis isn't executed on the imported data, as the information has to be normalized and filtered before a valid learning process can be started. To create the views that take care of this process, launch the `scripts/04-mysql_scores.sql` script.
+The analysis isn't executed on the imported data, as the information has to be normalized and filtered before a valid learning process can be started. To create the views that take care of this process, launch the `scripts/04-mysql-scores.sql` script.
 
 ## Step 5: to the clouds!
 
@@ -68,4 +68,4 @@ You can export the database from a local instance to a cloud-based one using the
 
 1. Export the tables only.
 2. Import the tables.
-3. Execute the `scripts/04-mysql_scores.sql` script on the new database.
+3. Execute the `scripts/04-mysql-scores.sql` script on the new database.

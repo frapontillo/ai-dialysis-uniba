@@ -299,7 +299,7 @@ update_target(PositiveID) :-
 /**
  * positive(?ID, ?Attribute, ?Value) is semidet.
  * 
- * Hold positive examples information.
+ * Hold all the positive examples info, will then be split: train_positive/3, test_positive/3.
  *
  * @param ID                The ID of the example.
  * @param Attribute         The Attribute for the cell, can be: 'ID', 'Patient', 'Center',
@@ -316,7 +316,7 @@ update_target(PositiveID) :-
 /**
  * negative(?ID, ?Attribute, ?Value) is semidet.
  * 
- * Hold negative examples information.
+ * Hold all the negative examples info, will then be split: train_negative/3, test_negative/3.
  *
  * @param ID                The ID of the example.
  * @param Attribute         The Attribute for the cell, can be: 'ID', 'Patient', 'Center',
@@ -434,7 +434,7 @@ get_records(SymptomID, RecordName) :-
             `AVG_SAP`, `DAP_START`, `DAP_END`, `AVG_DAP`, `BLOOD_VOLUME`, `DELTA_BLOOD_FLOW`, \c
             `DELTA_UF`, `SYMPTOM_ID`, `SCORE` \c
         FROM `dialysisai`.`patient_dialysis_symptom_for_analysis` \c
-        WHERE `SYMPTOM_ID` = ? ORDER BY `SCORE` DESC LIMIT 1000;',
+        WHERE `SYMPTOM_ID` = ? ORDER BY `SCORE` DESC LIMIT 100;',
         [default], Statement, [fetch(fetch)]),
     log_v('database', ['Statement prepared.']),
     % execute the statement
@@ -498,12 +498,17 @@ update_records(_) :-
  */
 % 
 update_records :-
-    clear_records(negative),            % clear negative records
-    clear_records(positive),            % clear positive records
+    % clear all records (both training/testing and negative/positive)
+    clear_records(negative),
+    clear_records(positive),
+    % update all records (both training/testing and negative/positive)
     negative_target(NegNumb), atom_number(Neg, NegNumb),
-    get_records(Neg, negative),     % get negative records
+    get_records(Neg, negative),
     positive_target(PosNumb), atom_number(Pos, PosNumb),
-    get_records(Pos, positive).     % get positive records
+    get_records(Pos, positive)
+    % negative_all and positive_all will then be split into:
+    % negative, test_negative and positive, test_positive.
+    .
 
 /**
  * exists_record(?RecordName, ?ID) is semidet.
@@ -514,7 +519,7 @@ update_records :-
  * @param ID                The ID of the record.
  */
 exists_record(RecordName, ID) :-
-    RecordList =..[RecordName, ID, 'ID', ID], RecordList.
+    RecordList =..[RecordName, ID, 'ID', ID], RecordList, !.
 
 /**
  * count_records(?RecordName, ?Count) is det.
@@ -528,20 +533,13 @@ exists_record(RecordName, ID) :-
 count_records(RecordName, Count) :-
     RecordList =..[RecordName, ID, 'ID', ID], aggregate_all(count, RecordList, Count).
 
-% --------------------------------------------------------------------------- %
-%                              ACCESSORY METHODS                              %
-% --------------------------------------------------------------------------- %
-
 /**
- * example(Kind, ID, Attribute, Value) is semidet.
- * 
- * Accessory predicate to access any kind of example by specifying the name the record was
- * asserted with (negative or positive).
- * 
- * @param Kind              The name the record was asserted with; can be positive or negative.
- * @param ID                The ID of the example.
- * @param Attribute         The Attribute of the example.
- * @param Value             The Value of the example.
+ * count_all_examples(-Count) is det.
+ *
+ * Return the number of all examples in the Prolog in-memory database.
+ * @see example/4
+ *
+ * @param Count             The number of retrieved examples
  */
-example(positive, ID, Attribute, Value) :- positive(ID, Attribute, Value).
-example(negative, ID, Attribute, Value) :- negative(ID, Attribute, Value).
+count_all_examples(Count) :-
+    RecordList =..[example, _, ID, 'ID', ID], aggregate_all(count, RecordList, Count).

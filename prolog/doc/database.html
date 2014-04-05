@@ -174,7 +174,7 @@ If the user-entered symptom is not valid, the default one is selected, by callin
 <a href="/doc_for?object=user:fallback_default_target/0">fallback_default_target/0</a>.</dd>
 <dt class="pubdef"><span style="float:right"></span><a name="fallback_default_target/0"><b class="pred">fallback_default_target</b></a> is <b class="det">det</b></dt><dd class="defbody">Fall back to the default target symptom, after printing a warning.</dd>
 <dt class="pubdef"><span style="float:right"></span><a name="update_target/1"><b class="pred">update_target</b><var class="arglist">(+PositiveID)</var></a> is <b class="det">det</b></dt><dd class="defbody">Save the positive and negative symptom IDs to be used for the learning step.</dd>
-<dt class="pubdef"><span style="float:right"></span><a name="positive/3"><b class="pred">positive</b><var class="arglist">(?ID, ?Attribute, ?Value)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Hold positive examples information.
+<dt class="pubdef"><span style="float:right"></span><a name="positive/3"><b class="pred">positive</b><var class="arglist">(?ID, ?Attribute, ?Value)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Hold all the positive examples info, will then be split: <a href="/doc_for?object=user:train_positive/3">train_positive/3</a>, <a href="/doc_for?object=user:test_positive/3">test_positive/3</a>.
 
 <dl class="tags">
 <dt class="tag">Arguments:</dt><dd>
@@ -195,7 +195,7 @@ If the user-entered symptom is not valid, the default one is selected, by callin
 </dl>
 
 </dd>
-<dt class="pubdef"><span style="float:right"></span><a name="negative/3"><b class="pred">negative</b><var class="arglist">(?ID, ?Attribute, ?Value)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Hold negative examples information.
+<dt class="pubdef"><span style="float:right"></span><a name="negative/3"><b class="pred">negative</b><var class="arglist">(?ID, ?Attribute, ?Value)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Hold all the negative examples info, will then be split: <a href="/doc_for?object=user:train_negative/3">train_negative/3</a>, <a href="/doc_for?object=user:test_negative/3">test_negative/3</a>.
 
 <dl class="tags">
 <dt class="tag">Arguments:</dt><dd>
@@ -318,17 +318,14 @@ The negative ID is fixed (1), but the positive can be passed to this predicate.
 </dl>
 
 </dd>
-<dt class="pubdef"><span style="float:right"></span><a name="example/4"><b class="pred">example</b><var class="arglist">(Kind, ID, Attribute, Value)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Accessory predicate to access any kind of example by specifying the name the record was
-asserted with (negative or positive).
+<dt class="pubdef"><span style="float:right"></span><a name="count_all_examples/1"><b class="pred">count_all_examples</b><var class="arglist">(-Count)</var></a> is <b class="det">det</b></dt><dd class="defbody">Return the number of all examples in the Prolog in-memory database.
+@see <a href="/doc_for?object=user:example/4">example/4</a>
 
 <dl class="tags">
 <dt class="tag">Arguments:</dt><dd>
 
 <table class="arglist">
-<tr><td><var>Kind</var></td><td class="argdescr">- The name the record was asserted with; can be positive or negative.</td></tr>
-<tr><td><var>ID</var></td><td class="argdescr">- The <var>ID</var> of the example.</td></tr>
-<tr><td><var>Attribute</var></td><td class="argdescr">- The <var>Attribute</var> of the example.</td></tr>
-<tr><td><var>Value</var></td><td class="argdescr">- The <var>Value</var> of the example.</td></tr>
+<tr><td><var>Count</var></td><td class="argdescr">- The number of retrieved examples</td></tr>
 </table>
 
 </dd>

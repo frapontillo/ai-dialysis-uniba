@@ -11,47 +11,232 @@
  */
 
 % --------------------------------------------------------------------------- %
+%                               FOLDING EXAMPLES                              %
+% --------------------------------------------------------------------------- %
+
+/**
+ * example(Kind, ID, Attribute, Value) is semidet.
+ * 
+ * Accessory predicate to access any kind of example (both training or testing) by specifying 
+ * the name the record was asserted with (negative or positive).
+ * 
+ * @param Kind              The name the record was asserted with; can be positive or negative.
+ * @param ID                The ID of the example.
+ * @param Attribute         The Attribute of the example.
+ * @param Value             The Value of the example.
+ */
+example(positive, ID, Attribute, Value) :- positive(ID, Attribute, Value).
+example(negative, ID, Attribute, Value) :- negative(ID, Attribute, Value).
+
+split_examples(FoldCount, TestFold) :-
+    log_d('split_ex', ['Splitting examples with ', FoldCount, ' folds and test fold = ', TestFold]),
+
+    % if the testing fold group is higher than the fold count, log an error
+    TestFold > FoldCount,
+    log_e('split_examples', 'The TestFold must be less or equal than the FoldCount.'),
+    fail;
+
+    % if the fold parameters check is OK, go on
+    % count all retrieved examples
+    count_all_examples(Count),
+    FoldCardinality is ceil(Count / FoldCount),
+    % the testing fold will have
+    % BottomIndex = (TestFold-1)*FoldCardinality and TopIndex = TestFold*FoldCardinality
+    TestBottom is ((TestFold-1)*FoldCardinality),
+    TestTop is (TestFold*FoldCardinality),
+
+    log_v('split_ex', ['The test fold has index range of [', TestBottom, ',', TestTop, ').']),
+
+    % partition to get the testing fold IDs list
+    findall(ID, example(_,ID,'ID',ID), Examples),
+
+    % find all testing IDs
+    findall(ID, (
+        % whose index is Index (1 to n)
+        member(ID, Examples), index_of(Examples, ID, I), Index is I+1, 
+        % and is within the folding test limits
+        Index >= TestBottom, Index < TestTop
+    ), TestExamples),
+
+    % find all training IDs
+    findall(ID, (
+        % that is an example
+        member(ID, Examples),
+        % but that is NOT in the testing list
+        not(member(ID, TestExamples))
+    ), TrainExamples),
+
+    % reset the testing and training lists
+    retractall(test_examples(_)),
+    retractall(train_examples(_)),
+
+    assertz(test_examples(TestExamples)),
+    assertz(train_examples(TrainExamples)),
+
+    log_v('split_ex', ['Test examples for this run are ', TestExamples]),
+    log_v('split_ex', ['Train examples for this run are ', TrainExamples])
+    .
+
+/**
+ * train_examples(-List:list) is semidet.
+ * 
+ * Return the list of current training examples.
+ * 
+ * @param List              The list of training examples.
+ */
+
+/**
+ * train_example(Kind, ID, Attribute, Value) is nondet.
+ * 
+ * Access any kind of training example by specifying the name the record was asserted with 
+ * (negative or positive).
+ * 
+ * @param Kind              The name the record was asserted with; can be positive or negative.
+ * @param ID                The ID of the example.
+ * @param Attribute         The Attribute of the example.
+ * @param Value             The Value of the example.
+ */
+train_example(Kind, ID, Attribute, Value) :-
+    % select examples in the train_examples list
+    example(Kind, ID, Attribute, Value),
+    train_examples(TrainExamples),
+    member(ID, TrainExamples).
+
+/**
+ * test_examples(-List:list) is semidet.
+ * 
+ * Return the list of current testing examples.
+ * 
+ * @param List              The list of testing examples.
+ */
+
+/**
+ * test_example(Kind, ID, Attribute, Value) is nondet.
+ * 
+ * Access any kind of testing example by specifying the name the record was asserted with 
+ * (negative or positive).
+ * 
+ * @param Kind              The name the record was asserted with; can be positive or negative.
+ * @param ID                The ID of the example.
+ * @param Attribute         The Attribute of the example.
+ * @param Value             The Value of the example.
+ */
+test_example(Kind, ID, Attribute, Value) :-
+    % select examples in the TestExamples list
+    test_examples(TestExamples),
+    example(Kind, ID, Attribute, Value),
+    member(ID, TestExamples).
+
+/**
+ * train_positive(?ID, ?Attribute, ?Value) is nondet.
+ * 
+ * Hold positive training examples information.
+ *
+ * @param ID                The ID of the example.
+ * @param Attribute         The Attribute for the cell, can be: 'ID', 'Patient', 'Center',
+ *                          'PatientSex', 'PatientRace', 'PatientAge', 'SessionID', 'SessionDate',
+ *                          'KTV', 'QB', 'ProgWeightLoss', 'RealWeightLoss', 'DeltaWeight', 
+ *                          'ProgDuration', 'RealDuration', 'DeltaDuration', 'SAPStart', 'SAPEnd', 
+ *                          'SAPAverage', 'DAPStart', 'DAPEnd', 'DAPAverage', 'DeltaBloodFlow', 
+ *                          'DeltaUF', 'SymptomID', 'Score'
+ * @param Value             The Value for the cell.
+ * @see negative/3
+ */
+train_positive(ID, Attribute, Value) :- train_example(positive, ID, Attribute, Value).
+
+/**
+ * train_negative(?ID, ?Attribute, ?Value) is nondet.
+ * 
+ * Hold negative training examples information.
+ *
+ * @param ID                The ID of the example.
+ * @param Attribute         The Attribute for the cell, can be: 'ID', 'Patient', 'Center',
+ *                          'PatientSex', 'PatientRace', 'PatientAge', 'SessionID', 'SessionDate',
+ *                          'KTV', 'QB', 'ProgWeightLoss', 'RealWeightLoss', 'DeltaWeight', 
+ *                          'ProgDuration', 'RealDuration', 'DeltaDuration', 'SAPStart', 'SAPEnd', 
+ *                          'SAPAverage', 'DAPStart', 'DAPEnd', 'DAPAverage', 'DeltaBloodFlow', 
+ *                          'DeltaUF', 'SymptomID', 'Score'
+ * @param Value             The Value for the cell.
+ * @see positive/3
+ */
+train_negative(ID, Attribute, Value) :- train_example(negative, ID, Attribute, Value).
+
+/**
+ * test_positive(?ID, ?Attribute, ?Value) is nondet.
+ * 
+ * Hold positive testing examples information.
+ *
+ * @param ID                The ID of the example.
+ * @param Attribute         The Attribute for the cell, can be: 'ID', 'Patient', 'Center',
+ *                          'PatientSex', 'PatientRace', 'PatientAge', 'SessionID', 'SessionDate',
+ *                          'KTV', 'QB', 'ProgWeightLoss', 'RealWeightLoss', 'DeltaWeight', 
+ *                          'ProgDuration', 'RealDuration', 'DeltaDuration', 'SAPStart', 'SAPEnd', 
+ *                          'SAPAverage', 'DAPStart', 'DAPEnd', 'DAPAverage', 'DeltaBloodFlow', 
+ *                          'DeltaUF', 'SymptomID', 'Score'
+ * @param Value             The Value for the cell.
+ * @see negative/3
+ */
+test_positive(ID, Attribute, Value) :- test_example(positive, ID, Attribute, Value).
+
+/**
+ * test_negative(?ID, ?Attribute, ?Value) is nondet.
+ * 
+ * Hold negative testing examples information.
+ *
+ * @param ID                The ID of the example.
+ * @param Attribute         The Attribute for the cell, can be: 'ID', 'Patient', 'Center',
+ *                          'PatientSex', 'PatientRace', 'PatientAge', 'SessionID', 'SessionDate',
+ *                          'KTV', 'QB', 'ProgWeightLoss', 'RealWeightLoss', 'DeltaWeight', 
+ *                          'ProgDuration', 'RealDuration', 'DeltaDuration', 'SAPStart', 'SAPEnd', 
+ *                          'SAPAverage', 'DAPStart', 'DAPEnd', 'DAPAverage', 'DeltaBloodFlow', 
+ *                          'DeltaUF', 'SymptomID', 'Score'
+ * @param Value             The Value for the cell.
+ * @see positive/3
+ */
+test_negative(ID, Attribute, Value) :- test_example(negative, ID, Attribute, Value).
+
+% --------------------------------------------------------------------------- %
 %                                ENTROPY MEASURES                             %
 % --------------------------------------------------------------------------- %
 
 /**
  * complete_set(?CompleteSet:list) is semidet.
  * 
- * Get the complete set of example IDs as a list.
+ * Get the complete set of training example IDs as a list.
  *
- * @param CompleteSet The list of all the example IDs.
+ * @param CompleteSet The list of all the training example IDs.
  */
 complete_set(CompleteSet) :-
-    findall(ID, example(_, ID, 'ID', ID), CompleteSet).
+    findall(ID, train_example(_, ID, 'ID', ID), CompleteSet).
 
 /**
  * entropy(+IncludedValues, -Entropy) is semidet.
  * 
- * Calculate the entropy of a given list of examples (by IDs).
+ * Calculate the entropy of a given list of training examples (by IDs).
  * 
  * @param IncludedValues    A list of the example IDs to be included when considering the entropy
  *                          calculus. The resulting examples will be intersected with the positive 
  *                          and negative examples.
  *                          If you don't want to filter anything, pass in all of the example IDs:
  *                          ==
- *                          findall(ID, (example(_, ID, 'ID', ID),
- *                          example(_, ID, 'DeltaWeight', 1)), IncludedValues).
+ *                          findall(ID, (train_example(_, ID, 'ID', ID),
+ *                          train_example(_, ID, 'DeltaWeight', 1)), IncludedValues).
  *                          ==
  * @param Entropy           The resulting entropy of the examples passed by IDs.
  */
 entropy(IncludedValues, Entropy) :- 
-    % calculate the number of positive examples (filtered)
-    findall(ID, example(positive, ID, 'ID', ID), PositiveList),
+    % calculate the number of positive training examples (filtered)
+    findall(ID, train_example(positive, ID, 'ID', ID), PositiveList),
     intersection(PositiveList, IncludedValues, PositiveSubset),
     length(PositiveSubset, PositiveCount),
 
-    % calculate the number of negative examples (filtered)
-    findall(ID, example(negative, ID, 'ID', ID), NegativeList),
+    % calculate the number of negative training examples (filtered)
+    findall(ID, train_example(negative, ID, 'ID', ID), NegativeList),
     intersection(NegativeList, IncludedValues, NegativeSubset),
     length(NegativeSubset, NegativeCount),
 
     % calculate the number of all the examples (filtered)
-    findall(ID, example(_, ID, 'ID', ID), CompleteSet),
+    findall(ID, train_example(_, ID, 'ID', ID), CompleteSet),
     intersection(CompleteSet, IncludedValues, Subset),
     length(Subset, SubsetCount),
 
@@ -71,12 +256,12 @@ entropy(IncludedValues, Entropy) :-
 /**
  * entropy(-Entropy) is semidet.
  * 
- * Calculate the entropy of the whole set of examples. This is a shortcut clause for:
+ * Calculate the entropy of the whole set of training examples. This is a shortcut clause for:
  * ==
- * findall(ID, example(ID,'ID',ID), List), entropy(List, Entropy).
+ * findall(ID, train_example(ID,'ID',ID), List), entropy(List, Entropy).
  * ==
  * 
- * @param Entropy           The resulting entropy of the whole set of examples.
+ * @param Entropy           The resulting entropy of the whole set of training examples.
  */
 entropy(Entropy) :-
     complete_set(CompleteSet),
@@ -100,19 +285,19 @@ best_attribute(Set, Attributes, Attribute) :-
     % calculate the maximum InfoGain from GainsSet and get the Attribute
     aggregate_all(max(InfoGain, Attribute), GainsSet, BestSet),
     BestSet = max(InfoGain, Attribute),
-    log_d('best_attribute', [
+    log_d('best_attr', [
         'Best info gain is achieved with attribute ', Attribute, ' with a value of ', InfoGain]),
     measure_time(Time), format_ms(Time, TimeString),
-    log_d('best_attribute', ['Best attribute calculus took ', TimeString, '.'])
+    log_d('best_attr', ['Best attribute calculus took ', TimeString, '.'])
     .
 
 /**
  * best_attribute(-Attribute) is semidet.
  * 
- * Select the best attribute from the whole set of attributes and examples.
+ * Select the best attribute from the whole set of attributes and training examples.
  * This is a shortcut clause for:
  * ==
- * findall(ID, example(ID,'ID',ID), Examples),
+ * findall(ID, train_example(ID,'ID',ID), Examples),
  * findall(Attribute, class(Attribute, _), Attributes),
  * best_attribute(Examples, Attributes, Entropy).
  * ==
@@ -130,7 +315,7 @@ best_attribute(Attribute) :-
 /**
  * info_gain(+Set:list, +Attribute, -InfoGain) is semidet.
  * 
- * Calculate the Information Gain for a set of exampes and a given attribute.
+ * Calculate the Information Gain for a set of training exampes and a given attribute.
  *
  * @param Set               A list of IDs to be included when considering the info gain calculus.
  * @param Attribute         The attribute to calculate the information gain for.
@@ -159,10 +344,10 @@ info_gain(Set, Attribute, InfoGain) :-
 /**
  * info_gain(+Attribute, -InfoGain) is det.
  * 
- * Calculate the Information Gain for all examples and one attribute.
+ * Calculate the Information Gain for all training examples and one attribute.
  * This is a shortcut clause for:
  * ==
- * findall(ID, example(ID,'ID',ID), Examples),
+ * findall(ID, train_example(ID,'ID',ID), Examples),
  * info_gain(CompleteSet, Attribute, InfoGain).
  * ==
  *
@@ -186,13 +371,11 @@ info_gain(Attribute, InfoGain) :-
  * @param PartialInfoGain   The partial value to be used to compute the whole Attribute Info Gain.  
  */
 partial_info_gain(Set, Attribute, Range, PartialInfoGain) :-
-    log_v('partial_info_gain', [
-        'Calculating partial info gain for ', Attribute, ' with ', Range, '...']),
     clean_set(Set, Attribute, CleanSet),
-    % get all the examples that satisfy the given Range
+    % get all the training examples that satisfy the given Range
     Subset = (
-        example(_, ID, Attribute, Value),
         member(ID, CleanSet),
+        train_example(_, ID, Attribute, Value),
         is_in_range(Value, Range)
     ),
     % get a list of the IDs
@@ -204,14 +387,14 @@ partial_info_gain(Set, Attribute, Range, PartialInfoGain) :-
     % get the size of the original set
     length(CleanSet, SetLength),
     PartialInfoGain is (SubsetEntropy * SubsetLength / SetLength),
-    log_v('partial_info_gain', [
+    log_v('par_info_gain', [
         'Partial info gain for ', Attribute, ' with ', Range, ' is ', PartialInfoGain])
     .
 
 /**
  * clean_set(+Set:list, +Attribute, -CleanSet) is det.
  * 
- * Clean the given list of example IDs from '$null$' values.
+ * Clean the given list of example IDs (doesn't matter if training or testing) from '$null$' values.
  *
  * @param Set               The set of example IDs to clean.
  * @param Attribute         The attribute whose $null$ value must be deleted.
@@ -267,15 +450,85 @@ clean_set(Set, Attribute, CleanSet) :-
 
 /**
  * learn_please is det.
+ *
+ * TODO: customize number of folds?
  * 
- * Start the learning process by adding node/4 and node_label/2 clauses to the database.
+ * Start the learning process:
+ *   1. partition the positive/3 data set in 10 folds
+ *   2. partition the negative/3 data set in 10 folds
+ *   3. for every generated fold:
+ *      a. start the learning phase
+ *      b. start the testing phase
  */
 learn_please :-
+    timer_start(learn),
+
+    % delete all the rules
+    retractall(is_positive(_, _)),
+    % delete all error rate calculations
+    retractall(test_error_rate(_, _)),
+
+    % from 1 to 10 folds
+    TotalFolds is 10,
+    between(1, TotalFolds, Step),
+        % learn and test for each fold
+        learn(TotalFolds, Step),
+        test(Step),
+    fail;
+
+    % log time information
+    timer_stop(learn, Elapsed), format_s(Elapsed, Time),
+    log_i('learn', ['Learning algorithm finished in ', Time])
+    .
+
+/**
+ * test_error_rate(?Step, ?ErrorRate) is nondet.
+ * 
+ * Holds information about the error rate calculated at a particular Step.
+ * 
+ * @see test/1.
+ */
+:- dynamic test_error_rate/2.
+
+/**
+ * test(+Step) is det.
+ *
+ * Test all test_positive/3 and test_negative/3 and calculates an error rate as wrong predictions
+ * on the total number of predictions (single tests) executed.
+ * The calculated error rate is asserted as test_error_rate/2.
+ *
+ * @param Step              The learning step, defines the particular rules to test against.
+ * @see test_error_rate/2
+ */
+test(Step) :-
+    aggregate_all(count, (test_negative(ID,'ID',ID), is_positive(ID, Step)), FalsePositives),
+    aggregate_all(count, (test_positive(ID,'ID',ID), not(is_positive(ID, Step))), FalseNegatives),
+    test_examples(TestExamples), length(TestExamples, Tests),
+    (
+        Tests = 0 -> ErrorRate is 0; ErrorRate is ((FalsePositives+FalseNegatives)/Tests)
+    ),
+    assertz(test_error_rate(Step, ErrorRate)),
+    log_i('test', ['Error Rate at step ', Step, ' = ', ErrorRate, '.'])
+    .
+
+/**
+ * learn(+Step) is det.
+ *
+ * Start the learning process using given sets of training and testing examples by adding 
+ * node/4 and node_label/2 clauses to the database.
+ * 
+ * @param TotalFolds        The number of folds to split the examples into.
+ * @param Step              The current learning step.
+ */
+learn(TotalFolds, Step) :-
+    % the testing fold is the last fold for the first step and the first fold for the last step
+    TestFold is TotalFolds-Step+1,
+    split_examples(TotalFolds, TestFold),
     % clear old facts
     retractall(node(_,_,_,_)), retractall(node_label(_,_)),
     % get a list of every valid attribute (the ones with at least one range)
     findall(Attribute, class(Attribute, _), Attributes),
-    % get a list of every example
+    % get a list of every training example
     complete_set(Examples),
     % create the root node
     log_d('learn', 'Create root node.'),
@@ -283,29 +536,28 @@ learn_please :-
     assertz(RootNode),
     % bootstrap the algorithm with the root node
     log_i('learn', 'Bootstrap C4.5'),
-    timer_start(learn),
     c45(RootNode, Examples, Attributes),
-    timer_stop(learn, Elapsed), format_s(Elapsed, Time),
-    log_i('learn', ['Learning algorithm finished in ', Time])
+    gen_all_the_rulez(Step)
     .
 
 /**
  * c45(+Node, +Examples:list, +Attributes:list) is det.
  * 
- * Apply the C4.5 algorithm to a given node, that will be split according
- * to the examples passed and the available attributes still left.
+ * Apply the C4.5 algorithm to a given node, that will be split according to the training examples 
+ * passed and the available attributes still left.
  *
  * @param Node              The node to build.
  * @param Examples          The training examples.
  * @param Attributes        The list of attributes to be tested.
  */
+
  c45(Node, Examples, Attributes) :- 
     Node = node(NodeName, _, _, _),
     log_d('c45', ['Executing C4.5 for node ', NodeName, '.']),
-    % STEP 1: check if every example is in the same class
+    % STEP 1: check if every training example is in the same class
     % find all the different target values in the current subset
     target_class(TargetAttr),
-    findall(Value,  (member(ID, Examples), example(_, ID, TargetAttr, Value)), TargetValues),
+    findall(Value,  (member(ID, Examples), train_example(_, ID, TargetAttr, Value)), TargetValues),
     % if all current examples are in one class only (p or n) the node has a label (yay!)
     % TODO: check the percentage and apply a threshold
     length(TargetValues, DifferentValues),
@@ -332,7 +584,7 @@ learn_please :-
         true
     ),
 
-    % RECURSION STEP: split the examples according to the best attribute
+    % RECURSION STEP: split the training examples according to the best attribute
     log_d('c45', ['Looking for the best attribute to split ', NodeName]),
     % get the best attribute
     best_attribute(Examples, Attributes, BestAttribute),
@@ -369,19 +621,9 @@ learn_please :-
             ),
         % loop until all ranges are analyzed and nodes are created
         fail
-    )
-    .
-
+    ).
 % always succeed
 c45(_,_,_) :- true.
-
-/**
- * learn is failure.
- *
- * A funfunfunfunction.
- */
-learn :-
-    log_e('learner', 'YOU DIDN''T SAY THE MAGIC WORD!'), fail.
 
 /**
  * print_le_tree is semidet.
@@ -451,36 +693,50 @@ print_le_branch(Node, NestLevel) :-
 % --------------------------------------------------------------------------- %
 
 /**
- * gen_all_the_rulez is semidet.
+ * is_positive(+ID, ?LearningStep) is nondet.
+ * 
+ * Check if a given example/4 ID is positive according to an optionally provided LearningStep.
+ * 
+ * @param ID                The ID of the fact/3 to check for.
+ * @param LearningStep      The step number of the learning process.
+ *
+ * @see check_condition_list/3
+ */
+
+/**
+ * gen_all_the_rulez(+Step) is semidet.
  * 
  * For each node_label/2 with a positive outcome, generate the corresponding rule
  * by going up from the leaf to the tree root node.
+ * The rule will be is_positive/2.
+ * 
+ * @param Step              The current learning step.
  */
-gen_all_the_rulez :- 
-    retractall(is_positive(_)),
-    log_d('gen_all_rules', 'Starting to generate rules...'),
+gen_all_the_rulez(Step) :- 
+    log_d('gen_all_rules', ['Starting to generate rules for step ', Step, '...']),
     positive_target(PositiveID),                % get the positive ID
     node_label(Node, PositiveID),               % for every positive node
-    gen_rule(Node),                             % generate corresponding rule
+    gen_rule(Node, Step),                       % generate corresponding rule
     fail                                        % loop
     ;
-    log_i('gen_all_rules', 'Rules generation complete.'),
+    log_i('gen_all_rules', ['Rules generation complete for step ', Step, '.']),
     true                                        % always succeed
     .
 
 /**
- * gen_rule(+Node) is semidet.
+ * gen_rule(+Node, +Step) is semidet.
  * 
  * Generate the rule for the corresponding input Node.
  *
  * @param Node              The leaf Node that holds the rule information.
+ * @param Step              The current learning step.
  */
-gen_rule(Node) :-
+gen_rule(Node, Step) :-
     Node = node(Name, _, _, _),
     log_v('gen_rule', ['Generating rule for node ', Name, '...']),
     get_rule_list(Node, [], Conditions),
-    assertz(is_positive(ID) :- (check_condition_list(ID, Conditions))),
-    log_v('gen_rule', ['Rule for node ', Name, ' generated.'])
+    assertz(is_positive(ID, Step) :- (check_condition_list(ID, Conditions))),
+    log_v('gen_rule', ['Generated rule for node ', Name, ' at step ', Step, '.'])
     .
 
 /**
@@ -515,20 +771,20 @@ get_rule_list(Node, PrevList, List) :-
 /**
  * check_condition_list(+ID, +List) is semidet.
  * 
- * Check if a given fact with an ID matches all the conditions in the input list.
+ * Check if a given example with an ID matches all the conditions in the input list.
  * 
- * @param ID                The ID of the fact/3.
+ * @param ID                The ID of the example.
  * @param List              The List of condition/2.
  */
 check_condition_list(ID, List) :-
-    fact(ID, 'ID', ID), !,
+    example(_, ID, _, _),
     forall(
         member(Condition, List),
         (
             % get Attribute and Range to test
             Condition = condition(Attribute, Range),
             % test the Attribute and the Range
-            fact(ID, Attribute, Value),
+            example(_, ID, Attribute, Value),
             log_v('check', [
                 'Testing ID ', ID, ' on Attribute ', Attribute, 
                 ' with value ', Value, ' on ', Range, '.']
@@ -549,3 +805,24 @@ check_condition_list(ID, List) :-
 get_conditions_from_list([Condition], Condition).
 get_conditions_from_list([Head | Tail],(Head, OtherConditions)) :-
     get_conditions_from_list(Tail, OtherConditions).
+
+/**
+ * print_report is det.
+ *
+ * Print a detailed report of the learning algorithm and of the executed tests.
+ */
+print_report :- 
+    aggregate_all(sum(SingleError), test_error_rate(_, SingleError), ErrorSum),
+    aggregate_all(count, test_error_rate(_, _), Runs),
+    TotalError is ErrorSum/Runs,
+
+    log_i('report', ['Total runs: ', Runs]),
+
+    log_i('report', 'Runs error rates:'),
+    between(1, Runs, Run),
+        test_error_rate(Run, ErrorRate),
+        log_i('report', ['    - Run ', Run, ' : Error ', ErrorRate]),
+    fail;
+
+    log_i('report', ['TOTAL ERROR: ', TotalError])
+    .

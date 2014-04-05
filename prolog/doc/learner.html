@@ -13,20 +13,181 @@
 <h1 class="file"><span style="float:right"></span>learner.pl</h1>
 
 <dl>
-<dt class="pubdef"><span style="float:right"></span><a name="complete_set/1"><b class="pred">complete_set</b><var class="arglist">(?CompleteSet:list)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Get the complete set of example IDs as a list.
+<dt class="pubdef"><span style="float:right"></span><a name="example/4"><b class="pred">example</b><var class="arglist">(Kind, ID, Attribute, Value)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Accessory predicate to access any kind of example (both training or testing) by specifying
+the name the record was asserted with (negative or positive).
 
 <dl class="tags">
 <dt class="tag">Arguments:</dt><dd>
 
 <table class="arglist">
-<tr><td><var>CompleteSet</var></td><td class="argdescr">- The list of all the example IDs.</td></tr>
+<tr><td><var>Kind</var></td><td class="argdescr">- The name the record was asserted with; can be positive or negative.</td></tr>
+<tr><td><var>ID</var></td><td class="argdescr">- The <var>ID</var> of the example.</td></tr>
+<tr><td><var>Attribute</var></td><td class="argdescr">- The <var>Attribute</var> of the example.</td></tr>
+<tr><td><var>Value</var></td><td class="argdescr">- The <var>Value</var> of the example.</td></tr>
 </table>
 
 </dd>
 </dl>
 
 </dd>
-<dt class="pubdef"><span style="float:right"></span><a name="entropy/2"><b class="pred">entropy</b><var class="arglist">(+IncludedValues, -Entropy)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Calculate the entropy of a given list of examples (by IDs).
+<dt class="pubdef"><span style="float:right"></span><a name="train_examples/1"><b class="pred">train_examples</b><var class="arglist">(-List:list)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Return the list of current training examples.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>List</var></td><td class="argdescr">- The list of training examples.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="train_example/4"><b class="pred">train_example</b><var class="arglist">(Kind, ID, Attribute, Value)</var></a> is <b class="det">nondet</b></dt><dd class="defbody">Access any kind of training example by specifying the name the record was asserted with
+(negative or positive).
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Kind</var></td><td class="argdescr">- The name the record was asserted with; can be positive or negative.</td></tr>
+<tr><td><var>ID</var></td><td class="argdescr">- The <var>ID</var> of the example.</td></tr>
+<tr><td><var>Attribute</var></td><td class="argdescr">- The <var>Attribute</var> of the example.</td></tr>
+<tr><td><var>Value</var></td><td class="argdescr">- The <var>Value</var> of the example.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="test_examples/1"><b class="pred">test_examples</b><var class="arglist">(-List:list)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Return the list of current testing examples.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>List</var></td><td class="argdescr">- The list of testing examples.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="test_example/4"><b class="pred">test_example</b><var class="arglist">(Kind, ID, Attribute, Value)</var></a> is <b class="det">nondet</b></dt><dd class="defbody">Access any kind of testing example by specifying the name the record was asserted with
+(negative or positive).
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Kind</var></td><td class="argdescr">- The name the record was asserted with; can be positive or negative.</td></tr>
+<tr><td><var>ID</var></td><td class="argdescr">- The <var>ID</var> of the example.</td></tr>
+<tr><td><var>Attribute</var></td><td class="argdescr">- The <var>Attribute</var> of the example.</td></tr>
+<tr><td><var>Value</var></td><td class="argdescr">- The <var>Value</var> of the example.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="train_positive/3"><b class="pred">train_positive</b><var class="arglist">(?ID, ?Attribute, ?Value)</var></a> is <b class="det">nondet</b></dt><dd class="defbody">Hold positive training examples information.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>ID</var></td><td class="argdescr">- The <var>ID</var> of the example.</td></tr>
+<tr><td><var>Attribute</var></td><td class="argdescr">- The <var>Attribute</var> for the cell, can be: '<var>ID</var>', 'Patient', 'Center',
+'PatientSex', 'PatientRace', 'PatientAge', 'SessionID', 'SessionDate',
+'KTV', 'QB', 'ProgWeightLoss', 'RealWeightLoss', 'DeltaWeight',
+'ProgDuration', 'RealDuration', 'DeltaDuration', 'SAPStart', 'SAPEnd',
+'SAPAverage', 'DAPStart', 'DAPEnd', 'DAPAverage', 'DeltaBloodFlow',
+'DeltaUF', 'SymptomID', 'Score'</td></tr>
+<tr><td><var>Value</var></td><td class="argdescr">- The <var>Value</var> for the cell.</td></tr>
+</table>
+
+</dd>
+<dt class="keyword-see">See also</dt><dd class="keyword-see">- <a href="/doc_for?object=user:negative/3">negative/3</a></dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="train_negative/3"><b class="pred">train_negative</b><var class="arglist">(?ID, ?Attribute, ?Value)</var></a> is <b class="det">nondet</b></dt><dd class="defbody">Hold negative training examples information.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>ID</var></td><td class="argdescr">- The <var>ID</var> of the example.</td></tr>
+<tr><td><var>Attribute</var></td><td class="argdescr">- The <var>Attribute</var> for the cell, can be: '<var>ID</var>', 'Patient', 'Center',
+'PatientSex', 'PatientRace', 'PatientAge', 'SessionID', 'SessionDate',
+'KTV', 'QB', 'ProgWeightLoss', 'RealWeightLoss', 'DeltaWeight',
+'ProgDuration', 'RealDuration', 'DeltaDuration', 'SAPStart', 'SAPEnd',
+'SAPAverage', 'DAPStart', 'DAPEnd', 'DAPAverage', 'DeltaBloodFlow',
+'DeltaUF', 'SymptomID', 'Score'</td></tr>
+<tr><td><var>Value</var></td><td class="argdescr">- The <var>Value</var> for the cell.</td></tr>
+</table>
+
+</dd>
+<dt class="keyword-see">See also</dt><dd class="keyword-see">- <a href="/doc_for?object=user:positive/3">positive/3</a></dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="test_positive/3"><b class="pred">test_positive</b><var class="arglist">(?ID, ?Attribute, ?Value)</var></a> is <b class="det">nondet</b></dt><dd class="defbody">Hold positive testing examples information.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>ID</var></td><td class="argdescr">- The <var>ID</var> of the example.</td></tr>
+<tr><td><var>Attribute</var></td><td class="argdescr">- The <var>Attribute</var> for the cell, can be: '<var>ID</var>', 'Patient', 'Center',
+'PatientSex', 'PatientRace', 'PatientAge', 'SessionID', 'SessionDate',
+'KTV', 'QB', 'ProgWeightLoss', 'RealWeightLoss', 'DeltaWeight',
+'ProgDuration', 'RealDuration', 'DeltaDuration', 'SAPStart', 'SAPEnd',
+'SAPAverage', 'DAPStart', 'DAPEnd', 'DAPAverage', 'DeltaBloodFlow',
+'DeltaUF', 'SymptomID', 'Score'</td></tr>
+<tr><td><var>Value</var></td><td class="argdescr">- The <var>Value</var> for the cell.</td></tr>
+</table>
+
+</dd>
+<dt class="keyword-see">See also</dt><dd class="keyword-see">- <a href="/doc_for?object=user:negative/3">negative/3</a></dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="test_negative/3"><b class="pred">test_negative</b><var class="arglist">(?ID, ?Attribute, ?Value)</var></a> is <b class="det">nondet</b></dt><dd class="defbody">Hold negative testing examples information.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>ID</var></td><td class="argdescr">- The <var>ID</var> of the example.</td></tr>
+<tr><td><var>Attribute</var></td><td class="argdescr">- The <var>Attribute</var> for the cell, can be: '<var>ID</var>', 'Patient', 'Center',
+'PatientSex', 'PatientRace', 'PatientAge', 'SessionID', 'SessionDate',
+'KTV', 'QB', 'ProgWeightLoss', 'RealWeightLoss', 'DeltaWeight',
+'ProgDuration', 'RealDuration', 'DeltaDuration', 'SAPStart', 'SAPEnd',
+'SAPAverage', 'DAPStart', 'DAPEnd', 'DAPAverage', 'DeltaBloodFlow',
+'DeltaUF', 'SymptomID', 'Score'</td></tr>
+<tr><td><var>Value</var></td><td class="argdescr">- The <var>Value</var> for the cell.</td></tr>
+</table>
+
+</dd>
+<dt class="keyword-see">See also</dt><dd class="keyword-see">- <a href="/doc_for?object=user:positive/3">positive/3</a></dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="complete_set/1"><b class="pred">complete_set</b><var class="arglist">(?CompleteSet:list)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Get the complete set of training example IDs as a list.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>CompleteSet</var></td><td class="argdescr">- The list of all the training example IDs.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="entropy/2"><b class="pred">entropy</b><var class="arglist">(+IncludedValues, -Entropy)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Calculate the entropy of a given list of training examples (by IDs).
 
 <dl class="tags">
 <dt class="tag">Arguments:</dt><dd>
@@ -38,8 +199,8 @@ and negative examples.
 If you don't want to filter anything, pass in all of the example IDs:
 
 <pre class="code" ext="">
-findall(ID, (example(_, ID, 'ID', ID),
-example(_, ID, 'DeltaWeight', 1)), IncludedValues).
+findall(ID, (train_example(_, ID, 'ID', ID),
+train_example(_, ID, 'DeltaWeight', 1)), IncludedValues).
 </pre>
 
 </td></tr>
@@ -50,17 +211,17 @@ example(_, ID, 'DeltaWeight', 1)), IncludedValues).
 </dl>
 
 </dd>
-<dt class="pubdef"><span style="float:right"></span><a name="entropy/1"><b class="pred">entropy</b><var class="arglist">(-Entropy)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Calculate the entropy of the whole set of examples. This is a shortcut clause for:
+<dt class="pubdef"><span style="float:right"></span><a name="entropy/1"><b class="pred">entropy</b><var class="arglist">(-Entropy)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Calculate the entropy of the whole set of training examples. This is a shortcut clause for:
 
 <pre class="code" ext="">
-findall(ID, example(ID,'ID',ID), List), entropy(List, Entropy).
+findall(ID, train_example(ID,'ID',ID), List), entropy(List, Entropy).
 </pre>
 
 <dl class="tags">
 <dt class="tag">Arguments:</dt><dd>
 
 <table class="arglist">
-<tr><td><var>Entropy</var></td><td class="argdescr">- The resulting entropy of the whole set of examples.</td></tr>
+<tr><td><var>Entropy</var></td><td class="argdescr">- The resulting entropy of the whole set of training examples.</td></tr>
 </table>
 
 </dd>
@@ -83,11 +244,11 @@ using the information gain measure.
 </dl>
 
 </dd>
-<dt class="pubdef"><span style="float:right"></span><a name="best_attribute/1"><b class="pred">best_attribute</b><var class="arglist">(-Attribute)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Select the best attribute from the whole set of attributes and examples.
+<dt class="pubdef"><span style="float:right"></span><a name="best_attribute/1"><b class="pred">best_attribute</b><var class="arglist">(-Attribute)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Select the best attribute from the whole set of attributes and training examples.
 This is a shortcut clause for:
 
 <pre class="code" ext="">
-findall(ID, example(ID,'ID',ID), Examples),
+findall(ID, train_example(ID,'ID',ID), Examples),
 findall(Attribute, class(Attribute, _), Attributes),
 best_attribute(Examples, Attributes, Entropy).
 </pre>
@@ -103,7 +264,7 @@ best_attribute(Examples, Attributes, Entropy).
 </dl>
 
 </dd>
-<dt class="pubdef"><span style="float:right"></span><a name="info_gain/3"><b class="pred">info_gain</b><var class="arglist">(+Set:list, +Attribute, -InfoGain)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Calculate the Information Gain for a set of exampes and a given attribute.
+<dt class="pubdef"><span style="float:right"></span><a name="info_gain/3"><b class="pred">info_gain</b><var class="arglist">(+Set:list, +Attribute, -InfoGain)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Calculate the Information Gain for a set of training exampes and a given attribute.
 
 <dl class="tags">
 <dt class="tag">Arguments:</dt><dd>
@@ -118,11 +279,11 @@ best_attribute(Examples, Attributes, Entropy).
 </dl>
 
 </dd>
-<dt class="pubdef"><span style="float:right"></span><a name="info_gain/2"><b class="pred">info_gain</b><var class="arglist">(+Attribute, -InfoGain)</var></a> is <b class="det">det</b></dt><dd class="defbody">Calculate the Information Gain for all examples and one attribute.
+<dt class="pubdef"><span style="float:right"></span><a name="info_gain/2"><b class="pred">info_gain</b><var class="arglist">(+Attribute, -InfoGain)</var></a> is <b class="det">det</b></dt><dd class="defbody">Calculate the Information Gain for all training examples and one attribute.
 This is a shortcut clause for:
 
 <pre class="code" ext="">
-findall(ID, example(ID,'ID',ID), Examples),
+findall(ID, train_example(ID,'ID',ID), Examples),
 info_gain(CompleteSet, Attribute, InfoGain).
 </pre>
 
@@ -154,7 +315,7 @@ info_gain(CompleteSet, Attribute, InfoGain).
 </dl>
 
 </dd>
-<dt class="pubdef"><span style="float:right"></span><a name="clean_set/3"><b class="pred">clean_set</b><var class="arglist">(+Set:list, +Attribute, -CleanSet)</var></a> is <b class="det">det</b></dt><dd class="defbody">Clean the given list of example IDs from '$null$' values.
+<dt class="pubdef"><span style="float:right"></span><a name="clean_set/3"><b class="pred">clean_set</b><var class="arglist">(+Set:list, +Attribute, -CleanSet)</var></a> is <b class="det">det</b></dt><dd class="defbody">Clean the given list of example IDs (doesn't matter if training or testing) from '$null$' values.
 
 <dl class="tags">
 <dt class="tag">Arguments:</dt><dd>
@@ -187,9 +348,60 @@ info_gain(CompleteSet, Attribute, InfoGain).
 </dd>
 <dt class="pubdef"><span style="float:right"></span><a name="node/4"><b class="pred">node</b><var class="arglist">(?NodeName, ?ParentNode, ?SplitAttribute, ?SplitRange)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Holds the node name information, the parent node, and the splitting attribute and range.</dd>
 <dt class="pubdef"><span style="float:right"></span><a name="node_label/2"><b class="pred">node_label</b><var class="arglist">(?Node, ?Label)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Holds the node name information, the parent node, and the splitting attribute and range.</dd>
-<dt class="pubdef"><span style="float:right"></span><a name="learn_please/0"><b class="pred">learn_please</b></a> is <b class="det">det</b></dt><dd class="defbody">Start the learning process by adding <a href="/doc_for?object=user:node/4">node/4</a> and <a href="/doc_for?object=user:node_label/2">node_label/2</a> clauses to the database.</dd>
-<dt class="pubdef"><span style="float:right"></span><a name="c45/3"><b class="pred">c45</b><var class="arglist">(+Node, +Examples:list, +Attributes:list)</var></a> is <b class="det">det</b></dt><dd class="defbody">Apply the C4.5 algorithm to a given node, that will be split according
-to the examples passed and the available attributes still left.
+<dt class="pubdef"><span style="float:right"></span><a name="learn_please/0"><b class="pred">learn_please</b></a> is <b class="det">det</b></dt><dd class="defbody"><code class="nofile">TODO</code>: customize number of folds?
+
+<p>
+Start the learning process:</p>
+
+<ol>
+<li>partition the <a href="/doc_for?object=user:positive/3">positive/3</a> data set in 10 folds</li>
+<li>partition the <a href="/doc_for?object=user:negative/3">negative/3</a> data set in 10 folds</li>
+<li>for every generated fold:
+a. start the learning phase
+b. start the testing phase</li>
+</ol>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="test_error_rate/2"><b class="pred">test_error_rate</b><var class="arglist">(?Step, ?ErrorRate)</var></a> is <b class="det">nondet</b></dt><dd class="defbody">Holds information about the error rate calculated at a particular <var>Step</var>.
+
+<dl class="tags">
+<dt class="keyword-see">See also</dt><dd class="keyword-see">- <a href="/doc_for?object=user:test/1">test/1</a>.</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="test/1"><b class="pred">test</b><var class="arglist">(+Step)</var></a> is <b class="det">det</b></dt><dd class="defbody">Test all <a href="/doc_for?object=user:test_positive/3">test_positive/3</a> and <a href="/doc_for?object=user:test_negative/3">test_negative/3</a> and calculates an error rate as wrong predictions
+on the total number of predictions (single tests) executed.
+The calculated error rate is asserted as <a href="/doc_for?object=user:test_error_rate/2">test_error_rate/2</a>.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Step</var></td><td class="argdescr">- The learning step, defines the particular rules to test against.</td></tr>
+</table>
+
+</dd>
+<dt class="keyword-see">See also</dt><dd class="keyword-see">- <a href="/doc_for?object=user:test_error_rate/2">test_error_rate/2</a></dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="learn/1"><b class="pred">learn</b><var class="arglist">(+Step)</var></a> is <b class="det">det</b></dt><dd class="defbody">Start the learning process using given sets of training and testing examples by adding
+<a href="/doc_for?object=user:node/4">node/4</a> and <a href="/doc_for?object=user:node_label/2">node_label/2</a> clauses to the database.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>TotalFolds</var></td><td class="argdescr">- The number of folds to split the examples into.</td></tr>
+<tr><td><var>Step</var></td><td class="argdescr">- The current learning step.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="c45/3"><b class="pred">c45</b><var class="arglist">(+Node, +Examples:list, +Attributes:list)</var></a> is <b class="det">det</b></dt><dd class="defbody">Apply the C4.5 algorithm to a given node, that will be split according to the training examples
+passed and the available attributes still left.
 
 <dl class="tags">
 <dt class="tag">Arguments:</dt><dd>
@@ -204,7 +416,6 @@ to the examples passed and the available attributes still left.
 </dl>
 
 </dd>
-<dt class="pubdef"><span style="float:right"></span><a name="learn/0"><b class="pred">learn</b></a> is <b class="det">failure</b></dt><dd class="defbody">A funfunfunfunction.</dd>
 <dt class="pubdef"><span style="float:right"></span><a name="print_le_tree/0"><b class="pred">print_le_tree</b></a> is <b class="det">semidet</b></dt><dd class="defbody">Print the learnt tree, if there is a <code>node('root', root, root, root)</code>.</dd>
 <dt class="pubdef"><span style="float:right"></span><a name="print_le_branch/2"><b class="pred">print_le_branch</b><var class="arglist">(+Node, +NestLevel)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Print a given node with a nest level that decides how much left space
 the node representation must have.
@@ -229,15 +440,44 @@ A node will be printed with:</p>
 </dl>
 
 </dd>
-<dt class="pubdef"><span style="float:right"></span><a name="gen_all_the_rulez/0"><b class="pred">gen_all_the_rulez</b></a> is <b class="det">semidet</b></dt><dd class="defbody">For each <a href="/doc_for?object=user:node_label/2">node_label/2</a> with a positive outcome, generate the corresponding rule
-by going up from the leaf to the tree root node.</dd>
-<dt class="pubdef"><span style="float:right"></span><a name="gen_rule/1"><b class="pred">gen_rule</b><var class="arglist">(+Node)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Generate the rule for the corresponding input <var>Node</var>.
+<dt class="pubdef"><span style="float:right"></span><a name="is_positive/2"><b class="pred">is_positive</b><var class="arglist">(+ID, ?LearningStep)</var></a> is <b class="det">nondet</b></dt><dd class="defbody">Check if a given <a href="/doc_for?object=user:example/4">example/4</a> <var>ID</var> is positive according to an optionally provided <var>LearningStep</var>.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>ID</var></td><td class="argdescr">- The <var>ID</var> of the <a class="extmanual" href="http://www.swi-prolog.org/pldoc/man?predicate=fact/3">fact/3</a> to check for.</td></tr>
+<tr><td><var>LearningStep</var></td><td class="argdescr">- The step number of the learning process.</td></tr>
+</table>
+
+</dd>
+<dt class="keyword-see">See also</dt><dd class="keyword-see">- <a class="extmanual" href="http://www.swi-prolog.org/pldoc/man?predicate=check_condition_list/3">check_condition_list/3</a></dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="gen_all_the_rulez/1"><b class="pred">gen_all_the_rulez</b><var class="arglist">(+Step)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">For each <a href="/doc_for?object=user:node_label/2">node_label/2</a> with a positive outcome, generate the corresponding rule
+by going up from the leaf to the tree root node.
+The rule will be <a href="/doc_for?object=user:is_positive/2">is_positive/2</a>.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Step</var></td><td class="argdescr">- The current learning step.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="gen_rule/2"><b class="pred">gen_rule</b><var class="arglist">(+Node, +Step)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Generate the rule for the corresponding input <var>Node</var>.
 
 <dl class="tags">
 <dt class="tag">Arguments:</dt><dd>
 
 <table class="arglist">
 <tr><td><var>Node</var></td><td class="argdescr">- The leaf <var>Node</var> that holds the rule information.</td></tr>
+<tr><td><var>Step</var></td><td class="argdescr">- The current learning step.</td></tr>
 </table>
 
 </dd>
@@ -274,13 +514,13 @@ the conditions to the given <var>PrevList</var> (can be empty).
 </dl>
 
 </dd>
-<dt class="pubdef"><span style="float:right"></span><a name="check_condition_list/2"><b class="pred">check_condition_list</b><var class="arglist">(+ID, +List)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Check if a given fact with an <var>ID</var> matches all the conditions in the input list.
+<dt class="pubdef"><span style="float:right"></span><a name="check_condition_list/2"><b class="pred">check_condition_list</b><var class="arglist">(+ID, +List)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Check if a given example with an <var>ID</var> matches all the conditions in the input list.
 
 <dl class="tags">
 <dt class="tag">Arguments:</dt><dd>
 
 <table class="arglist">
-<tr><td><var>ID</var></td><td class="argdescr">- The <var>ID</var> of the <a class="extmanual" href="http://www.swi-prolog.org/pldoc/man?predicate=fact/3">fact/3</a>.</td></tr>
+<tr><td><var>ID</var></td><td class="argdescr">- The <var>ID</var> of the example.</td></tr>
 <tr><td><var>List</var></td><td class="argdescr">- The <var>List</var> of <a href="/doc_for?object=user:condition/2">condition/2</a>.</td></tr>
 </table>
 
@@ -302,6 +542,7 @@ the conditions to the given <var>PrevList</var> (can be empty).
 </dl>
 
 </dd>
+<dt class="pubdef"><span style="float:right"></span><a name="print_report/0"><b class="pred">print_report</b></a> is <b class="det">det</b></dt><dd class="defbody">Print a detailed report of the learning algorithm and of the executed tests.</dd>
 </dl>
 
 </body>

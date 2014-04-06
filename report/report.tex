@@ -1,7 +1,9 @@
-\documentclass{acm_proc_article-sp}
+\documentclass[preprint]{acm_proc_article-sp}
 \usepackage[italian]{babel}
 \usepackage[shortcuts]{extdash}
 \usepackage[utf8]{inputenc}
+\usepackage{bigfoot}
+\pagenumbering{arabic}
 
 \begin{document}
 
@@ -158,7 +160,7 @@ Per poter mettere a confronto i dati della seduta di dialisi, di cui sopra, con 
 \subsection{Associazione con dati del paziente}
 Infine, il dato della sintomatologia singola è stato associato univocamente con il paziente di riferimento, tramite l'apposito identificativo.
 
-Tutte queste operazioni sono state eseguite staticamente, ovvero andando a creare una copia dei record in altre tabelle; ci\'o si \'e reso necessario in quanto, anche utilizzando macchine potenti, una selezione di circa 1000 righe impiegava interi minuti per completare, soprattutto a causa dell'associazione poco ottimizzata con le date (cfr. \ref{associazione-sintomi}).
+Tutte queste operazioni sono state eseguite staticamente, ovvero andando a creare una copia dei record in altre tabelle; ci\'o si \'e reso necessario in quanto, anche utilizzando macchine potenti, la selezione completa dei record impiegava interi minuti per completare, soprattutto a causa dell'associazione poco ottimizzata con le date (cfr. \ref{associazione-sintomi}).
 
 \subsection{Migrazione dei dati}
 Per una gestione pi\'u libera dei dati, si \'e scelto di migrare le tabelle create da Microsoft SQL Server a MySQL\footnote{Lo script di migrazione \'e presente in \texttt{scripts/02-mysql-migration-script.sql} e viene richiamato in automatico, tramite appositi parametri di connessione, dal file batch \texttt{03-mysql-copy-migrated-tables.cmd}.}, anche in ottica futura (cfr. \ref{sviluppi-futuri}).
@@ -170,7 +172,7 @@ Una volta spostati i dati su un database MySQL, si \'e scelto di eliminare alcun
 \subsection{Calcolo dello score}
 Ad ogni riga di rilevazione sintomo \'e stato associato un punteggio, o \textit{score}, che permetta di capire quanto quella riga \'e completa (e quindi pi\'u o meno rilevante rispetto alle altre).
 
-Fissato il numero degli attributi (di dialisi) a $15$, un record con score pi\'u elevato sar\'a selezionato con pi\'u probabilit\'a per avviare il processo di apprendimento.
+Fissato il numero degli attributi (di dialisi) a $15$, un record con \textit{score} pi\'u elevato sar\'a selezionato con pi\'u probabilit\'a per avviare il processo di apprendimento.
 
 \subsection{Pazienti rilevanti}
 Inoltre, lo \textit{score} \'e stato utilizzato anche per poter eliminare, dai record gi\'a selezionati, tutti quelli che appartengono a pazienti che hanno meno di $5$ rilevazioni di sintomi con uno \textit{score} percentuale pi\'u basso dell'$80\%$.
@@ -185,7 +187,92 @@ Tutto ci\'o, tuttavia, ha portato comunque a mantenere alcuni valori nulli all'i
 Alcuni record, inoltre, non contenevano l'ID del sintomo target rilevato, e si \'e pertanto assunto che l'utente avesse erroneamente cancellato (dall'interfaccia del sistema) la dicitura ``asintomatico'', aggiungendo comunque una sintomatologia nulla (con ID uguale a $1$).
 
 \section{Apprendimento di regole in Prolog}
-Per apprendere regole utili a classificare appositamente una seduta di dialisi si \'e scelto di utilizzare l'algoritmo C4.5 di Ross Quinlan \cite{quinlan}.
+\label{prolog}
+Per apprendere regole utili a classificare appositamente una seduta di dialisi si \'e scelto di implementare il funzionamento base dell'algoritmo C4.5 di Ross Quinlan \cite{Quinlan:1993:CPM:583200} \cite{Salzberg:1994:BRC:198277.637825}, in modo tale da:
+\begin{itemize}
+\item utilizzare la sintomatologia come attributo target (da classificare)
+\item poter sfruttare i numerosi dati disponibili
+\item generare un albero di decisione
+\item convertire l'albero in un insieme di regole Prolog
+\end{itemize}
+
+Il programma Prolog \'e diviso in $6$ moduli, ognuno dei quali si occupa di parti differenti del programma\footnote{Ogni regola definita nei diversi moduli \'e stata documentata. La documentazione \'e consultabile aprendo in un browser il file \texttt{doc/index.html}. Per un problema nel modulo di generazione della documentazione, i link diretti dalla \texttt{index.html} alle regole documentate non funzionano; utilizzare, invece, i collegamenti ai moduli, dai quali si pu\'o comunque accedere alla documentazione delle regole.}.
+
+Si \'e scelto di utilizzare SWI-Prolog\cite{SWI:2014:Online} come ambiente Prolog.
+
+\subsection{Utility}
+\label{prolog-utility}
+Sono stati realizzati $2$ moduli che realizzano funzioni di utilit\'a.
+
+\subsubsection{\texttt{util.pl}}
+\verb|util.pl| contiene brevi regole che implementano:
+\begin{itemize}
+\item timer, con avvio, lettura e stop (\verb|timer_start|, \verb|timer_get|, \verb|timer_stop|, tra gli altri)
+\item formattazione di millisecondi (\verb|format_ms|) e secondi (\verb|format_s|) nel formato intellegibile \texttt{\{M\}m \{S\}s \{MS\}ms}
+\item stampa a video di generiche liste di elementi o di un elemento singolo, con ritorno a capo (\verb|println|)
+\item generici \textit{helper} per liste, che realizzano funzioni di minimo e massimo (\verb|list_min|, \verb|list_max|), ricerca dell'elemento pi\'u comune (\verb|list_most_common|) e dell'indice di un elemento specifico (\verb|index_of|), oltre che funzionalit\'a di aggiunta e rimozione di elementi
+\item concatenazione di elementi di una lista in una stringa
+\item realizzazione del logaritmo in base $2$ (\verb|log2|), utilizzato successivamente (cfr. \ref{prolog-learner}).
+\end{itemize}
+
+\subsection{Avvio del programma}
+\label{prolog-main}
+Il programma principale \'e definito nel modulo \verb|main.pl|, che si occupa del caricamento in memoria di tutti i file Prolog necessari e di definire il metodo \verb|main(Config, Symptom)|:
+\begin{itemize}
+\item \verb|Config| dichiara al programma qual \'e il file di configurazione con il quale si vuole accedere al database.\footnote{Alcuni file di configurazione di esempio sono presenti nella cartella \texttt{prolog/config}}. Vedi \ref{prolog-database} per il l'accesso al database. Si \'e optato per un file di configurazione che contenesse tutti i parametri di connessione poich\'e la scrittura degli stessi ad ogni avvio del programma sarebbe risultata troppo verbosa.
+\item \verb|Symptom| definisce l'ID del sintomo che si vuole utilizzare come esempio positivo per l'attributo target.
+\end{itemize}
+
+%TODO controllare sintomo default
+
+Entrambi i parametri supportano i meta-valori \verb|default| e \verb|ask|: \verb|default| esegue un \textit{fallback} dei parametri sul file di configurazione \texttt{prolog/config/database.properties} e sul sintomo con ID $2$, mentre \verb|ask| imposta il programma in modo da chiedere all'utente, in maniera interattiva e quando necessario, gli stessi parametri.
+
+Sono anche presenti funzioni di avvio rapido: \verb|main_def/0| (che avvia il programma con parametri di default), \verb|main/0| (che avvia in modalit\'a \verb|ask|) e \verb|make_doc/0| (che genera la documentazione HTML).
+
+Per uscire dal programma e chiudere in maniera pulita la connessione, basta chiamare la regola \verb|out|.
+
+\subsection{Lettura dal database}
+\label{prolog-database}
+Una volta letti i parametri impostati dal \verb|main| vengono eseguiti i processi di connessione e lettura dei dati utili alla generazione dell'albero di decisione.
+
+La lettura dal database \'e possibile grazie alla libreria \verb|odbc| di SWI-Prolog \footnote{Per questa ragione, \'e necessario che sulla macchina client siano installati i driver di connessione ODBC al database target. Poich\'e i parametri sono impostati dal programma Prolog, non \'e necessario creare nessuna connessione sulla macchina.}.
+
+\subsubsection{Connessione}
+La connessione al database avviene tramite la regola \verb|connect| (nelle varianti) e i parametri nel file di configurazione impostato in precedenza: driver ODBC, indirizzo e porta, username, password e database. Se si \'e in modalit\'a \verb|ask|, il file di configurazione verr\'a chiesto all'utente, e nel caso in cui non esista viene eseguito un \textit{fallback} sul file di default.
+
+La lettura del file \verb|.properties| \'e eseguita da
+\begin{verbatim}
+  read_database_params(Path, Driver, Server, 
+  	Port, Database, User, Password)
+\end{verbatim}
+che utilizza il costrutto \verb|open_table| di SWI-Prolog per leggere i campi del file di propriet\'a e unificare con le variabili passate in input.
+
+\subsubsection{Lettura sintomi}
+Il passo successivo consiste nella lettura di tutte le possibili sintomatologie che potrebbero verificarsi nel corso di una seduta di dialisi. La regola \verb|get_symptoms/0| esegue una semplice \texttt{SELECT} sulla base di dati, ottenendo, salvando in memoria e stampando a video i sintomi.
+
+\subsubsection{Lettura degli esempi}
+La regola \verb|update_records/0| si occupa di ottenere e salvare in memoria tutti gli esempi che devono essere utilizzati per avviare il processo di apprendimento.
+
+Poich\'e \'e necessaria la selezione sia degli esempi positivi che di quelli negativi, \verb|update_records/0| esegue lo stesso \textit{statement} di \texttt{SELECT}, opportunamente creato e preparato, andando a modificare l'ID della sintomatologia target da ottenere\footnote{La regola \verb|get_records/2| prepara lo statement all'esecuzione.}.
+
+Il salvataggio dei record avviene andando ad asserire, nella memoria del programma Prolog, strutture del tipo:
+\begin{verbatim}
+  positive(ID, Attribute, Value)
+  negative(ID, Attribute, Value)
+\end{verbatim}
+In questo modo \'e sempre possibile accedere a qualsiasi coppia attributo-valore di un esempio con uno specifico ID, sia esso positivo o negativo.
+
+\'E stata realizzata anche la regola
+\begin{verbatim}
+  example(Type, ID, Attribute, Value)
+\end{verbatim}
+dove \verb|Type| pu\'o essere \verb|positive| o \verb|negative|. Tramite questa modalit\'a \'e possibile accedere a tutti gli esempi prelevati dalla base di dati. Sono presenti, inoltre, regole di conteggio e di verifica di esistenza (cfr. documentazione HTML).
+
+\subsection{Suddivisione categorie in range}
+\label{prolog-categories}
+
+\subsection{Apprendimento e test}
+\label{prolog-learner}
 
 \section{Sviluppi futuri}
 \label{sviluppi-futuri}

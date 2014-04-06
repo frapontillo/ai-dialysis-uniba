@@ -53,3 +53,10 @@ main :-
 
 make_doc :-
 	doc_save(., [doc_root('doc'), title('AI Dialyisis Symptomatology')]).
+
+/**
+ * out is det.
+ * 
+ * Disconnects and halts.
+ */
+ out :- disconnect, halt.

@@ -2,6 +2,9 @@ report/*.aux
 report/*.dvi
 report/*.gz
 report/*.log
+report/report.bbl
+report/report.blg
 prolog/sublime.sublime-workspace
 prolog/config/*.properties
 !prolog/config/database-example.properties
+scripts/connection.properties

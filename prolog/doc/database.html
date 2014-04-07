@@ -290,7 +290,7 @@ The negative ID is fixed (1), but the positive can be passed to this predicate.
 
 </dd>
 <dt class="pubdef"><span style="float:right"></span><a name="update_records/0"><b class="pred">update_records</b></a> is <b class="det">semidet</b></dt><dd class="defbody">Clear (<a href="/doc_for?object=user:clear_records/1">clear_records/1</a>) and updates (<a href="/doc_for?object=user:get_records/2">get_records/2</a>) all positive and negative examples.</dd>
-<dt class="pubdef"><span style="float:right"></span><a name="exists_record/2"><b class="pred">exists_record</b><var class="arglist">(?RecordName, ?ID)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Check if the given record <var>ID</var> was asserted with the given <var>RecordName</var>.
+<dt class="pubdef"><span style="float:right"></span><a name="exists_record/2"><b class="pred">exists_record</b><var class="arglist">(+RecordName, ?ID)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Check if the given record <var>ID</var> was asserted with the given <var>RecordName</var>.
 
 <dl class="tags">
 <dt class="tag">Arguments:</dt><dd>
@@ -304,7 +304,7 @@ The negative ID is fixed (1), but the positive can be passed to this predicate.
 </dl>
 
 </dd>
-<dt class="pubdef"><span style="float:right"></span><a name="count_records/2"><b class="pred">count_records</b><var class="arglist">(?RecordName, ?Count)</var></a> is <b class="det">det</b></dt><dd class="defbody"><var>Count</var> the number of existing records with a given name.
+<dt class="pubdef"><span style="float:right"></span><a name="count_records/2"><b class="pred">count_records</b><var class="arglist">(+RecordName, ?Count)</var></a> is <b class="det">det</b></dt><dd class="defbody"><var>Count</var> the number of existing records with a given name.
 
 <dl class="tags">
 <dt class="tag">Arguments:</dt><dd>

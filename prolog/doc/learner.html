@@ -30,6 +30,39 @@ the name the record was asserted with (negative or positive).
 </dl>
 
 </dd>
+<dt class="pubdef"><span style="float:right"></span><a name="split_examples/2"><b class="pred">split_examples</b><var class="arglist">(+FoldCount, +TestFold)</var></a> is <b class="det">det</b></dt><dd class="defbody">Split all examples between <a href="/doc_for?object=user:train_examples/1">train_examples/1</a> and <a href="/doc_for?object=user:test_examples/1">test_examples/1</a>.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>FoldCount</var></td><td class="argdescr">- The number of total fold to split the examples between.</td></tr>
+<tr><td><var>TestFold</var></td><td class="argdescr">- The index of the testing fold at the current step.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="split_examples/5"><b class="pred">split_examples</b><var class="arglist">(+PositiveNegative, +FoldCount, +TestFold, -TrainExamples, -TestExamples)</var></a> is <b class="det">det</b></dt><dd class="defbody">Split positive or negative examples in two different lists: training and testing, according
+to the fold number and the current test fold.
+If <var>FoldCount</var> and <var>TestFold</var> equal to 1, simulate the testing and training set as being the same.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>PositiveNegative</var></td><td class="argdescr">- The classification of the example, can be positive or negative.</td></tr>
+<tr><td><var>FoldCount</var></td><td class="argdescr">- The number of total fold to split the examples between.</td></tr>
+<tr><td><var>TestFold</var></td><td class="argdescr">- The index of the testing fold at the current step.</td></tr>
+<tr><td><var>TrainExamples</var></td><td class="argdescr">- The generated training examples list of IDs.</td></tr>
+<tr><td><var>TestExamples</var></td><td class="argdescr">- The generated testing examples list of IDs.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
 <dt class="pubdef"><span style="float:right"></span><a name="train_examples/1"><b class="pred">train_examples</b><var class="arglist">(-List:list)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Return the list of current training examples.
 
 <dl class="tags">
@@ -348,10 +381,7 @@ info_gain(CompleteSet, Attribute, InfoGain).
 </dd>
 <dt class="pubdef"><span style="float:right"></span><a name="node/4"><b class="pred">node</b><var class="arglist">(?NodeName, ?ParentNode, ?SplitAttribute, ?SplitRange)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Holds the node name information, the parent node, and the splitting attribute and range.</dd>
 <dt class="pubdef"><span style="float:right"></span><a name="node_label/2"><b class="pred">node_label</b><var class="arglist">(?Node, ?Label)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Holds the node name information, the parent node, and the splitting attribute and range.</dd>
-<dt class="pubdef"><span style="float:right"></span><a name="learn_please/0"><b class="pred">learn_please</b></a> is <b class="det">det</b></dt><dd class="defbody"><code class="nofile">TODO</code>: customize number of folds?
-
-<p>
-Start the learning process:</p>
+<dt class="pubdef"><span style="float:right"></span><a name="learn_please/0"><b class="pred">learn_please</b></a> is <b class="det">det</b></dt><dd class="defbody">Start the learning process:
 
 <ol>
 <li>partition the <a href="/doc_for?object=user:positive/3">positive/3</a> data set in 10 folds</li>
@@ -366,6 +396,37 @@ b. start the testing phase</li>
 
 <dl class="tags">
 <dt class="keyword-see">See also</dt><dd class="keyword-see">- <a href="/doc_for?object=user:test/1">test/1</a>.</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="is_positive/2"><b class="pred">is_positive</b><var class="arglist">(+ID, ?LearningStep)</var></a> is <b class="det">nondet</b></dt><dd class="defbody">Check if a given <a href="/doc_for?object=user:example/4">example/4</a> <var>ID</var> is positive according to an optionally provided <var>LearningStep</var>.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>ID</var></td><td class="argdescr">- The <var>ID</var> of the <a class="extmanual" href="http://www.swi-prolog.org/pldoc/man?predicate=fact/3">fact/3</a> to check for.</td></tr>
+<tr><td><var>LearningStep</var></td><td class="argdescr">- The step number of the learning process.</td></tr>
+</table>
+
+</dd>
+<dt class="keyword-see">See also</dt><dd class="keyword-see">- <a class="extmanual" href="http://www.swi-prolog.org/pldoc/man?predicate=check_condition_list/3">check_condition_list/3</a></dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="check_positive/2"><b class="pred">check_positive</b><var class="arglist">(+ID, ?LearningStep)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Semi-deterministic version of <a href="/doc_for?object=user:is_positive/2">is_positive/2</a>. If there is at least one <a href="/doc_for?object=user:is_positive/2">is_positive/2</a> that
+satisfies the current <var>ID</var>, succeed; otherwise, fail.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>ID</var></td><td class="argdescr">- The <var>ID</var> of the <a class="extmanual" href="http://www.swi-prolog.org/pldoc/man?predicate=fact/3">fact/3</a> to check for.</td></tr>
+<tr><td><var>LearningStep</var></td><td class="argdescr">- The step number of the learning process.</td></tr>
+</table>
+
+</dd>
+<dt class="keyword-see">See also</dt><dd class="keyword-see">- <a href="/doc_for?object=user:is_positive/2">is_positive/2</a></dd>
 </dl>
 
 </dd>
@@ -437,21 +498,6 @@ A node will be printed with:</p>
 </table>
 
 </dd>
-</dl>
-
-</dd>
-<dt class="pubdef"><span style="float:right"></span><a name="is_positive/2"><b class="pred">is_positive</b><var class="arglist">(+ID, ?LearningStep)</var></a> is <b class="det">nondet</b></dt><dd class="defbody">Check if a given <a href="/doc_for?object=user:example/4">example/4</a> <var>ID</var> is positive according to an optionally provided <var>LearningStep</var>.
-
-<dl class="tags">
-<dt class="tag">Arguments:</dt><dd>
-
-<table class="arglist">
-<tr><td><var>ID</var></td><td class="argdescr">- The <var>ID</var> of the <a class="extmanual" href="http://www.swi-prolog.org/pldoc/man?predicate=fact/3">fact/3</a> to check for.</td></tr>
-<tr><td><var>LearningStep</var></td><td class="argdescr">- The step number of the learning process.</td></tr>
-</table>
-
-</dd>
-<dt class="keyword-see">See also</dt><dd class="keyword-see">- <a class="extmanual" href="http://www.swi-prolog.org/pldoc/man?predicate=check_condition_list/3">check_condition_list/3</a></dd>
 </dl>
 
 </dd>

@@ -13,7 +13,7 @@
 \numberofauthors{1}
 \author{
 	\alignauthor
-	Francesco Pontillo\\
+	Francesco Pontillo (mat. 600119)\\
        \affaddr{Universit\'a degli Studi di Bari}\\
        \affaddr{Dipartimento di Informatica}\\
        \affaddr{Via E. Orabona, 4 - 70125  Bari, Italy}\\
@@ -182,13 +182,100 @@ Tutti i dati selezionati fino a questo punto, quindi, appartengono a pazienti ch
 \subsection{Gestione dei valori nulli}
 I valori nulli sono stati gestiti ``staticamente'', ovvero per ogni paziente sono state calcolate le medie dei valori di ogni attributo (ignorando quindi i valori nulli); in un passo successivo, sono stati scansionati tutti i record e, qualora fosse rilevato un valore nullo, \'e stato inserito il valore medio relativo al paziente associato.
 
-Tutto ci\'o, tuttavia, ha portato comunque a mantenere alcuni valori nulli all'interno della base dati. Ad esempio, poche rilevazioni di sintomatologia contengono valori effettivi di \verb|KTV|, probabilmente perch\'e si tratta di una misura di difficile calcolo da parte dei medici.
+Tutto ci\'o, tuttavia, ha portato comunque a mantenere alcuni valori nulli all'interno della base dati. Ad esempio, poche rilevazioni di sintomatologia contengono valori effettivi di \verb|KTV|, probabilmente perch\'e si tratta di una misura di difficile calcolo da parte dei medici. Tali valori sono stati gestiti diversamente (cfr. \ref{apprendimento-attributo-migliore}).
 
 Alcuni record, inoltre, non contenevano l'ID del sintomo target rilevato, e si \'e pertanto assunto che l'utente avesse erroneamente cancellato (dall'interfaccia del sistema) la dicitura ``asintomatico'', aggiungendo comunque una sintomatologia nulla (con ID uguale a $1$).
 
-\section{Apprendimento di regole in Prolog}
-\label{prolog}
-Per apprendere regole utili a classificare appositamente una seduta di dialisi si \'e scelto di implementare il funzionamento base dell'algoritmo C4.5 di Ross Quinlan \cite{Quinlan:1993:CPM:583200} \cite{Salzberg:1994:BRC:198277.637825}, in modo tale da:
+\section{Apprendimento di regole}
+L'obiettivo del sistema \'e l'apprendimento di regole utilizzabili per fare previsioni significative. Avendo a disposizione una moltitudine di dati pre-classificati, risulta immediato pensare ad un approccio guidato che generi un albero di decisione.
+
+\subsection{Alberi di decisione}
+Nei sistemi TDIDT, il concetto \'e rappresentato in termini di un albero di decisione costruito in modalit\'a top-down con una tecnica model driven: il sistema seleziona un attributo che caratterizza correttamente tutti gli esempi, quindi procede ricorsivamente fino a raggiungere la copertura totale.
+
+Questi algoritmi distinguono tra uno spazio degli esempi e uno spazio delle ipotesi, riuscendo a ridurre di molto la complessità di ricerca nello spazio delle ipotesi.
+
+Siano dati:
+\begin{itemize}
+\item $S_0$ insieme di oggetti
+\item $C$ insieme di classi
+\item $\mathbb{A}$ insieme di attributi
+\item $\Lambda_A=\lbrace a_1,\cdots,a_r \rbrace$ valori discreti che un attributo $A \in \mathbb{A}$ può assumere
+\end{itemize}
+La costruzione dell'albero di decisione equivale a trovare un albero $T$ che classifichi correttamente tutti gli oggetti in $S_0$.
+
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=200pt]{figures/decision-tree.png}
+\caption{Esemplificazione di un albero di decisione}
+\label{fig:albero-decisione}
+\end{figure}
+
+Con riferimento alla figura \ref{fig:albero-decisione}, si nota che:
+\begin{itemize}
+\item $S_i \cap S_j = \emptyset, \forall i \neq j$, cioè ogni sotto-albero $S_i$ è disgiunto dagli altri $S_j$ adiacenti (nello stesso livello)
+\item $S_i= \lbrace e \in S | A(e) = a_i \rbrace$, per ogni esempio $e$ appartenente ad un sotto-albero $S_i$, l'attributo $A(e)$ assume sempre lo stesso valore $a_i$ (l'attributo selezionato per caratterizzare il sotto-albero $S_i$ ha valore costante in tutti i sotto-alberi figli)
+\end{itemize}
+
+\subsection{Costruzione dell'albero di decisione}
+A partire da esempi pre-classificati in fase di training, il sistema genera un albero di decisione in cui $S_0$ è la radice. Ad ogni nodo $\sigma$ viene selezionato il miglior attributo $A^*$, in accordo a qualche criterio, per effettuare il test a quel nodo. Infine, si assegna il nome di una classe ad ogni nodo foglia.
+
+L'albero può anche essere validato su un insieme di testing: si segue il cammino dalla radice ad una foglia testando ad ogni nodo il valore dell'attributo selezionato, e procedendo il cammino sul valore (o range di valori) dell'osservazione da classificare.
+
+\subsection{Scelta dell'attributo più discriminante}
+Esistono diversi criteri euristici per scegliere l'attributo più discriminante ad ogni livello, ognuno dei quali utilizza una misura specifica per massimizzare l'effetto discriminante:
+\begin{itemize}
+\item Massimizzazione dell'\textbf{informazione}
+	\begin{itemize}
+	\item entropia minima
+	\item rapporto di guadagno
+	\item guadagno di informazione normalizzato
+	\item riduzione della lunghezza della descrizione
+	\end{itemize}
+\item Minimizzazione dell'\textbf{errore}
+	\begin{itemize}
+	\item riduzione dell'errore nel training set
+	\item dissimilarità
+	\item indice di diversità di Gini
+	\end{itemize}
+\item Massimizzazione della \textbf{significatività}, basato su statistiche varie ($\chi^2$, $G$, $\cdots$)
+\end{itemize}
+
+\subsubsection{Entropia}
+\label{entropia}
+L'entropia definisce la \textit{impurity} di un insieme arbitrario di dati $S$, contenente esempi positivi (in proporzione $p_+$) e negativi (in proporzione $p_-$):
+\[ entropia(S) = -p_+ \log_2p_+ - p_- \log_2p_- \]
+In questo modo il valore dell'entropia agli estremi è:
+\begin{itemize}
+\item $0$ se c'è minima entropia, ovvero se tutti gli esempi sono positivi
+\item $1$ se c'è massima entropia, ovvero se gli esempi sono positivi e negativi in ugual numero
+\end{itemize}
+La funzione entropia relativa ad una classificazione booleana varia coma la proporzione $p_+$, cioè fra $0$ e $1$.
+
+Più in generale, se il concetto target può assumere $c$ valori anziché $2$, la funzione entropia diventa:
+\[ entropia(S) = \sum_{i=1}^c -p_i \log_2p_i \]
+dove $p_i$ è la proporzione di esempi in $S$ appartenenti alla classe $i$; In questo senso, la categorizzazione booleana è una sua specializzazione a due classi.
+
+\subsubsection{Information Gain}
+\label{information-gain}
+L'information gain di un attributo $A$ relativo ad un insieme di esempi $S$ è così calcolato:
+\[Gain(S,A) = entropia(S) - \left[ \sum_{a \in \Lambda_A} \left( \frac{|S_a|}{|S|} \times entropia(S_a) \right) \right] \]
+dove $S_a$ è il sottoinsieme di $S$ per il quale l'attributo $A$ ha valore $a$.
+
+$Gain(S,A)$ rappresenta la \textbf{riduzione attesa in entropia} (disordine), causata dal conoscere il valore dell'attributo $A$.\\
+Maggiore è la riduzione dell'entropia, maggiore è il guadagno che si ottiene selezionando $A$ come attributo discriminante.
+
+\subsection{Considerazioni sui sistemi TDIDT}
+\'E possibile passare da alberi di decisione a regole di decisione, semplicemente analizzando ogni cammino dai nodi foglia al nodo radice e generando, per ognuno, una regola in cui la scelta di uno specifico arco introduce un nuovo congiunto.
+
+I sistemi TDIDT sono molto efficienti, e gli alberi di decisione possono trattare sia attributi a valori categorici, gestendo più archi uscenti da ogni nodo, che continui, tramite definizione di intervalli che vanno a configurarsi come categorie.
+
+Essi sono inoltre non parametrici e non incrementali, in quanto l'introduzione di un nuovo esempio potrebbe rovinare la rigida struttura ad albero, e quindi il suo potere inferenziale.\\
+Tuttavia, nel caso di dati rumorosi, potrebbero essere generati alberi di dimensioni enormi, che andrebbero quindi gestiti con opportuni algoritmi di pruning.
+
+Altri metodi, infine, rimpiazzano i nodi foglia con distribuzioni di probabilità della classe inferita, soprattutto con numerosi esempi di apprendimento.
+
+\subsection{C4.5}
+Per apprendere regole utili a classificare appositamente una seduta di dialisi si \'e scelto di implementare il funzionamento base dell'algoritmo C4.5 di Ross Quinlan \cite{Quinlan:1993:CPM:583200} \cite{Salzberg:1994:BRC:198277.637825}, estensione del precedente ID3\cite{Mitchell:1997:ML:541177}. In questo modo risulta possibile:
 \begin{itemize}
 \item utilizzare la sintomatologia come attributo target (da classificare)
 \item poter sfruttare i numerosi dati disponibili
@@ -196,6 +283,45 @@ Per apprendere regole utili a classificare appositamente una seduta di dialisi s
 \item convertire l'albero in un insieme di regole Prolog
 \end{itemize}
 
+L'implementazione del C4.5 \'e stata descritta, concettualmente e nella sua implementazione, in \ref{prolog-impl-passi-base}.
+
+\section{Test dell'algoritmo}
+Gli esempi di rilevazioni di sintomatologie a disposizione sono, purtroppo, mal distribuiti: alcune sintomatologie sono molto presenti, mentre altre sono molto rare.
+Per questo motivo, e per valutare la stabilit\'a del sistema, si \'e ritenuto opportuno validare le regole generate.
+
+\subsection{Test su algoritmi di IA}
+Il processo di apprendimento per gli schemi più comuni opera in più fasi:
+\begin{enumerate}
+\item Costruzione della struttura base a partire dai \textbf{training data}
+\item Ottimizzazione delle impostazioni sui parametri, eseguita con i \textbf{validation data}
+\item Test del sistema ottenuto, tramite i \textbf{test data}
+\end{enumerate}
+Ovviamente training, validation e test data sono insiemi di dati completamente indipendenti.\\
+A valutazione completa, infine, tutti i dati rilevati devono essere utilizzati per ricostruire un nuovo classificatore per l'utilizzo effettivo.
+
+Non potendo disporre di un dataset molto stabile\footnote{Al momento \'e in corso un procedimento per raccogliere dati da pi\'u centri di dialisi in tutta Italia, in modo tale da disporre di un insieme di esempi pi\'u ricco e fare meno ricorso a filling-in di dati nulli. Sarebbe inoltre utile rilevare dati per razze diverse da quella caucasica, che copre l'intero \textit{set} di esempi, rendendo l'analisi di tale attributo praticamente inutile.}, tuttavia, si \'e dovuto ricorrere ad altre tecniche per realizzare un classificatore che possa essere ritenuto valido.
+
+\subsection{K-Fold Cross-Validation}
+\label{k-fold}
+La \textbf{cross-validation} \'e una metodologia di test che divide l'insieme dei dati in:
+\begin{itemize}
+\item \textbf{training set}, di solito $\frac{9}{10}$ dei dati originali
+\item \textbf{testing set}, di solito $\frac{1}{10}$ dei dati originali
+\end{itemize}
+
+Operando in questa maniera, l'insieme dei dati di test \'e sempre differente dall'insieme dei dati di \textit{training}. In generale, il processo:
+\begin{enumerate}
+\item Divide i dati in $k$ sotto-insiemi di dimensioni uguali.
+\item Utilizza, a turno, ogni sotto-insieme per il testing, ed i rimanenti per il training.
+\item Esegue, alla fine dei $k$ passi, una media delle stime di errore per ottenere una \textbf{stima di errore finale}.
+\end{enumerate}
+
+Poiché la cross-validation partiziona l'insieme degli esempi in $k$ sotto-insiemi, è chiamata anche \textbf{k-fold cross-validation}.
+
+Il metodo standard per la valutazione è il \textbf{10-fold cross-validation}, che divide lo spazio degli esempi in $10$ sotto-insiemi, in quanto sperimentazioni estensive (ma anche dimostrazioni teoriche) hanno rilevato che $10$ è la scelta migliore di partizionamento per poter fornire una stima accurata.
+
+\section{Implementazione in Prolog}
+\label{prolog}
 Il programma Prolog \'e diviso in $6$ moduli, ognuno dei quali si occupa di parti differenti del programma\footnote{Ogni regola definita nei diversi moduli \'e stata documentata. La documentazione \'e consultabile aprendo in un browser il file \texttt{doc/index.html}. Per un problema nel modulo di generazione della documentazione, i link diretti dalla \texttt{index.html} alle regole documentate non funzionano; utilizzare, invece, i collegamenti ai moduli, dai quali si pu\'o comunque accedere alla documentazione delle regole.}.
 
 Si \'e scelto di utilizzare SWI-Prolog\cite{SWI:2014:Online} come ambiente Prolog.
@@ -219,7 +345,7 @@ Sono stati realizzati $2$ moduli che realizzano funzioni di utilit\'a.
 \label{prolog-main}
 Il programma principale \'e definito nel modulo \verb|main.pl|, che si occupa del caricamento in memoria di tutti i file Prolog necessari e di definire il metodo \verb|main(Config, Symptom)|:
 \begin{itemize}
-\item \verb|Config| dichiara al programma qual \'e il file di configurazione con il quale si vuole accedere al database.\footnote{Alcuni file di configurazione di esempio sono presenti nella cartella \texttt{prolog/config}}. Vedi \ref{prolog-database} per il l'accesso al database. Si \'e optato per un file di configurazione che contenesse tutti i parametri di connessione poich\'e la scrittura degli stessi ad ogni avvio del programma sarebbe risultata troppo verbosa.
+\item \verb|Config| dichiara al programma qual \'e il file di configurazione con il quale si vuole accedere al database.\footnote{Alcuni file di configurazione di esempio sono presenti nella cartella \texttt{prolog/config}.}. Vedi \ref{prolog-database} per il l'accesso al database. Si \'e optato per un file di configurazione che contenesse tutti i parametri di connessione poich\'e la scrittura degli stessi ad ogni avvio del programma sarebbe risultata troppo verbosa.
 \item \verb|Symptom| definisce l'ID del sintomo che si vuole utilizzare come esempio positivo per l'attributo target.
 \end{itemize}
 
@@ -228,6 +354,11 @@ Il programma principale \'e definito nel modulo \verb|main.pl|, che si occupa de
 Entrambi i parametri supportano i meta-valori \verb|default| e \verb|ask|: \verb|default| esegue un \textit{fallback} dei parametri sul file di configurazione \texttt{prolog/config/database.properties} e sul sintomo con ID $2$, mentre \verb|ask| imposta il programma in modo da chiedere all'utente, in maniera interattiva e quando necessario, gli stessi parametri.
 
 Sono anche presenti funzioni di avvio rapido: \verb|main_def/0| (che avvia il programma con parametri di default), \verb|main/0| (che avvia in modalit\'a \verb|ask|) e \verb|make_doc/0| (che genera la documentazione HTML).
+
+Il sistema di logging implementato \'e, di default, molto verboso. Se non si vuole avere in output il dettaglio completo di ci\'o che sta avvenendo nel programma, \'e possibile utilizzare le regole messe a disposizione dal modulo di logging (vedi \ref{prolog-utility}) per settare un livello di logging meno verboso:
+\begin{verbatim}
+  ?- log_level(info).
+\end{verbatim}
 
 Per uscire dal programma e chiudere in maniera pulita la connessione, basta chiamare la regola \verb|out|.
 
@@ -253,7 +384,7 @@ Il passo successivo consiste nella lettura di tutte le possibili sintomatologie 
 \subsubsection{Lettura degli esempi}
 La regola \verb|update_records/0| si occupa di ottenere e salvare in memoria tutti gli esempi che devono essere utilizzati per avviare il processo di apprendimento.
 
-Poich\'e \'e necessaria la selezione sia degli esempi positivi che di quelli negativi, \verb|update_records/0| esegue lo stesso \textit{statement} di \texttt{SELECT}, opportunamente creato e preparato, andando a modificare l'ID della sintomatologia target da ottenere\footnote{La regola \verb|get_records/2| prepara lo statement all'esecuzione.}.
+Poich\'e \'e necessaria la selezione sia degli esempi positivi che di quelli negativi, \verb|update_records/0| esegue lo stesso \textit{statement} di \texttt{SELECT}, opportunamente creato e preparato, andando a modificare l'ID della sintomatologia target da ottenere\footnote{La regola \verb|get_records/2| prepara lo statement all'esecuzione.}. Per lo scopo del progetto \'e stato imposto un limite di $100$ esempi positivi e $100$ esempi negativi, in modo tale da velocizzare il processo di generazione delle regole.
 
 Il salvataggio dei record avviene andando ad asserire, nella memoria del programma Prolog, strutture del tipo:
 \begin{verbatim}
@@ -272,21 +403,222 @@ dove \verb|Type| pu\'o essere \verb|positive| o \verb|negative|. Tramite questa 
 \label{prolog-categories}
 Gli attributi dei dati di esempio possono essere numerici (a virgola mobile) o categorici, ma in ogni caso sono identificati da un numero. Essi sono stati dichiarati esplicitamente tramite la clausola \verb|data_type(Attribute, Type)|, che definisce quindi la tipologia per ogni attributo.
 
-Per ogni attributo, quindi, si \'e avviato un processo di suddivisione in pi\'u \textit{range}:
+Per ogni attributo, quindi, si \'e avviato un processo di suddivisione (\verb|update_categories/0| e \verb|make_class/2|) in pi\'u \textit{range}, definite dal predicato \verb|class/2|:
 \begin{itemize}
-\item gli attributi di tipo \verb|category| 
+\item gli attributi di tipo \verb|category| sono gi\'a automaticamente partizionati, per cui una classe di tipo categorico avr\'a i range corrispondenti a tutti i valori di categoria
+\item ogni attributo di tipo \verb|number| \'e stato suddiviso in $10$ range di dimensioni uguali\footnote{L'approccio utilizzato \'e semplicistico, quindi passibile di miglioramento, vedi \ref{sviluppi-futuri}.}
 \end{itemize}
+
+Il modulo \verb|categories| contiene, nelle sue due varianti, il predicato \verb|is_in_range|, che risulta soddisfatto solo se il valore (numerico o categorico che sia) rientra nel \textit{range} specificato.
 
 \subsection{Apprendimento e test}
 \label{prolog-learner}
+Dopo aver generato le categorie, \'e possibile avviare il processo (iterativo e ricorsivo) di apprendimento e test tramite la regola \verb|learn_please/0|.
+
+Lo scopo di questa fase \'e di generare due tipi di regole:
+\begin{itemize}
+\item \verb|is_positive(ID, LearningStep| determina se, secondo le regole generate ad un certo passo \verb|LearningStep|, un esempio con un determinato \verb|ID| \'e ritenuto un positivo.
+\item \verb|test_error_rate(LearningStep, ErrorRate)| restituisce l'\textit{error rate} calcolato dal processo di test ad uno specifico passo di apprendimento.
+\end{itemize}
+
+L'iterazione principale del processo di apprendimento \'e definita dal $k$\textit{-fold cross-validation}:
+\begin{enumerate}
+\item L'insieme degli esempi (positivi e negativi) viene diviso in $k$ sottoinsiemi. Per lo scopo del progetto, si \'e impostato un $k$ fisso a $10$.
+\item\label{apprendimento-k-fold} Ad ogni iterazione, un sottoinsieme viene messo da parte per la fase di test, mentre gli altri $9$ concorrono all'apprendimento vero e proprio.
+\item L'apprendimento viene avviato, generando regole di tipo \verb|is_positive/2|.
+\item Viene eseguito il test con l'insieme di esempi selezionato, generando regole di tipo \verb|test_error_rate/2|.
+\item Si itera dal punto \ref{apprendimento-k-fold} fino ad esaurimento dei $k$ \textit{fold} creati.
+\end{enumerate}
+
+L'apprendimento, per ogni fase, \'e avviato da \verb|learn(Step)|.
+
+\subsubsection{Suddivisione in fold}
+La suddivisione in $k$ fold distinti viene eseguita, ad ogni passo, dal predicato \verb|split_examples/2|, che asserisce in memoria alcune liste di \verb|ID| di esempi. Tali liste sono poi utilizzate nel filtraggio, quando richiesto, degli esempi in \textit{training} e \textit{testing}.
+
+Nei primi test del programma, si \'e notato un bassissimo livello di distribuzione degli esempi nei diversi fold di ogni esecuzione, per cui i primi \textit{run} avevano un bassissimo livello di \textit{error rate} (spesso $0$), che cresceva con l'aumentare dell'indice del passo.\\
+Ci\'o era dovuto non alla generazione di regole ottimali, ma al fatto che gli esempi positivi venivano selezionati, da Prolog, sempre dopo quelli negativi, comportando un insieme di test composto, ai primi passi, da molti esempi positivi (mentre erano pochi o nulli alla fine) e da pochi negativi (mentre erano molti alla fine).
+
+Si \'e pertanto reso necessario ``forzare'' una distribuzione pi\'u o meno uniforme andando a dividere i \textit{set} di positivi e negativi in \textit{fold} separati, che sono poi stati comunque accorpati in due liste complessive, visionabili a fine step con:
+\begin{verbatim}
+  ?- train_examples(TrainExamples).
+  ?- test_examples(TestExamples).
+\end{verbatim}
+
+Il filtraggio degli esempi viene poi eseguito da \verb|test_example/4| e \verb|train_example/4| e da altre regole derivate.
+
+\subsubsection{Apprendimento}
+L'implementazione dell'algoritmo C4.5 \'e abbastanza diretta, e si compone di passi ricorsivi che iniziano dalla generazione di un nodo radice.
+
+In generale, tutti i nodi dell'albero di decisione sono cos\'i composti:
+\begin{verbatim}
+  node(Name, Parent, SplitAttribute, SplitRange)
+\end{verbatim}
+dove:
+\begin{itemize}
+\item \verb|Name| corrisponde ad un generico nome, che non \'e detto sia univoco, per il nodo. Genericamente, il nome del nodo \'e composto dall'attributo su cui il nodo genitore \'e stato suddiviso e una descrizione testuale del \textit{range} che il nodo rappresenta.
+\item \verb|Parent| rappresenta il \verb|node/4| genitore; per questa ragione, ogni nodo pu\'o essere identificato univocamente dalla coppia \verb|(Name, Parent)|.
+\item \verb|SplitAttribute| \'e l'attributo su cui \'e stato eseguito lo \textit{split} per il livello corrente dell'albero.
+\item \verb|SplitRange| \'e il range dell'attributo di \textit{split} che il nodo corrente espande.
+\end{itemize}
+
+Il nodo radice, non potendo derivare nessuno dei precedenti parametri, ha come valori l'atomo \verb|root|, per semplicit\'a.
+
+I nodi foglia dell'albero sono identificati dalla regola:
+\begin{verbatim}
+  node_label(Node, Value)
+\end{verbatim}
+che specifica che un nodo dell'albero \'e terminale e identifica tutti gli esempi rimanenti come appartenenti a uno specifico range della classe target.
+
+\paragraph{Passi base}
+\label{prolog-impl-passi-base}
+Il processo ricorsivo dell'algoritmo C4.5 inizia, quindi, dal nodo \verb|root|. Ogni chiamata alla regola \verb|c45/3| richiede che siano istanziate le seguenti variabili:
+\begin{itemize}
+\item \verb|Node| deve essere un \verb|node/4|, e deve contenere le informazioni sul nodo che si vuole suddividere in pi\'u \textit{split}.
+\item \verb|Examples| \'e una lista di \verb|ID| di esempi, ovvero quei dati che devono essere processati al passo corrente.
+\item \verb|Attributes| è la lista di nomi di attributi che non sono ancora stati selezionati per lo \textit{split}.
+\end{itemize}
+
+Ovviamente il primo passo vedr\'a \verb|Examples| contenere tutti gli esempi e \verb|Attribute| tutti gli attributi.
+
+Il primo controllo che viene eseguito da \verb|c45/3| verifica se tutti gli \verb|Examples| appartengono gi\'a ad un'unica classe target, ovvero se tutti gli esempi hanno una stessa sintomatologia. In caso affermativo:
+\begin{enumerate}
+\item Si asserisce in memoria un \verb|node_label/2| che dichiara che il nodo corrente ha come unica classe target quella rilevata.
+\item Il nodo corrente non viene pi\'u espanso.
+\item Viene restituito il controllo al chiamante, ovvero il livello (nodo) superiore.
+\end{enumerate}
+
+Se tale controllo non \'e soddisfatto, se ne fa un altro relativamente alla lista di attributi rimanenti; se la lista \'e vuota, infatti, si segue lo stesso procedimento per il controllo precedente, con l'unica differenza che il range associato a \verb|node_label| \'e quello relativo al valore pi\'u comune fra gli esempi rimanenti.
+
+Se nessuna delle verifiche precedenti porta a risultati, il nodo corrente dovr\'a essere nuovamente diviso in \textit{split}. Il processo, allora, prosegue con:
+\begin{enumerate}
+\item Selezione del migliore attributo.
+\item Split sui range dell'attributo selezionato.
+\item Chiamata ricorsiva a \verb|c45/3|.
+\end{enumerate}
+
+\paragraph{Attributo migliore}
+\label{apprendimento-attributo-migliore}
+Per poter decidere quale, fra gli attributi rimanenti, costituisce il migliore ai fini del processo di apprendimento, si \'e deciso di utilizzare la misura dell'~\textit{information gain} (vedi \ref{information-gain}), che a sua volta si basa fortemente sull'entropia (vedi \ref{entropia}.
+
+L'entropia viene calcolata dalla regola \verb|entropy/2|, che utilizza i \verb|train_example/4|; l'\textit{information gain}, invece, viene calcolato da \verb|info_gain/3|, che si basa sul calcolo dell'entropia e che somma, per ogni range dell'attributo $A$, il valore restituito da \verb|partial_info_gain/4|:
+\[\frac{|S_a|}{|S|} \times entropia(S_a)\]
+
+Prima di ogni calcolo di entropia o di information gain, l'insieme degli esempi da analizzare $S$ per un certo attributo $A$ viene ripulito da tutti i dati che hanno un valore nullo in corrispondenza dell'attributo $A$.
+
+\paragraph{Split sui range}
+Dopo aver calcolato l'\textit{information gain} per tutti gli attributi, si seleziona quello con la misura pi\'u elevata e si ottengono tutti i suoi \textit{range}.
+
+\paragraph{Creazione nodi figli}
+Per ogni range dell'attributo si crea un nuovo nodo avente come nome il template seguente:
+\begin{verbatim}
+  [ Attribute : range(Inizio, Fine) ]
+\end{verbatim}
+Si chiama, infine, la regola \verb|c45| con parametri:
+\begin{itemize}
+\item \verb|Node| il nodo appena creato
+\item \verb|ParentNode| il nodo correntemente in analisi e in ingresso al passo corrente
+\item \verb|Attributes| l'insieme di attributi in ingresso al passo corrente, eccetto l'attributo su cui \'e stato eseguito lo \textit{split}
+\end{itemize}
+
+\paragraph{Terminazione locale}
+Quando non ci sono pi\'u esempi da analizzare, o gli attributi su cui eseguire lo \textit{split} sono terminati, l'algoritmo termina, avendo prodotto un albero di decisione completo\footnote{\'E possibile avviare il programma, controllandone ogni passo, chiamando manualmente le clausole in \verb|main/2|; in questo modo si pu\'o avviare manualmente il processo di apprendimento e chiamare, alla fine del passo di generazione dell'albero, la regola \verb|print_le_tree/0|, che stampa a video una rappresentazione grafica e formattata dell'albero di decisione prodotto, in cui ogni elemento foglia (positivo) avr\'a un check verde.}.
+
+\subsubsection{Generazione di regole}
+Una volta appreso l'albero di decisione ad uno specifico passo $i$, il programma genera le regole \verb|is_positive/2| andando a risalire l'albero di decisione, da ogni nodo foglia positivo \verb|node_label/2|, e aggiungendo in lista una condizione di appartenenza dell'attributo su cui il nodo \'e stato ``splittato'' al range del nodo stesso\footnote{Vengono generate regole per i soli nodi foglia positivi.}.
+
+La regola principale che si occupa della generazione delle regole \'e \verb|gen_all_the_rulez/1|, che chiama ricorsivamente \verb|gen_rule/2| per ogni nodo foglia.
+
+\subsubsection{Test}
+Dopo la generazione delle regole al passo $i$, si esegue un processo di test, che asserisce in memoria un \textit{error rate} per il passo in analisi, corrispondente alla frazione di falsi positivi e falsi negativi sul numero totale di esempi di test:
+\[ Error\_Rate_i = \frac{False\_P_i + False\_N_i}{Test\_Examples_i} \]
+
+\subsubsection{Terminazione dell'apprendimento}
+Una volta che tutti i $k$ cicli di apprendimento-test sono terminati, viene stampato un report (da \verb|print_report/0| che stampa l'\textit{error rate} calcolato per ogni esecuzione e, infine, l'\textit{error rate} totale, calcolato come:
+\[ \frac{\sum_{i=1}^k Error\_Rate_i}{k} \]
+
+\'E quindi possibile stampare tutte le regole generate, passo per passo, tramite \verb|listing(is_positive(ID, Step)|.
+
+\section{Risultati}
+Il programma \'e stato eseguito su $9$ sintomi target distinti e con un diverso numero di esempi positivi; la macchina utilizzata per il test ha le seguenti caratteristiche:
+\begin{itemize}
+\item CPU Intel i7-4770 @ 3.40 GHz
+\item 16GB RAM DDR3
+\item SSD SKC300TS37A/240G (fino a 525 MB/s in lettura, fino a 500 MB/s in scrittura)
+\item Windows 8 x64
+\end{itemize}
+
+I risultati sono stati sintetizzati nelle tabelle \ref{table:risultati-errori}, ref{table:risultati-regole}, ref{table:risultati-esecuzione} che mostrano, rispettivamente, l'error rate medio, il numero massimo di regole generate su tutti i passi ed i tempi di esecuzione.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|c|} \hline
+\textbf{Sintomo} & \textbf{Positivi} & \textbf{Error Rate} \\ \hline \hline
+$2$ & 19 & 0.2618131868 \\ \hline
+$3$ & 56 & 0.3499007937 \\ \hline
+$4$ & 7 & 0.1097319347 \\ \hline
+$5$ & 100 & 0.1818181818 \\ \hline
+$6$ & 34 & 0.26875 \\ \hline
+$7$ & 1 & 0.01742424242 \\ \hline
+$8$ & 100 & 0.07727272727 \\ \hline
+$9$ & 5 &  \\
+\hline\end{tabular}
+\caption{\textit{Error rate} medio su tutti i passi}
+\label{table:risultati-errori}
+\end{table}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|c|} \hline
+\textbf{Sintomo} & \textbf{Positivi} & \textbf{Max. regole} \\ \hline \hline
+$2$ & 19 & 1 \\ \hline
+$3$ & 56 & 1 \\ \hline
+$4$ & 7 & 0 \\ \hline
+$5$ & 100 & 90 \\ \hline
+$6$ & 34 & 0 \\ \hline
+$7$ & 1 & 1 \\ \hline
+$8$ & 100 & 113 \\ \hline
+$9$ & 5 &  \\
+\hline\end{tabular}
+\caption{Numero massimo di regole generate}
+\label{table:risultati-regole}
+\end{table}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|c|} \hline
+\textbf{Sintomo} & \textbf{Positivi} & \textbf{Time} \\ \hline \hline
+$2$ & 19 & 3m 9s \\ \hline
+$3$ & 56 & 5m 16s \\ \hline
+$4$ & 7 & 2m 28s \\ \hline
+$5$ & 100 & 11m 41s \\ \hline
+$6$ & 34 & 3m 19s \\ \hline
+$7$ & 1 & 2m 20s \\ \hline
+$8$ & 100 & 8m 18s \\ \hline
+$9$ & 5 &  \\
+\hline\end{tabular}
+\caption{Tempi di esecuzione per sintomo}
+\label{table:risultati-tempi}
+\end{table}
 
 \section{Sviluppi futuri}
 \label{sviluppi-futuri}
+L'implementazione base del C4.5 realizzata \'e migliorabile in molti punti.
 
+Un primo miglioramento potrebbe riguardare la generazione dinamica dei range degli attributi: la cardinalit\'a di ogni range non sarebbe pi\'u fissa, ma varierebbe a seconda della vicinanza dei valori degli esempi o secondo altri criteri.
+
+Inoltre, si potrebbe confrontare l'\textit{error rate} del programma nel caso i valori nulli non vengano riempiti ``a monte'' del processo (ovvero nel database), e vengano quindi ignorati completamente.
+
+Ad oggi, il programma gestisce gli esempi come strettamente positivi o negativi. Avendo a disposizione circa $60$ sintomi, tuttavia, potrebbe risultare utile riadattare alcune parti dell'algoritmo con il fine di classificare, in un unico albero di decisione, tutti i sintomi. Un possibile svantaggio si potrebbe avere relativamente a sintomi che hanno pochi esempi che li soddisfano, e che potrebbero non essere rappresentati da nessuna regola generata. Ci sarebbe, in questo caso, anche da valutare il costo dell'algoritmo, sicuramente pi\'u complesso (si veda il calcolo dell'entropia).
+
+Infine, vista la scarsa distribuzione delle sintomatologie per seduta di dialisi, potrebbe essere utile imporre una certa soglia di tolleranza, ad esempio andando a classificare come nodo foglia anche i nodi che contengono esempi positivi in una certa percentuale ($95\%$ anzich\'e $100\%$ come attualmente implementato). In questo modo sarebbe anche possibile definire un ordine di priorit\'a per le regole generate, da quella ``pi\'u certa'' a quella con la pi\'u bassa probabilit\'a.
+
+Miglioramenti implementativi potrebbero essere:
 \begin{itemize}
-\item Migliore gestione dei valori nulli (a runtime, tramite misura dell'information gain)
-\item Gestione multi-classe dell'albero di decisione
-\item Aggregazione dati ottimi da pi\'u database italiani e non (quando disponibili)
+\item personalizzazione del numero dei \textit{fold} da utilizzare nella $k$\textit{-fold cross-validation}
+\item spostamento dell'intero processo di apprendimento su macchine virtuali nel cloud; \'e gi\'a in studio una migrazione su Google Compute Engine
+\item apprendimento multi-threading sui diversi split dei $k$\textit{-fold}
+\item apprendimento multi-threading sui diversi \textit{range} dell'attributo migliore ad ogni livello dell'albero 
+\item ordinamento delle regole in base all'\textit{error rate} del passo in cui sono state apprese (diretta proporzionalit\'a tra ordine regola e ordine \textit{error rate}) e alla loro semplicit\'a (minor numero di clausole, maggiore rilevanza)
 \end{itemize}
 
 % The following two commands are all you need in the

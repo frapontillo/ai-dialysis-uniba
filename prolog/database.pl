@@ -511,7 +511,7 @@ update_records :-
     .
 
 /**
- * exists_record(?RecordName, ?ID) is semidet.
+ * exists_record(+RecordName, ?ID) is semidet.
  * 
  * Check if the given record ID was asserted with the given RecordName.
  * 
@@ -522,7 +522,7 @@ exists_record(RecordName, ID) :-
     RecordList =..[RecordName, ID, 'ID', ID], RecordList, !.
 
 /**
- * count_records(?RecordName, ?Count) is det.
+ * count_records(+RecordName, ?Count) is det.
  * 
  * Count the number of existing records with a given name.
  * 

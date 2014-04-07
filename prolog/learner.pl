@@ -28,6 +28,14 @@
 example(positive, ID, Attribute, Value) :- positive(ID, Attribute, Value).
 example(negative, ID, Attribute, Value) :- negative(ID, Attribute, Value).
 
+/**
+ * split_examples(+FoldCount, +TestFold) is det.
+ * 
+ * Split all examples between train_examples/1 and test_examples/1.
+ *
+ * @param FoldCount         The number of total fold to split the examples between.
+ * @param TestFold          The index of the testing fold at the current step.
+ */
 split_examples(FoldCount, TestFold) :-
     log_d('split_ex', ['Splitting examples with ', FoldCount, ' folds and test fold = ', TestFold]),
 
@@ -37,25 +45,64 @@ split_examples(FoldCount, TestFold) :-
     fail;
 
     % if the fold parameters check is OK, go on
-    % count all retrieved examples
-    count_all_examples(Count),
+    % split the positive set into folds
+    split_examples_pn(positive, FoldCount, TestFold, PositiveTrainExamples, PositiveTestExamples),
+    log_d('split_ex', ['Positive test examples for this run are ', PositiveTestExamples]),
+    log_d('split_ex', ['Positive train examples for this run are ', PositiveTrainExamples]),
+    % split the negative set into folds
+    split_examples_pn(negative, FoldCount, TestFold, NegativeTrainExamples, NegativeTestExamples),
+    log_d('split_ex', ['Negative test examples for this run are ', NegativeTestExamples]),
+    log_d('split_ex', ['Negative train examples for this run are ', NegativeTrainExamples]),
+
+    % generate the test list
+    list_append(PositiveTestExamples, NegativeTestExamples, TestExamples),
+    % generate the train list
+    list_append(PositiveTrainExamples, NegativeTrainExamples, TrainExamples),
+
+    % reset the testing and training lists
+    retractall(test_examples(_)),
+    retractall(train_examples(_)),
+
+    assertz(test_examples(TestExamples)),
+    assertz(train_examples(TrainExamples))
+    .
+
+/**
+ * split_examples(+PositiveNegative, +FoldCount, +TestFold, -TrainExamples, -TestExamples) is det.
+ * 
+ * Split positive or negative examples in two different lists: training and testing, according
+ * to the fold number and the current test fold.
+ * If FoldCount and TestFold equal to 1, simulate the testing and training set as being the same.
+ *
+ * @param PositiveNegative  The classification of the example, can be positive or negative.
+ * @param FoldCount         The number of total fold to split the examples between.
+ * @param TestFold          The index of the testing fold at the current step.
+ * @param TrainExamples     The generated training examples list of IDs.
+ * @param TestExamples      The generated testing examples list of IDs.
+ */
+split_examples_pn(PositiveNegative, 1, 1, TrainExamples, TestExamples) :-
+    findall(ID, example(PositiveNegative,  ID, 'ID', ID), Examples),
+    TrainExamples is Examples,
+    TestExamples is Examples,
+    % cut so it does not continue
+    !.
+split_examples_pn(PositiveNegative, FoldCount, TestFold, TrainExamples, TestExamples) :-
+    % count all retrieved examples in the positive or negative set
+    aggregate_all(count, example(PositiveNegative, ID, 'ID', ID), Count),
     FoldCardinality is ceil(Count / FoldCount),
     % the testing fold will have
     % BottomIndex = (TestFold-1)*FoldCardinality and TopIndex = TestFold*FoldCardinality
     TestBottom is ((TestFold-1)*FoldCardinality),
     TestTop is (TestFold*FoldCardinality),
-
-    log_v('split_ex', ['The test fold has index range of [', TestBottom, ',', TestTop, ').']),
-
     % partition to get the testing fold IDs list
-    findall(ID, example(_,ID,'ID',ID), Examples),
+    findall(ID, example(PositiveNegative,  ID, 'ID', ID), Examples),
 
     % find all testing IDs
     findall(ID, (
         % whose index is Index (1 to n)
         member(ID, Examples), index_of(Examples, ID, I), Index is I+1, 
         % and is within the folding test limits
-        Index >= TestBottom, Index < TestTop
+        Index >= TestBottom, Index =< TestTop
     ), TestExamples),
 
     % find all training IDs
@@ -64,18 +111,9 @@ split_examples(FoldCount, TestFold) :-
         member(ID, Examples),
         % but that is NOT in the testing list
         not(member(ID, TestExamples))
-    ), TrainExamples),
-
-    % reset the testing and training lists
-    retractall(test_examples(_)),
-    retractall(train_examples(_)),
-
-    assertz(test_examples(TestExamples)),
-    assertz(train_examples(TrainExamples)),
-
-    log_v('split_ex', ['Test examples for this run are ', TestExamples]),
-    log_v('split_ex', ['Train examples for this run are ', TrainExamples])
+    ), TrainExamples)
     .
+
 
 /**
  * train_examples(-List:list) is semidet.
@@ -386,9 +424,10 @@ partial_info_gain(Set, Attribute, Range, PartialInfoGain) :-
     length(SubsetList, SubsetLength),
     % get the size of the original set
     length(CleanSet, SetLength),
-    PartialInfoGain is (SubsetEntropy * SubsetLength / SetLength),
-    log_v('par_info_gain', [
-        'Partial info gain for ', Attribute, ' with ', Range, ' is ', PartialInfoGain])
+    (SetLength = 0 -> PartialInfoGain is 0;
+    PartialInfoGain is (SubsetEntropy * SubsetLength / SetLength))
+    %,log_v('par_info_gain', [
+    %    'Partial info gain for ', Attribute, ' with ', Range, ' is ', PartialInfoGain])
     .
 
 /**
@@ -450,8 +489,6 @@ clean_set(Set, Attribute, CleanSet) :-
 
 /**
  * learn_please is det.
- *
- * TODO: customize number of folds?
  * 
  * Start the learning process:
  *   1. partition the positive/3 data set in 10 folds
@@ -478,7 +515,7 @@ learn_please :-
 
     % log time information
     timer_stop(learn, Elapsed), format_s(Elapsed, Time),
-    log_i('learn', ['Learning algorithm finished in ', Time])
+    log_i('learn', ['Learning algorithm finished in ', Time, '.'])
     .
 
 /**
@@ -491,6 +528,33 @@ learn_please :-
 :- dynamic test_error_rate/2.
 
 /**
+ * is_positive(+ID, ?LearningStep) is nondet.
+ * 
+ * Check if a given example/4 ID is positive according to an optionally provided LearningStep.
+ * 
+ * @param ID                The ID of the fact/3 to check for.
+ * @param LearningStep      The step number of the learning process.
+ *
+ * @see check_condition_list/3
+ */
+ :- dynamic is_positive/2.
+
+/**
+ * check_positive(+ID, ?LearningStep) is semidet.
+ * 
+ * Semi-deterministic version of is_positive/2. If there is at least one is_positive/2 that
+ * satisfies the current ID, succeed; otherwise, fail.
+ * 
+ * @param ID                The ID of the fact/3 to check for.
+ * @param LearningStep      The step number of the learning process.
+ *
+ * @see is_positive/2
+ */
+ check_positive(ID, LearningStep) :-
+    example(_, ID, 'ID', ID),
+    is_positive(ID, LearningStep), !.
+
+/**
  * test(+Step) is det.
  *
  * Test all test_positive/3 and test_negative/3 and calculates an error rate as wrong predictions
@@ -501,13 +565,17 @@ learn_please :-
  * @see test_error_rate/2
  */
 test(Step) :-
-    aggregate_all(count, (test_negative(ID,'ID',ID), is_positive(ID, Step)), FalsePositives),
-    aggregate_all(count, (test_positive(ID,'ID',ID), not(is_positive(ID, Step))), FalseNegatives),
+    aggregate_all(count, (test_negative(ID,'ID',ID), check_positive(ID, Step)), FalsePositives),
+    aggregate_all(count, (test_positive(ID,'ID',ID), not(check_positive(ID, Step))), FalseNegatives),
     test_examples(TestExamples), length(TestExamples, Tests),
     (
         Tests = 0 -> ErrorRate is 0; ErrorRate is ((FalsePositives+FalseNegatives)/Tests)
     ),
     assertz(test_error_rate(Step, ErrorRate)),
+    log_d('test', ['Step ', Step, ' generated ', FalsePositives, ' false positives.']),
+    log_d('test', ['Step ', Step, ' generated ', FalseNegatives, ' false negatives.']),
+    aggregate_all(count, is_positive(_, Step), GeneratedRules),
+    log_i('test', ['Rules generated at step ', Step, ' = ', GeneratedRules, '.']),
     log_i('test', ['Error Rate at step ', Step, ' = ', ErrorRate, '.'])
     .
 
@@ -531,11 +599,11 @@ learn(TotalFolds, Step) :-
     % get a list of every training example
     complete_set(Examples),
     % create the root node
-    log_d('learn', 'Create root node.'),
+    log_d('learn', ['Create root node for step', Step, '.']),
     RootNode = node('root', root, root, root),
     assertz(RootNode),
     % bootstrap the algorithm with the root node
-    log_i('learn', 'Bootstrap C4.5'),
+    log_i('learn', ['Bootstrapping C4.5 for step ', Step, '...']),
     c45(RootNode, Examples, Attributes),
     gen_all_the_rulez(Step)
     .
@@ -693,17 +761,6 @@ print_le_branch(Node, NestLevel) :-
 % --------------------------------------------------------------------------- %
 
 /**
- * is_positive(+ID, ?LearningStep) is nondet.
- * 
- * Check if a given example/4 ID is positive according to an optionally provided LearningStep.
- * 
- * @param ID                The ID of the fact/3 to check for.
- * @param LearningStep      The step number of the learning process.
- *
- * @see check_condition_list/3
- */
-
-/**
  * gen_all_the_rulez(+Step) is semidet.
  * 
  * For each node_label/2 with a positive outcome, generate the corresponding rule
@@ -777,7 +834,8 @@ get_rule_list(Node, PrevList, List) :-
  * @param List              The List of condition/2.
  */
 check_condition_list(ID, List) :-
-    example(_, ID, _, _),
+    % make sure the example with the given ID exists
+    example(_, ID, 'ID', ID),
     forall(
         member(Condition, List),
         (
@@ -785,13 +843,23 @@ check_condition_list(ID, List) :-
             Condition = condition(Attribute, Range),
             % test the Attribute and the Range
             example(_, ID, Attribute, Value),
-            log_v('check', [
-                'Testing ID ', ID, ' on Attribute ', Attribute, 
-                ' with value ', Value, ' on ', Range, '.']
-            ),
-            is_in_range(Value, Range)
+            % ignore $null$ values
+            (Value \= '$null$' -> 
+                is_in_range(Value, Range),
+                log_v('check', [
+                    'Test OK: ID ', ID, ', Attribute ', Attribute, 
+                    ', value ', Value, ', ', Range, '.']
+                ),
+                % remember that the example matched at least once
+                MatchedOnce = true;
+                % if value is null, assume it's ok
+                true
+            )
         )
-    )
+    ),
+    % only return true if the condition list matched at least once
+    % (assume negative the examples that have all null values for the condition list)
+    MatchedOnce = true
     .
 
 /**
@@ -812,17 +880,24 @@ get_conditions_from_list([Head | Tail],(Head, OtherConditions)) :-
  * Print a detailed report of the learning algorithm and of the executed tests.
  */
 print_report :- 
+    aggregate_all(count, test_error_rate(_, _), Runs),
+
+    aggregate_all(count, example(positive, ID, 'ID', ID), PositiveCount),
+    aggregate_all(count, example(negative, ID, 'ID', ID), NegativeCount),
+
+    log_i('report', ['Positive examples: ', PositiveCount]),
+    log_i('report', ['Negative examples: ', NegativeCount]),
+    log_i('report', ['Total runs: ', Runs]),
+
+    log_i('report', 'Runs recap:'),
+    between(1, Runs, Run),
+        test_error_rate(Run, ErrorRate),
+        aggregate_all(count, clause(is_positive(_, Run), _), GeneratedRules),
+        log_i('report', ['  - Run ', Run, ' | Rules : ', GeneratedRules, ' | Error Rate : ', ErrorRate]),
+    fail;
+
     aggregate_all(sum(SingleError), test_error_rate(_, SingleError), ErrorSum),
     aggregate_all(count, test_error_rate(_, _), Runs),
     TotalError is ErrorSum/Runs,
-
-    log_i('report', ['Total runs: ', Runs]),
-
-    log_i('report', 'Runs error rates:'),
-    between(1, Runs, Run),
-        test_error_rate(Run, ErrorRate),
-        log_i('report', ['    - Run ', Run, ' : Error ', ErrorRate]),
-    fail;
-
     log_i('report', ['TOTAL ERROR: ', TotalError])
     .

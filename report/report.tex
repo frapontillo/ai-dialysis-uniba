@@ -268,8 +268,14 @@ In questo modo \'e sempre possibile accedere a qualsiasi coppia attributo-valore
 \end{verbatim}
 dove \verb|Type| pu\'o essere \verb|positive| o \verb|negative|. Tramite questa modalit\'a \'e possibile accedere a tutti gli esempi prelevati dalla base di dati. Sono presenti, inoltre, regole di conteggio e di verifica di esistenza (cfr. documentazione HTML).
 
-\subsection{Suddivisione categorie in range}
+\subsection{Suddivisione attributi in range}
 \label{prolog-categories}
+Gli attributi dei dati di esempio possono essere numerici (a virgola mobile) o categorici, ma in ogni caso sono identificati da un numero. Essi sono stati dichiarati esplicitamente tramite la clausola \verb|data_type(Attribute, Type)|, che definisce quindi la tipologia per ogni attributo.
+
+Per ogni attributo, quindi, si \'e avviato un processo di suddivisione in pi\'u \textit{range}:
+\begin{itemize}
+\item gli attributi di tipo \verb|category| 
+\end{itemize}
 
 \subsection{Apprendimento e test}
 \label{prolog-learner}

@@ -351,7 +351,14 @@ Il programma principale \'e definito nel modulo \verb|main.pl|, che si occupa de
 
 %TODO controllare sintomo default
 
-Entrambi i parametri supportano i meta-valori \verb|default| e \verb|ask|: \verb|default| esegue un \textit{fallback} dei parametri sul file di configurazione \texttt{prolog/config/database.properties} e sul sintomo con ID $2$, mentre \verb|ask| imposta il programma in modo da chiedere all'utente, in maniera interattiva e quando necessario, gli stessi parametri.
+Entrambi i parametri supportano i meta-valori \verb|default| e \verb|ask|: \verb|default| esegue un \textit{fallback} dei parametri sul file di configurazione \texttt{prolog/config/database.properties} e sul sintomo con ID $2$, mentre \verb|ask| imposta il programma in modo da chiedere all'utente, in maniera interattiva e quando necessario, gli stessi parametri. La figura \ref{fig:prolog-start} mostra l'avvio dell'algoritmo con il file di configurazione di default e per il sintomo $8$.
+
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=250pt]{figures/prolog-start.png}
+\caption{Avvio del programma per il sintomo $8$}
+\label{fig:prolog-start}
+\end{figure}
 
 Sono anche presenti funzioni di avvio rapido: \verb|main_def/0| (che avvia il programma con parametri di default), \verb|main/0| (che avvia in modalit\'a \verb|ask|) e \verb|make_doc/0| (che genera la documentazione HTML).
 
@@ -433,7 +440,7 @@ L'iterazione principale del processo di apprendimento \'e definita dal $k$\texti
 L'apprendimento, per ogni fase, \'e avviato da \verb|learn(Step)|.
 
 \subsubsection{Suddivisione in fold}
-La suddivisione in $k$ fold distinti viene eseguita, ad ogni passo, dal predicato \verb|split_examples/2|, che asserisce in memoria alcune liste di \verb|ID| di esempi. Tali liste sono poi utilizzate nel filtraggio, quando richiesto, degli esempi in \textit{training} e \textit{testing}.
+La suddivisione in $k$ fold distinti viene eseguita, ad ogni passo, dal predicato \verb|split_examples/2| (vedi figura \ref{fig:prolog-k-fold} per un esempio), che asserisce in memoria alcune liste di \verb|ID| di esempi. Tali liste sono poi utilizzate nel filtraggio, quando richiesto, degli esempi in \textit{training} e \textit{testing}.
 
 Nei primi test del programma, si \'e notato un bassissimo livello di distribuzione degli esempi nei diversi fold di ogni esecuzione, per cui i primi \textit{run} avevano un bassissimo livello di \textit{error rate} (spesso $0$), che cresceva con l'aumentare dell'indice del passo.\\
 Ci\'o era dovuto non alla generazione di regole ottimali, ma al fatto che gli esempi positivi venivano selezionati, da Prolog, sempre dopo quelli negativi, comportando un insieme di test composto, ai primi passi, da molti esempi positivi (mentre erano pochi o nulli alla fine) e da pochi negativi (mentre erano molti alla fine).
@@ -445,6 +452,13 @@ Si \'e pertanto reso necessario ``forzare'' una distribuzione pi\'u o meno unifo
 \end{verbatim}
 
 Il filtraggio degli esempi viene poi eseguito da \verb|test_example/4| e \verb|train_example/4| e da altre regole derivate.
+
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=250pt]{figures/prolog-k-fold.png}
+\caption{Suddivisione in $10$ fold}
+\label{fig:prolog-k-fold}
+\end{figure}
 
 \subsubsection{Apprendimento}
 L'implementazione dell'algoritmo C4.5 \'e abbastanza diretta, e si compone di passi ricorsivi che iniziano dalla generazione di un nodo radice.
@@ -498,10 +512,17 @@ Se nessuna delle verifiche precedenti porta a risultati, il nodo corrente dovr\'
 
 \paragraph{Attributo migliore}
 \label{apprendimento-attributo-migliore}
-Per poter decidere quale, fra gli attributi rimanenti, costituisce il migliore ai fini del processo di apprendimento, si \'e deciso di utilizzare la misura dell'~\textit{information gain} (vedi \ref{information-gain}), che a sua volta si basa fortemente sull'entropia (vedi \ref{entropia}.
+Per poter decidere quale, fra gli attributi rimanenti, costituisce il migliore ai fini del processo di apprendimento, si \'e deciso di utilizzare la misura dell'~\textit{information gain} (vedi \ref{information-gain}), che a sua volta si basa fortemente sull'entropia (vedi \ref{entropia}). Un esempio di esecuzione \'e visibile in figura \ref{fig:prolog-best-attribute}, dove viene scelto \verb|KTV| poich\'e possiede il massimo \textit{information gain} di $1$.
 
 L'entropia viene calcolata dalla regola \verb|entropy/2|, che utilizza i \verb|train_example/4|; l'\textit{information gain}, invece, viene calcolato da \verb|info_gain/3|, che si basa sul calcolo dell'entropia e che somma, per ogni range dell'attributo $A$, il valore restituito da \verb|partial_info_gain/4|:
 \[\frac{|S_a|}{|S|} \times entropia(S_a)\]
+
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=250pt]{figures/prolog-best-attribute.png}
+\caption{Scelta dell'attributo migliore secondo l'\textit{information gain}}
+\label{fig:prolog-best-attribute}
+\end{figure}
 
 Prima di ogni calcolo di entropia o di information gain, l'insieme degli esempi da analizzare $S$ per un certo attributo $A$ viene ripulito da tutti i dati che hanno un valore nullo in corrispondenza dell'attributo $A$.
 
@@ -533,10 +554,44 @@ Dopo la generazione delle regole al passo $i$, si esegue un processo di test, ch
 \[ Error\_Rate_i = \frac{False\_P_i + False\_N_i}{Test\_Examples_i} \]
 
 \subsubsection{Terminazione dell'apprendimento}
-Una volta che tutti i $k$ cicli di apprendimento-test sono terminati, viene stampato un report (da \verb|print_report/0| che stampa l'\textit{error rate} calcolato per ogni esecuzione e, infine, l'\textit{error rate} totale, calcolato come:
-\[ \frac{\sum_{i=1}^k Error\_Rate_i}{k} \]
+Una volta che tutti i $k$ cicli di apprendimento-test sono terminati, viene stampato un report (da \verb|print_report/0|, vedi figura \ref{fig:prolog-report}) che stampa l'\textit{error rate} calcolato per ogni esecuzione e, infine, l'\textit{error rate} totale, calcolato come:
+\[ Error\_Rate = \frac{\sum_{i=1}^k Error\_Rate_i}{k} \]
 
-\'E quindi possibile stampare tutte le regole generate, passo per passo, tramite \verb|listing(is_positive(ID, Step)|.
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=250pt]{figures/prolog-report.png}
+\caption{Stampa del report di fine processo}
+\label{fig:prolog-report}
+\end{figure}
+
+Al termine di ogni processo di apprendimento viene creato un file, \verb|runs/log_{ID}.csv|\footnote{Per la creazione dei file di log, \'e necessario che la cartella \verb|runs| esista gi\'a.} contenente, per ogni esecuzione: il sintomo, il passo, il numero di regole generate e l'error rate; infine, il file riporta il tempo di esecuzione in secondi, il numero totale di esempi positivi presenti, il numero totale di regole generate e l'errore medio complessivo.
+
+Inoltre, tutte le regole generate durante l'apprendimento vengono salvate nel file \verb|runs/rules_{ID}.pl|\footnote{Per la verifica delle regole \'e necessario che sia caricato in memoria Prolog anche la regola \verb|check_condition_list/2|, che serve ad eseguire il \textit{matching} dei range descritti dalla regole generate.}, ad esempio:
+\begin{verbatim}
+is_positive(A, 10) :-
+	check_condition_list(A,
+	     
+	     [ condition('ProgDuration',
+	          range(228.0, 231.0)),
+	       condition('DeltaWeight',
+	           range(0.0, 0.171028)),
+	       condition('RealWeightLoss',
+	           range(1.9050000000000002, 2.438)),
+	       condition('ProgWeightLoss',
+	           range(1.854, 2.342)),
+	       condition('QB',
+	           range(64.55200160000003,
+	                 72.62100180000003)),
+	       condition('KTV',
+	           range(1.39, 9.351)),
+	       condition('PatientRace',
+	           range(1, 1)),
+	       condition('PatientSex',
+	           range(1, 1)),
+	       condition('PatientAge',
+	           range(28108.1, 28617.199999999997))
+	     ]).
+\end{verbatim}
 
 \section{Risultati}
 Il programma \'e stato eseguito su $9$ sintomi target distinti e con un diverso numero di esempi positivi; la macchina utilizzata per il test ha le seguenti caratteristiche:
@@ -547,20 +602,20 @@ Il programma \'e stato eseguito su $9$ sintomi target distinti e con un diverso 
 \item Windows 8.1 x64
 \end{itemize}
 
-I risultati sono stati sintetizzati nelle tabelle \ref{table:risultati-errori} e \ref{table:risultati-tempi} che mostrano, rispettivamente, l'\textit{error rate} medio assieme al numero massimo di regole generate su tutti i passi, e i tempi di esecuzione relativamente ai diversi sintomi analizzati.
+I risultati sono stati sintetizzati nelle tabelle \ref{table:risultati-errori} e \ref{table:risultati-tempi} che mostrano, rispettivamente, l'\textit{error rate} medio (assieme al numero massimo di regole generate per ogni passo) e i tempi di esecuzione relativamente ai diversi sintomi analizzati.
 
 \begin{table}[h]
 \centering
 \begin{tabular}{|c|c|c|c|} \hline
-\textbf{Sintomo} & \textbf{Positivi} & \textbf{Error Rate} & \textbf{Max. regole} \\ \hline \hline
-$2$ & 19 & 0.2618131868 & 1 \\ \hline
-$3$ & 56 & 0.3499007937 & 1 \\ \hline
-$4$ & 7 & 0.1097319347 & 0 \\ \hline
-$5$ & 100 & 0.1818181818 & 90 \\ \hline
-$6$ & 34 & 0.26875 & 0 \\ \hline
-$7$ & 1 & 0.01742424242 & 1 \\ \hline
-$8$ & 100 & 0.07727272727 & 1 \\ \hline
-$9$ & 5 & 0.06357808858 & 93 \\
+\textbf{Sintomo} & \textbf{Positivi} & \textbf{Error Rate} & \textbf{Regole} \\ \hline \hline
+$2$ & 19 & 0.26 & 1 \\ \hline
+$3$ & 56 & 0.35 & 1 \\ \hline
+$4$ & 7 & 0.11 & 0 \\ \hline
+$5$ & 100 & 0.18 & 90 \\ \hline
+$6$ & 34 & 0.27 & 0 \\ \hline
+$7$ & 1 & 0.02 & 1 \\ \hline
+$8$ & 100 & 0.08 & 1 \\ \hline
+$9$ & 5 & 0.06 & 93 \\
 \hline\end{tabular}
 \caption{\textit{Error rate} medio su tutti i passi}
 \label{table:risultati-errori}
@@ -570,8 +625,8 @@ $9$ & 5 & 0.06357808858 & 93 \\
 \centering
 \begin{tabular}{|c|c|c|c|} \hline
 \textbf{Sintomo} & \textbf{Positivi} & \textbf{Time} \\ \hline \hline
-$2$ & 19 & 8m 0s \\ \hline
-$3$ & 56 & 11m 48s \\ \hline
+$2$ & 19 &  \\ \hline
+$3$ & 56 &  \\ \hline
 $4$ & 7 &  \\ \hline
 $5$ & 100 &  \\ \hline
 $6$ & 34 &  \\ \hline

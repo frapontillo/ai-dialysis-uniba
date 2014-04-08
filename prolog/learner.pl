@@ -515,17 +515,23 @@ learn_please :-
 
     % log time information
     timer_stop(learn, Elapsed),
-    print_report(Elapsed)
+    print_report(Elapsed),
+    save_log(Elapsed),
+    save_rules
     .
 
 /**
- * test_error_rate(?Step, ?ErrorRate) is nondet.
+ * test_error_rate(?Step, ?ErrorRate, ?FalsePosPerc, ?TrueNegPerc) is nondet.
  * 
  * Holds information about the error rate calculated at a particular Step.
  * 
+ * @param Step              The step the error rate was calculated at.
+ * @param ErrorRate         The total error rate.
+ * @param FalsePosPerc      The percentage of false positives (wrong classification).
+ * @param FalseNegPerc      The percentage of false negatives (missed classification).
  * @see test/1.
  */
-:- dynamic test_error_rate/2.
+:- dynamic test_error_rate/4.
 
 /**
  * is_positive(+ID, ?LearningStep) is nondet.
@@ -559,21 +565,34 @@ learn_please :-
  *
  * Test all test_positive/3 and test_negative/3 and calculates an error rate as wrong predictions
  * on the total number of predictions (single tests) executed.
- * The calculated error rate is asserted as test_error_rate/2.
+ * The calculated error rate is asserted as test_error_rate/4.
  *
  * @param Step              The learning step, defines the particular rules to test against.
- * @see test_error_rate/2
+ * @see test_error_rate/4
  */
 test(Step) :-
+    % false positives are negative examples classified as positives
     aggregate_all(count, (test_negative(ID,'ID',ID), check_positive(ID, Step)), FalsePositives),
+    % false negatives are positive examples not classified
     aggregate_all(count, (test_positive(ID,'ID',ID), not(check_positive(ID, Step))), FalseNegatives),
+    % get all test examples
     test_examples(TestExamples), length(TestExamples, Tests),
     (
         Tests = 0 -> ErrorRate is 0; ErrorRate is ((FalsePositives+FalseNegatives)/Tests)
     ),
-    assertz(test_error_rate(Step, ErrorRate)),
-    log_d('test', ['Step ', Step, ' generated ', FalsePositives, ' false positives.']),
-    log_d('test', ['Step ', Step, ' generated ', FalseNegatives, ' false negatives.']),
+    % calculate the false positive rate (negatives classified as positives / negatives)
+    aggregate_all(count, test_negative(ID,'ID',ID), AllNegatives),
+    (
+        AllNegatives = 0 -> FalsePosRate is 0; FalsePosRate is (FalsePositives/AllNegatives)
+    ),
+    % calculate the false negative rate (positives not classified / positives)
+    aggregate_all(count, test_positive(ID,'ID',ID), AllPositives),
+    (
+        AllPositives = 0 -> FalseNegRate is 0; FalseNegRate is (FalseNegatives/AllPositives)
+    ),
+    assertz(test_error_rate(Step, ErrorRate, FalsePosRate, FalseNegRate)),
+    log_d('test', ['Step ', Step, ' generated a ', FalsePosRate, ' false positive rate.']),
+    log_d('test', ['Step ', Step, ' generated a ', FalseNegRate, ' false negative rate.']),
     aggregate_all(count, clause(is_positive(_, Step), _), GeneratedRules),
     log_i('test', ['Rules generated at step ', Step, ' = ', GeneratedRules, '.']),
     log_i('test', ['Error Rate at step ', Step, ' = ', ErrorRate, '.'])
@@ -891,7 +910,7 @@ print_report(Elapsed) :-
     log_i('report', ['Learning algorithm finished in ', Time, '.']),
     log_i('report', ['Symptom: ', PositiveID]),
 
-    aggregate_all(count, test_error_rate(_, _), Runs),
+    aggregate_all(count, test_error_rate(_, _, _, _), Runs),
 
     aggregate_all(count, example(positive, ID, 'ID', ID), PositiveCount),
     aggregate_all(count, example(negative, ID, 'ID', ID), NegativeCount),
@@ -900,48 +919,130 @@ print_report(Elapsed) :-
     log_i('report', ['Negative examples: ', NegativeCount]),
     log_i('report', ['Total runs: ', Runs]),
 
-    % open a csv file to log the results
-    atom_string(PositiveID, SymptomString),
-    concat_string_list(['runs/', SymptomString, '.csv'], Path),
-    open(Path, write, Log),
-
     log_i('report', 'Runs recap:'),
     forall(between(1, Runs, Run), 
         (
-        test_error_rate(Run, ErrorRate), 
-        aggregate_all(count, 
-            clause(is_positive(_, Run), _), 
-            GeneratedRules),
-        test_error_rate(Run, ErrorRate),
+        aggregate_all(count, clause(is_positive(_, Run), _), GeneratedRules),
+        test_error_rate(Run, ErrorRate, FalsePosRate, FalseNegRate),
         % print results to screen
         log_i('report', 
-            ['  - Run ', Run, ' | Rules : ', GeneratedRules, ' | Error Rate : ', ErrorRate]),
+            ['  - Run ', Run, ' | Rules : ', GeneratedRules, ' | Error Rate : ', ErrorRate, 
+            ' | False Pos. Rate : ', FalsePosRate, ' | False Neg. Rate : ', FalseNegRate])
+        )
+    ),
+
+    aggregate_all(sum(SingleError), test_error_rate(_, SingleError, _, _), ErrorSum),
+    aggregate_all(sum(FalsePosRate), test_error_rate(_, _, FalsePosRate, _), FalsePosSum),
+    aggregate_all(sum(FalseNegRate), test_error_rate(_, _, _, FalseNegRate), FalseNegSum),
+    aggregate_all(count, test_error_rate(_, _, _, _), Runs),
+    TotalError is ErrorSum/Runs,
+    TotalFalsePosRate is FalsePosSum/Runs,
+    TotalFalseNegRate is FalseNegSum/Runs,
+    aggregate_all(count, clause(is_positive(_, _), _), TotalRules),
+    log_i('report', ['TOTAL RULES: ', TotalRules]),
+    log_i('report', ['TOTAL FALSE POS RATE: ', TotalFalsePosRate]),
+    log_i('report', ['TOTAL FALSE NEG RATE: ', TotalFalseNegRate]),
+    log_i('report', ['TOTAL ERROR: ', TotalError]),
+
+    log_d('report', 'Report printed.')
+    .
+
+/**
+ * save_log(+Elapsed) is det.
+ * 
+ * Save a log .csv file: 'runs/log_{ID}.csv'.
+ * The 'runs' folder must exist.
+ * 
+ * The file will list, for each run:
+ *   - the symptom ID (always the same for each file)
+ *   - the run index
+ *   - the number of generated rules
+ *   - the error rate
+ *   - the false positive rate
+ *   - the false negative rate
+ * 
+ * The last line contains:
+ *   - the time of total execution (in seconds)
+ *   - the number of positive examples (including both training and testing examples)
+ *   - the total number of generated rules
+ *   - the total error rate
+ *   - the total false positive rate
+ *   - the total false negative rate
+ * 
+ * @param Elapsed           Total time of execution, in seconds.
+ */
+save_log(Elapsed) :-
+    % get the positive ID
+    positive_target(PositiveID), 
+    % get the number of total runs
+    aggregate_all(count, test_error_rate(_, _, _, _), Runs),
+    % open a csv file to log the results
+    atom_string(PositiveID, SymptomString),
+    concat_string_list(['runs/log_', SymptomString, '.csv'], PathCSV),
+    open(PathCSV, write, Log),
+
+    write(Log, '"Symptom";"Run";"Rules";"Error Rate";"False Pos Rate";"False Neg Rate";\n'),
+
+    % for every run
+    forall(between(1, Runs, Run), (
+        % count the rules 
+        aggregate_all(count,  clause(is_positive(_, Run), _), GeneratedRules),
+        % get the error rate
+        test_error_rate(Run, ErrorRate, FalsePosRate, FalseNegRate),
         % log the run to the csv
         write(Log, SymptomString), write(Log, ';'),
         write(Log, Run), write(Log, ';'),
         write(Log, GeneratedRules), write(Log, ';'),
-        write(Log, ErrorRate), write(Log, ';\n')
-        )
-    ),
+        write(Log, ErrorRate), write(Log, ';'),
+        write(Log, FalsePosRate), write(Log, ';'),
+        write(Log, FalseNegRate), write(Log, ';\n')
+    )),
 
-    aggregate_all(sum(SingleError), test_error_rate(_, SingleError), ErrorSum),
-    aggregate_all(count, test_error_rate(_, _), Runs),
+    aggregate_all(sum(SingleError), test_error_rate(_, SingleError, _, _), ErrorSum),
+    aggregate_all(sum(FalsePosRate), test_error_rate(_, _, FalsePosRate, _), FalsePosSum),
+    aggregate_all(sum(FalseNegRate), test_error_rate(_, _, _, FalseNegRate), FalseNegSum),
+    aggregate_all(count, test_error_rate(_, _, _, _), Runs),
     TotalError is ErrorSum/Runs,
+    TotalFalsePosRate is FalsePosSum/Runs,
+    TotalFalseNegRate is FalseNegSum/Runs,
     aggregate_all(count, clause(is_positive(_, _), _), TotalRules),
-    log_i('report', ['TOTAL RULES: ', TotalRules]),
-    log_i('report', ['TOTAL ERROR: ', TotalError]),
+    aggregate_all(count, positive(ID,'ID',ID), TotalPositives),
 
     % separator
-    write(Log, '-;-;-;-;\n'),
+    write(Log, '"";"";"";"";\n'),
+    write(Log, '"Time (s)";"Positives";"Rules";"Total Error";"Total False Pos Rate";"Total False Neg Rate";\n'),
 
     % log final data
     write(Log, Elapsed), write(Log, ';'),
-    write(Log, 'ALL;'),
+    write(Log, TotalPositives), write(Log, ';'),
     write(Log, TotalRules), write(Log, ';'),
     write(Log, TotalError), write(Log, ';'),
+    write(Log, TotalFalsePosRate), write(Log, ';'),
+    write(Log, TotalFalseNegRate), write(Log, ';'),
 
     % close the csv
     write(Log, '\n'),
     close(Log),
-    log_d('report', 'Tests written to file.')
+
+    log_d('save_log', 'Tests written to file.')
+    .
+
+/**
+ * save_rules is det.
+ * 
+ * Save all generated rules in the prolog file: 'runs/rules_{ID}.pl'.
+ * The 'runs' folder must exist.
+ */
+save_rules :-
+    % get the positive ID
+    positive_target(PositiveID), 
+    % open a pl file to log the results
+    atom_string(PositiveID, SymptomString),
+    concat_string_list(['runs/rules_', SymptomString, '.pl'], PathPL),
+    open(PathPL, write, RulesFile),
+    % write the generated rules
+    with_output_to(RulesFile, listing(is_positive(_, _))),
+    close(RulesFile),
+
+    log_d('save_rules', 'Rules written to file.')
     .

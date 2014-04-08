@@ -392,9 +392,19 @@ b. start the testing phase</li>
 </ol>
 
 </dd>
-<dt class="pubdef"><span style="float:right"></span><a name="test_error_rate/2"><b class="pred">test_error_rate</b><var class="arglist">(?Step, ?ErrorRate)</var></a> is <b class="det">nondet</b></dt><dd class="defbody">Holds information about the error rate calculated at a particular <var>Step</var>.
+<dt class="pubdef"><span style="float:right"></span><a name="test_error_rate/4"><b class="pred">test_error_rate</b><var class="arglist">(?Step, ?ErrorRate, ?FalsePosPerc, ?TrueNegPerc)</var></a> is <b class="det">nondet</b></dt><dd class="defbody">Holds information about the error rate calculated at a particular <var>Step</var>.
 
 <dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Step</var></td><td class="argdescr">- The step the error rate was calculated at.</td></tr>
+<tr><td><var>ErrorRate</var></td><td class="argdescr">- The total error rate.</td></tr>
+<tr><td><var>FalsePosPerc</var></td><td class="argdescr">- The percentage of false positives (wrong classification).</td></tr>
+<tr><td><var>FalseNegPerc</var></td><td class="argdescr">- The percentage of false negatives (missed classification).</td></tr>
+</table>
+
+</dd>
 <dt class="keyword-see">See also</dt><dd class="keyword-see">- <a href="/doc_for?object=user:test/1">test/1</a>.</dd>
 </dl>
 
@@ -432,7 +442,7 @@ satisfies the current <var>ID</var>, succeed; otherwise, fail.
 </dd>
 <dt class="pubdef"><span style="float:right"></span><a name="test/1"><b class="pred">test</b><var class="arglist">(+Step)</var></a> is <b class="det">det</b></dt><dd class="defbody">Test all <a href="/doc_for?object=user:test_positive/3">test_positive/3</a> and <a href="/doc_for?object=user:test_negative/3">test_negative/3</a> and calculates an error rate as wrong predictions
 on the total number of predictions (single tests) executed.
-The calculated error rate is asserted as <a href="/doc_for?object=user:test_error_rate/2">test_error_rate/2</a>.
+The calculated error rate is asserted as <a href="/doc_for?object=user:test_error_rate/4">test_error_rate/4</a>.
 
 <dl class="tags">
 <dt class="tag">Arguments:</dt><dd>
@@ -442,7 +452,7 @@ The calculated error rate is asserted as <a href="/doc_for?object=user:test_erro
 </table>
 
 </dd>
-<dt class="keyword-see">See also</dt><dd class="keyword-see">- <a href="/doc_for?object=user:test_error_rate/2">test_error_rate/2</a></dd>
+<dt class="keyword-see">See also</dt><dd class="keyword-see">- <a href="/doc_for?object=user:test_error_rate/4">test_error_rate/4</a></dd>
 </dl>
 
 </dd>
@@ -588,7 +598,57 @@ the conditions to the given <var>PrevList</var> (can be empty).
 </dl>
 
 </dd>
-<dt class="pubdef"><span style="float:right"></span><a name="print_report/0"><b class="pred">print_report</b></a> is <b class="det">det</b></dt><dd class="defbody">Print a detailed report of the learning algorithm and of the executed tests.</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="print_report/1"><b class="pred">print_report</b><var class="arglist">(+Elapsed)</var></a> is <b class="det">det</b></dt><dd class="defbody">Print a detailed report of the learning algorithm and of the executed tests.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Elapsed</var></td><td class="argdescr">- The number of seconds the algorithm has taken to complete</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="save_log/1"><b class="pred">save_log</b><var class="arglist">(+Elapsed)</var></a> is <b class="det">det</b></dt><dd class="defbody">Save a log .csv file: 'runs/log_{ID}.csv'.
+The 'runs' folder must exist.
+
+<p>
+The file will list, for each run:</p>
+<ul>
+<li>the symptom ID (always the same for each file)</li>
+<li>the run index</li>
+<li>the number of generated rules</li>
+<li>the error rate</li>
+<li>the false positive rate</li>
+<li>the false negative rate</li>
+</ul>
+
+<p>
+The last line contains:</p>
+<ul>
+<li>the time of total execution (in seconds)</li>
+<li>the number of positive examples (including both training and testing examples)</li>
+<li>the total number of generated rules</li>
+<li>the total error rate</li>
+<li>the total false positive rate</li>
+<li>the total false negative rate</li>
+</ul>
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Elapsed</var></td><td class="argdescr">- Total time of execution, in seconds.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="save_rules/0"><b class="pred">save_rules</b></a> is <b class="det">det</b></dt><dd class="defbody">Save all generated rules in the prolog file: 'runs/rules_{ID}.pl'.
+The 'runs' folder must exist.</dd>
 </dl>
 
 </body>

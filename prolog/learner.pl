@@ -514,8 +514,8 @@ learn_please :-
     fail;
 
     % log time information
-    timer_stop(learn, Elapsed), format_s(Elapsed, Time),
-    log_i('learn', ['Learning algorithm finished in ', Time, '.'])
+    timer_stop(learn, Elapsed),
+    print_report(Elapsed)
     .
 
 /**
@@ -574,7 +574,7 @@ test(Step) :-
     assertz(test_error_rate(Step, ErrorRate)),
     log_d('test', ['Step ', Step, ' generated ', FalsePositives, ' false positives.']),
     log_d('test', ['Step ', Step, ' generated ', FalseNegatives, ' false negatives.']),
-    aggregate_all(count, is_positive(_, Step), GeneratedRules),
+    aggregate_all(count, clause(is_positive(_, Step), _), GeneratedRules),
     log_i('test', ['Rules generated at step ', Step, ' = ', GeneratedRules, '.']),
     log_i('test', ['Error Rate at step ', Step, ' = ', ErrorRate, '.'])
     .
@@ -620,12 +620,16 @@ learn(TotalFolds, Step) :-
  */
 
  c45(Node, Examples, Attributes) :- 
-    Node = node(NodeName, _, _, _),
+    Node = node(NodeName, _, Attribute, _),
     log_d('c45', ['Executing C4.5 for node ', NodeName, '.']),
     % STEP 1: check if every training example is in the same class
-    % find all the different target values in the current subset
+    % find all the different target values in the current subset, after cleaning it from null values
     target_class(TargetAttr),
-    findall(Value,  (member(ID, Examples), train_example(_, ID, TargetAttr, Value)), TargetValues),
+    findall(Value,  (
+        member(ID, Examples),
+        train_example(_, ID, Attribute, NotNullValue), NotNullValue \= '$null$', 
+        train_example(_, ID, TargetAttr, Value)), 
+    TargetValues),
     % if all current examples are in one class only (p or n) the node has a label (yay!)
     % TODO: check the percentage and apply a threshold
     length(TargetValues, DifferentValues),
@@ -875,11 +879,18 @@ get_conditions_from_list([Head | Tail],(Head, OtherConditions)) :-
     get_conditions_from_list(Tail, OtherConditions).
 
 /**
- * print_report is det.
- *
+ * print_report(+Elapsed) is det.
+ * 
  * Print a detailed report of the learning algorithm and of the executed tests.
+ *
+ * @param Elapsed           The number of seconds the algorithm has taken to complete
  */
-print_report :- 
+print_report(Elapsed) :- 
+    positive_target(PositiveID), 
+    format_s(Elapsed, Time),
+    log_i('report', ['Learning algorithm finished in ', Time, '.']),
+    log_i('report', ['Symptom: ', PositiveID]),
+
     aggregate_all(count, test_error_rate(_, _), Runs),
 
     aggregate_all(count, example(positive, ID, 'ID', ID), PositiveCount),
@@ -889,15 +900,48 @@ print_report :-
     log_i('report', ['Negative examples: ', NegativeCount]),
     log_i('report', ['Total runs: ', Runs]),
 
+    % open a csv file to log the results
+    atom_string(PositiveID, SymptomString),
+    concat_string_list(['runs/', SymptomString, '.csv'], Path),
+    open(Path, write, Log),
+
     log_i('report', 'Runs recap:'),
-    between(1, Runs, Run),
+    forall(between(1, Runs, Run), 
+        (
+        test_error_rate(Run, ErrorRate), 
+        aggregate_all(count, 
+            clause(is_positive(_, Run), _), 
+            GeneratedRules),
         test_error_rate(Run, ErrorRate),
-        aggregate_all(count, clause(is_positive(_, Run), _), GeneratedRules),
-        log_i('report', ['  - Run ', Run, ' | Rules : ', GeneratedRules, ' | Error Rate : ', ErrorRate]),
-    fail;
+        % print results to screen
+        log_i('report', 
+            ['  - Run ', Run, ' | Rules : ', GeneratedRules, ' | Error Rate : ', ErrorRate]),
+        % log the run to the csv
+        write(Log, SymptomString), write(Log, ';'),
+        write(Log, Run), write(Log, ';'),
+        write(Log, GeneratedRules), write(Log, ';'),
+        write(Log, ErrorRate), write(Log, ';\n')
+        )
+    ),
 
     aggregate_all(sum(SingleError), test_error_rate(_, SingleError), ErrorSum),
     aggregate_all(count, test_error_rate(_, _), Runs),
     TotalError is ErrorSum/Runs,
-    log_i('report', ['TOTAL ERROR: ', TotalError])
+    aggregate_all(count, clause(is_positive(_, _), _), TotalRules),
+    log_i('report', ['TOTAL RULES: ', TotalRules]),
+    log_i('report', ['TOTAL ERROR: ', TotalError]),
+
+    % separator
+    write(Log, '-;-;-;-;\n'),
+
+    % log final data
+    write(Log, Elapsed), write(Log, ';'),
+    write(Log, 'ALL;'),
+    write(Log, TotalRules), write(Log, ';'),
+    write(Log, TotalError), write(Log, ';'),
+
+    % close the csv
+    write(Log, '\n'),
+    close(Log),
+    log_d('report', 'Tests written to file.')
     .

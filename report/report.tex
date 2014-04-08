@@ -541,26 +541,26 @@ Una volta che tutti i $k$ cicli di apprendimento-test sono terminati, viene stam
 \section{Risultati}
 Il programma \'e stato eseguito su $9$ sintomi target distinti e con un diverso numero di esempi positivi; la macchina utilizzata per il test ha le seguenti caratteristiche:
 \begin{itemize}
-\item CPU Intel i7-4770 @ 3.40 GHz
-\item 16GB RAM DDR3
-\item SSD SKC300TS37A/240G (fino a 525 MB/s in lettura, fino a 500 MB/s in scrittura)
-\item Windows 8 x64
+\item CPU Intel i7-4500U @ 1.80GHz
+\item 8GB RAM DDR3
+\item Samsung SSD EVO 840 250GB (fino a 540 MB/s in lettura, fino a 520 MB/s in scrittura)
+\item Windows 8.1 x64
 \end{itemize}
 
-I risultati sono stati sintetizzati nelle tabelle \ref{table:risultati-errori}, ref{table:risultati-regole}, ref{table:risultati-esecuzione} che mostrano, rispettivamente, l'error rate medio, il numero massimo di regole generate su tutti i passi ed i tempi di esecuzione.
+I risultati sono stati sintetizzati nelle tabelle \ref{table:risultati-errori} e \ref{table:risultati-tempi} che mostrano, rispettivamente, l'\textit{error rate} medio assieme al numero massimo di regole generate su tutti i passi, e i tempi di esecuzione relativamente ai diversi sintomi analizzati.
 
 \begin{table}[h]
 \centering
 \begin{tabular}{|c|c|c|c|} \hline
-\textbf{Sintomo} & \textbf{Positivi} & \textbf{Error Rate} \\ \hline \hline
-$2$ & 19 & 0.2618131868 \\ \hline
-$3$ & 56 & 0.3499007937 \\ \hline
-$4$ & 7 & 0.1097319347 \\ \hline
-$5$ & 100 & 0.1818181818 \\ \hline
-$6$ & 34 & 0.26875 \\ \hline
-$7$ & 1 & 0.01742424242 \\ \hline
-$8$ & 100 & 0.07727272727 \\ \hline
-$9$ & 5 &  \\
+\textbf{Sintomo} & \textbf{Positivi} & \textbf{Error Rate} & \textbf{Max. regole} \\ \hline \hline
+$2$ & 19 & 0.2618131868 & 1 \\ \hline
+$3$ & 56 & 0.3499007937 & 1 \\ \hline
+$4$ & 7 & 0.1097319347 & 0 \\ \hline
+$5$ & 100 & 0.1818181818 & 90 \\ \hline
+$6$ & 34 & 0.26875 & 0 \\ \hline
+$7$ & 1 & 0.01742424242 & 1 \\ \hline
+$8$ & 100 & 0.07727272727 & 1 \\ \hline
+$9$ & 5 & 0.06357808858 & 93 \\
 \hline\end{tabular}
 \caption{\textit{Error rate} medio su tutti i passi}
 \label{table:risultati-errori}
@@ -569,31 +569,14 @@ $9$ & 5 &  \\
 \begin{table}[h]
 \centering
 \begin{tabular}{|c|c|c|c|} \hline
-\textbf{Sintomo} & \textbf{Positivi} & \textbf{Max. regole} \\ \hline \hline
-$2$ & 19 & 1 \\ \hline
-$3$ & 56 & 1 \\ \hline
-$4$ & 7 & 0 \\ \hline
-$5$ & 100 & 90 \\ \hline
-$6$ & 34 & 0 \\ \hline
-$7$ & 1 & 1 \\ \hline
-$8$ & 100 & 113 \\ \hline
-$9$ & 5 &  \\
-\hline\end{tabular}
-\caption{Numero massimo di regole generate}
-\label{table:risultati-regole}
-\end{table}
-
-\begin{table}[h]
-\centering
-\begin{tabular}{|c|c|c|c|} \hline
 \textbf{Sintomo} & \textbf{Positivi} & \textbf{Time} \\ \hline \hline
-$2$ & 19 & 3m 9s \\ \hline
-$3$ & 56 & 5m 16s \\ \hline
-$4$ & 7 & 2m 28s \\ \hline
-$5$ & 100 & 11m 41s \\ \hline
-$6$ & 34 & 3m 19s \\ \hline
-$7$ & 1 & 2m 20s \\ \hline
-$8$ & 100 & 8m 18s \\ \hline
+$2$ & 19 & 8m 0s \\ \hline
+$3$ & 56 & 11m 48s \\ \hline
+$4$ & 7 &  \\ \hline
+$5$ & 100 &  \\ \hline
+$6$ & 34 &  \\ \hline
+$7$ & 1 &  \\ \hline
+$8$ & 100 &  \\ \hline
 $9$ & 5 &  \\
 \hline\end{tabular}
 \caption{Tempi di esecuzione per sintomo}

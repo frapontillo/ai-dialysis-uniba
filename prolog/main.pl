@@ -32,7 +32,6 @@ main(Config, Symptom) :-
     update_records(Symptom),                    % get positive and negative examples
     update_categories,                          % update categories based on retrieved examples
     learn_please,                               % learn!
-    print_report,                               % print a full final report
     true.
 
 /**

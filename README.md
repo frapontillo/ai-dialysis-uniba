@@ -1,7 +1,7 @@
 AI Dialysis Symptomatology
 ========
 
-An algorithm for learning symptomatology classification rules from dialysis data.
+A basic C4.5 SWI-Prolog implementation for learning symptomatology classification rules from dialysis data.
 
 --------
 
@@ -9,4 +9,4 @@ An algorithm for learning symptomatology classification rules from dialysis data
 
 Dialysis data are retrieved from the "Gepadial" database, a software for managing dialysis patients and sessions by [La Traccia](www.latraccia.it/en).
 
-Read [SCRIPTS.md](SCRIPTS.md) to learn how to prepare the data used by the algorithm.
+Read all README.md files in the other folders to learn how to start the project.

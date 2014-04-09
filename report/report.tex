@@ -1,5 +1,6 @@
 \documentclass[preprint]{acm_proc_article-sp}
 \usepackage[italian]{babel}
+\usepackage{hyperref}
 \usepackage[shortcuts]{extdash}
 \usepackage[utf8]{inputenc}
 \usepackage{bigfoot}
@@ -350,9 +351,7 @@ Il programma principale \'e definito nel modulo \verb|main.pl|, che si occupa de
 \item \verb|Symptom| definisce l'ID del sintomo che si vuole utilizzare come esempio positivo per l'attributo target.
 \end{itemize}
 
-%TODO controllare sintomo default
-
-Entrambi i parametri supportano i meta-valori \verb|default| e \verb|ask|: \verb|default| esegue un \textit{fallback} dei parametri sul file di configurazione \texttt{prolog/config/database.properties} e sul sintomo con ID $2$, mentre \verb|ask| imposta il programma in modo da chiedere all'utente, in maniera interattiva e quando necessario, gli stessi parametri. La figura \ref{fig:prolog-start} mostra l'avvio dell'algoritmo con il file di configurazione di default e per il sintomo $8$.
+Entrambi i parametri supportano i meta-valori \verb|default| e \verb|ask|: \verb|default| esegue un \textit{fallback} dei parametri sul file di configurazione \texttt{prolog/config/database.properties} (si veda \ref{appendix-data} per l'importazione dei dati) e sul sintomo con ID $2$, mentre \verb|ask| imposta il programma in modo da chiedere all'utente, in maniera interattiva e quando necessario, gli stessi parametri. La figura \ref{fig:prolog-start} mostra l'avvio dell'algoritmo con il file di configurazione di default e per il sintomo $8$.
 
 \begin{figure}[!htb]
 \centering
@@ -938,8 +937,39 @@ Miglioramenti implementativi potrebbero essere:
 
 \appendix
 
-\section{Weka}
+\section{Importazione dei dati}
+\label{appendix-data}
+Per utilizzare il database come sorgente dei dati, occorre installare \href{http://www.mysql.com/}{MySQL} come motore di database.
+Quindi:
+
+\begin{enumerate}
+\item Avviare il server MySQL.
+\item Tramite il tool "Import Data" di MySQL Workbench, selezionare il file \verb|scripts/mysq-dump.sql| e avviare l'importazione dei dati.
+\item Avviare lo script \verb|scripts/mysql-scores.sql| per la creazione delle \textit{view} utili.
+\end{enumerate}
+
+\section{Setup di Weka}
 \label{appendix-weka}
+Per utilizzare Weka con i file ARFF, localizzati nella cartella \verb|weka/|, non serve nessun pre-requisito particolare. Per la connessione al database, invece, serve specificare il file \verb|DatabaseUtils.props| che contiene alcune propriet\'a per la connessione.
+
+Un file di esempio \'e \verb|weka/DatabaseUtils.props|, che permette di collegarsi a fonti dati MySQL. In particolare, le informazioni rilevanti da gestire sono:
+\begin{verbatim}
+# JDBC driver (comma-separated list)
+jdbcDriver=com.mysql.jdbc.Driver,
+  org.gjt.mm.mysql.Driver
+
+# database URL
+jdbcURL=jdbc:mysql://localhost:3306/DialysisAI
+\end{verbatim}
+
+Successivamente serve includere, se non gi\'a presente, la libreria \verb|jar| per le connessioni JDBC ai database MySQL nel \textit{classpath} caricati da Weka.
+Ad esempio, su Windows serve modificare il file \verb|RunWeka.ini| (presente nel percorso di installazione di Weka) in modo tale che la variabile \verb|cp| includa, all'ultima riga, il percorso completo del file \verb|jar|:
+\begin{verbatim}
+cp=%CLASSPATH%;%MY_SQL_PATH%/Connector J 5.1.29/
+  mysql-connector-java-5.1.29-bin.jar
+\end{verbatim}
+
+\section{Setup di BayesDB}
 
 \balancecolumns
 

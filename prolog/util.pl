@@ -248,6 +248,7 @@ list_most_common(List, Element, Count) :-
  * @param Element           The element to find the position for.
  * @param Index             The index of the element in the list.
  */
+index_of([], _, _):- fail.
 index_of([Element|_], Element, 0):- !.
 index_of([_|Tail], Element, Index):-
     index_of(Tail, Element, OtherIndex), !,

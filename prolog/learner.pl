@@ -326,7 +326,7 @@ best_attribute(Set, Attributes, Attribute) :-
     log_d('best_attr', [
         'Best info gain is achieved with attribute ', Attribute, ' with a value of ', InfoGain]),
     measure_time(Time), format_ms(Time, TimeString),
-    log_d('best_attr', ['Best attribute calculus took ', TimeString, '.'])
+    log_v('best_attr', ['Best attribute calculus took ', TimeString, '.'])
     .
 
 /**
@@ -360,9 +360,9 @@ best_attribute(Attribute) :-
  * @param InfoGain          The calculated information gain.
  */
 info_gain(Set, Attribute, InfoGain) :- 
-    log_v('info_gain', ['Calculating info gain for ', Attribute, '...']),
     % first off, let's calculate the total entropy
     entropy(Set, TotalEntropy),
+
     % calculate the partial information gain on each split of the Attribute (category or class)
     PartialGains = (
         % get the list of splits for the given Attribute
@@ -373,9 +373,29 @@ info_gain(Set, Attribute, InfoGain) :-
         partial_info_gain(Set, Attribute, Range, PartialInfoGain)
     ),
     % sum all of the partial gains
-    findall(PartialInfoGain, PartialGains, GainList),
-    sum_list(GainList, PartialGainSum),
-    InfoGain is TotalEntropy - PartialGainSum,
+    aggregate_all(sum(PartialInfoGain), PartialGains, PartialGainSum),
+    % log_v('info_gain', ['Info gain sum for ', Attribute, ' is ', PartialGainSum]),
+
+    /* TODO
+    % calculate the partial intrinsic value on each split of the Attribute (category or class)
+    PartialIntrinsicValues = (
+        % get the list of splits for the given Attribute
+        class(Attribute, RangeList),
+        % loop through every range in the list
+        member(Range, RangeList),
+        % calculate the current partial info gain
+        partial_intrinsic_value(Set, Attribute, Range, PartialIntrinsicValue)
+    ),
+
+    % sum all of the partial intrinsic values
+    aggregate_all(sum(PartialIntrinsicValue), PartialIntrinsicValues, PartialIntrinsicValueSum),
+    log_v('info_gain', ['Intrinsic value sum for ', Attribute, ' is ', PartialIntrinsicValueSum]),
+
+    catch(InfoGain is ((TotalEntropy - PartialGainSum)/(-1*PartialIntrinsicValueSum)),
+        _,
+        InfoGain is 0),
+    */
+    InfoGain is (TotalEntropy - PartialGainSum),
     log_v('info_gain', ['Info gain for ', Attribute, ' is ', InfoGain])
     .
 
@@ -423,12 +443,39 @@ partial_info_gain(Set, Attribute, Range, PartialInfoGain) :-
     % get the size of the subset
     length(SubsetList, SubsetLength),
     % get the size of the original set
-    length(CleanSet, SetLength),
+    length(Set, SetLength),
     (SetLength = 0 -> PartialInfoGain is 0;
     PartialInfoGain is (SubsetEntropy * SubsetLength / SetLength))
     %,log_v('par_info_gain', [
     %    'Partial info gain for ', Attribute, ' with ', Range, ' is ', PartialInfoGain])
     .
+
+/**
+ * TODO
+partial_intrinsic_value(Set, Attribute, Range, PartialIntrinsicValue) :-
+    clean_set(Set, Attribute, CleanSet),
+    % get all the training examples that satisfy the given Range
+    Subset = (
+        member(ID, CleanSet),
+        train_example(_, ID, Attribute, Value),
+        is_in_range(Value, Range)
+    ),
+    % get a list of the IDs
+    findall(ID, Subset, SubsetList),
+    % get the size of the subset
+    length(SubsetList, SubsetLength),
+    % get the size of the original set
+    length(Set, SetLength),
+    catch(
+        (InnerValue is (SubsetLength / SetLength),
+        log2(InnerValue, InnerValueLog),
+        PartialIntrinsicValue is (InnerValue * InnerValueLog)),
+        _, PartialIntrinsicValue is 0
+    ),
+    log_v('par_ins_val', [
+        'Partial intrinsic value for ', Attribute, ' with ', Range, ' is ', PartialIntrinsicValue])
+    .
+ */
 
 /**
  * clean_set(+Set:list, +Attribute, -CleanSet) is det.
@@ -502,8 +549,9 @@ learn_please :-
 
     % delete all the rules
     retractall(is_positive(_, _)),
-    % delete all error rate calculations
-    retractall(test_error_rate(_, _)),
+    % delete all test informations
+    retractall(test_step(_, _)),
+    retractall(test_final(_, _)),
 
     % from 1 to 10 folds
     TotalFolds is 10,
@@ -511,34 +559,82 @@ learn_please :-
         % learn and test for each fold
         learn(TotalFolds, Step),
         test(Step),
+        print_le_tree,
     fail;
+
+    % purge the rules and build a collapsed set
+    purge_rules,
+
+    % test and assert the information data
+    test,
 
     % log time information
     timer_stop(learn, Elapsed),
+
+    % print and save the learning information
     print_report(Elapsed),
     save_log(Elapsed),
+
+    % save the rules to file
     save_rules
     .
 
 /**
- * test_error_rate(?Step, ?ErrorRate, ?FalsePosPerc, ?TrueNegPerc) is nondet.
+ * test_step(?Step, ?List) is nondet.
  * 
- * Holds information about the error rate calculated at a particular Step.
+ * Holds information about a particular step run.
  * 
  * @param Step              The step the error rate was calculated at.
- * @param ErrorRate         The total error rate.
- * @param FalsePosPerc      The percentage of false positives (wrong classification).
- * @param FalseNegPerc      The percentage of false negatives (missed classification).
+ * @param List              List containing the following:
+ *                            - n(AllNegatives)
+ *                            - p(AllPositives)
+ *                            - rules(GeneratedRules)
+ *                            - tn(TrueNegatives)
+ *                            - fn(FalseNegatives)
+ *                            - tp(TruePositives)
+ *                            - fp(FalsePositives)
+ *                            - true_pos_rate(TruePosRate)
+ *                            - true_neg_rate(TrueNegRate)
+ *                            - false_pos_rate(FalsePosRate)
+ *                            - false_neg_rate(FalseNegRate)
+ *                            - precision(Precision)
+ *                            - recall(Recall)
+ * 
  * @see test/1.
  */
-:- dynamic test_error_rate/4.
+:- dynamic test_step/2.
+
+/**
+ * test_final(?List) is nondet.
+ * 
+ * Holds information about the final testing process.
+ * 
+ * @param List              List containing the following:
+ *                            - n(AllNegatives)
+ *                            - p(AllPositives)
+ *                            - rules(GeneratedRules)
+ *                            - tn(TrueNegatives)
+ *                            - fn(FalseNegatives)
+ *                            - tp(TruePositives)
+ *                            - fp(FalsePositives)
+ *                            - true_pos_rate(TruePosRate)
+ *                            - true_neg_rate(TrueNegRate)
+ *                            - false_pos_rate(FalsePosRate)
+ *                            - false_neg_rate(FalseNegRate)
+ *                            - precision(Precision)
+ *                            - recall(Recall)
+ * 
+ * @see test_step/2.
+ * @see test/0.
+ */
+:- dynamic test_final/1.
 
 /**
  * is_positive(+ID, ?LearningStep) is nondet.
  * 
  * Check if a given example/4 ID is positive according to an optionally provided LearningStep.
  * 
- * @param ID                The ID of the fact/3 to check for.
+ * @param ID                The ID of the example/3 to check for.
  * @param LearningStep      The step number of the learning process.
  *
  * @see check_condition_list/3
@@ -551,7 +647,7 @@ learn_please :-
  * Semi-deterministic version of is_positive/2. If there is at least one is_positive/2 that
  * satisfies the current ID, succeed; otherwise, fail.
  * 
- * @param ID                The ID of the fact/3 to check for.
+ * @param ID                The ID of the example/3 to check for.
  * @param LearningStep      The step number of the learning process.
  *
  * @see is_positive/2
@@ -561,41 +657,206 @@ learn_please :-
     is_positive(ID, LearningStep), !.
 
 /**
+ * check_final_positive(+ID) is semidet.
+ * 
+ * Final one-time check for the complete and purged set of rules.
+ * If there is at least one final_positive/2 that satisfies the current ID, succeed;
+ * otherwise, fail.
+ * 
+ * @param ID                The ID of the example/3 to check for.
+ *
+ * @see is_positive/2
+ */
+ check_final_positive(ID) :-
+    example(_, ID, 'ID', ID),
+    final_positive(ID, _), !.
+
+/**
+ * final_positive(?ID, ?StepList) is nondet.
+ * 
+ * Check if a given example/4 ID is positive. If the example is positive, StepList will be 
+ * instantiated with a list of steps that generated the rule that classifies the example 
+ * as positive.
+ * 
+ * @param ID                The ID of the example/3 to check for.
+ * @param StepList          A list of step indexes where the satisfactory rule was asserted in.
+ *
+ * @see is_positive/2, check_condition_list/3
+ */
+:- dynamic final_positive/2.
+
+/**
+ * purge_rules is det.
+ * 
+ * From the list of rules generated at each step of the learning process, assert in the Prolog
+ * memory a set of the same rules, but without any duplicate.
+ * A duplicate rule is considered a is_positive/2 rule with the same body.
+ * Rules will be asserted as final_positive/2, where the first argument is the ID of the example 
+ * to check for and the second argument is the list of steps where the rule was found (duplicated).
+ */
+purge_rules :-
+    retractall(final_positive(_, _)),
+    % for each clause, collect  the body
+    bagof(Step, clause(is_positive(ID,Step),Body), Steps),
+        % assert a new rule, final_positive
+        assertz(final_positive(ID,Steps) :- Body),
+    fail;
+    aggregate_all(count, clause(final_positive(_,_), _), Rules),
+    log_d('purge_rules', ['Purging complete, total number of rules: ', Rules]),
+    true.
+
+/**
  * test(+Step) is det.
  *
- * Test all test_positive/3 and test_negative/3 and calculates an error rate as wrong predictions
- * on the total number of predictions (single tests) executed.
- * The calculated error rate is asserted as test_error_rate/4.
+ * Test all test_positive/3 and test_negative/3 and calculates several useful information.
+ * The calculated information is asserted as test_step/2.
+ * In the end, it prints a report of the run.
  *
  * @param Step              The learning step, defines the particular rules to test against.
- * @see test_error_rate/4
+ * @see test_step/2
  */
 test(Step) :-
-    % false positives are negative examples classified as positives
-    aggregate_all(count, (test_negative(ID,'ID',ID), check_positive(ID, Step)), FalsePositives),
-    % false negatives are positive examples not classified
-    aggregate_all(count, (test_positive(ID,'ID',ID), not(check_positive(ID, Step))), FalseNegatives),
-    % get all test examples
-    test_examples(TestExamples), length(TestExamples, Tests),
-    (
-        Tests = 0 -> ErrorRate is 0; ErrorRate is ((FalsePositives+FalseNegatives)/Tests)
-    ),
+    % TN are negative examples not classified
+    aggregate_all(count,(test_negative(ID,'ID',ID), not(check_positive(ID, Step))), TrueNegatives),
+    % FN are positive examples not classified
+    aggregate_all(count,(test_positive(ID,'ID',ID), not(check_positive(ID, Step))), FalseNegatives),
+    % TP are positive examples classified as positives
+    aggregate_all(count,(test_positive(ID,'ID',ID), check_positive(ID, Step)), TruePositives),
+    % FP are negative examples classified as positives
+    aggregate_all(count,(test_negative(ID,'ID',ID), check_positive(ID, Step)), FalsePositives),
+
+    % get all negatives
+    aggregate_all(count,test_negative(ID,'ID',ID), AllNegatives),
+    % get all positives
+    aggregate_all(count,test_positive(ID,'ID',ID), AllPositives),
+
+    % calculate the true positive rate (positives classified / positives)
+    (AllPositives = 0 -> TruePosRate is 1; 
+        TruePosRate is (TruePositives/AllPositives)),
+    % calculate the true negative rate (negatives classified / negatives)
+    (AllNegatives = 0 -> TrueNegRate is 1; 
+        TrueNegRate is (TrueNegatives/AllNegatives)),
     % calculate the false positive rate (negatives classified as positives / negatives)
-    aggregate_all(count, test_negative(ID,'ID',ID), AllNegatives),
-    (
-        AllNegatives = 0 -> FalsePosRate is 0; FalsePosRate is (FalsePositives/AllNegatives)
-    ),
+    (AllNegatives = 0 -> FalsePosRate is 0; 
+        FalsePosRate is (FalsePositives/AllNegatives)),
     % calculate the false negative rate (positives not classified / positives)
-    aggregate_all(count, test_positive(ID,'ID',ID), AllPositives),
-    (
-        AllPositives = 0 -> FalseNegRate is 0; FalseNegRate is (FalseNegatives/AllPositives)
-    ),
-    assertz(test_error_rate(Step, ErrorRate, FalsePosRate, FalseNegRate)),
-    log_d('test', ['Step ', Step, ' generated a ', FalsePosRate, ' false positive rate.']),
-    log_d('test', ['Step ', Step, ' generated a ', FalseNegRate, ' false negative rate.']),
-    aggregate_all(count, clause(is_positive(_, Step), _), GeneratedRules),
-    log_i('test', ['Rules generated at step ', Step, ' = ', GeneratedRules, '.']),
-    log_i('test', ['Error Rate at step ', Step, ' = ', ErrorRate, '.'])
+    (AllPositives = 0 -> FalseNegRate is 0; 
+        FalseNegRate is (FalseNegatives/AllPositives)),
+
+    % calculate the recall, rate of real positive examples recalled (recall = tp/(tp+fn))
+    (TestRecall is (TruePositives + FalseNegatives), TestRecall = 0 -> Recall is 0; 
+        Recall is (TruePositives/(TruePositives + FalseNegatives))),
+    % calculate the precision, rate of real positive examples among all positives (pr = tp/(tp+fp))
+    (TestPrecision is (TruePositives + FalsePositives), TestPrecision = 0 -> Precision is 0; 
+        Precision is (TruePositives/(TruePositives + FalsePositives))),
+
+    % calculate the F-measure
+    (TestFMeasure is (Precision+Recall), TestFMeasure = 0 -> FMeasure is 0; 
+        FMeasure is (2*Precision*Recall/(Precision+Recall))),
+
+    % count the generated rules
+    aggregate_all(count,clause(is_positive(_, Step), _), GeneratedRules),
+
+    % save the new testing information
+    assertz(test_step(Step, [
+        n(AllNegatives),
+        p(AllPositives),
+        rules(GeneratedRules),
+        tp_rate(TruePosRate),
+        tn_rate(TrueNegRate),
+        fp_rate(FalsePosRate),
+        fn_rate(FalseNegRate),
+        tn(TrueNegatives),
+        fn(FalseNegatives), 
+        tp(TruePositives),
+        fp(FalsePositives),
+        precision(Precision),
+        recall(Recall),
+        f_measure(FMeasure)
+    ])),
+
+    log_i('test', ['STEP:          ', Step]),
+    log_i('test', ['  - TP:        ', TruePositives]),
+    log_i('test', ['  - TN:        ', TrueNegatives]),
+    log_i('test', ['  - FN:        ', FalseNegatives]),
+    log_i('test', ['  - FP:        ', FalsePositives]),
+    log_i('test', ['  - TP Rate:   ', TruePosRate]),
+    log_i('test', ['  - TN Rate:   ', TrueNegRate]),
+    log_i('test', ['  - FP Rate:   ', TruePosRate]),
+    log_i('test', ['  - FN Rate:   ', FalseNegRate]),
+    log_i('test', ['  - Precision: ', Precision]),
+    log_i('test', ['  - Recall:    ', Recall]),
+    log_i('test', ['  - F-Measure: ', FMeasure]),
+    log_i('test', ['  - RULES:     ', GeneratedRules])
+    .
+/**
+ * test is det.
+ *
+ * Test all positive/3 and negative/3 and calculates several useful information.
+ * The calculated information is asserted as test_final/1.
+ *
+ * @see test_final/1
+ */
+test :-
+    % TN are negative examples not classified
+    aggregate_all(count, (negative(ID,'ID',ID), not(check_final_positive(ID))), TrueNegatives),
+    % FN are positive examples not classified
+    aggregate_all(count, (positive(ID,'ID',ID), not(check_final_positive(ID))), FalseNegatives),
+    % TP are positive examples classified as positives
+    aggregate_all(count, (positive(ID,'ID',ID), check_final_positive(ID)), TruePositives),
+    % FP are negative examples classified as positives
+    aggregate_all(count, (negative(ID,'ID',ID), check_final_positive(ID)), FalsePositives),
+
+    % get all negatives
+    aggregate_all(count, negative(ID,'ID',ID), AllNegatives),
+    % get all positives
+    aggregate_all(count, positive(ID,'ID',ID), AllPositives),
+
+    % calculate the true positive rate (positives classified / positives)
+    (AllPositives = 0 -> TruePosRate is 1; 
+        TruePosRate is (TruePositives/AllPositives)),
+    % calculate the true negative rate (negatives classified / negatives)
+    (AllNegatives = 0 -> TrueNegRate is 1; 
+        TrueNegRate is (TrueNegatives/AllNegatives)),
+    % calculate the false positive rate (negatives classified as positives / negatives)
+    (AllNegatives = 0 -> FalsePosRate is 0; 
+        FalsePosRate is (FalsePositives/AllNegatives)),
+    % calculate the false negative rate (positives not classified / positives)
+    (AllPositives = 0 -> FalseNegRate is 0; 
+        FalseNegRate is (FalseNegatives/AllPositives)),
+
+    % calculate the recall, rate of real positive examples recalled (recall = tp/(tp+fn))
+    (TestRecall is (TruePositives + FalseNegatives), TestRecall = 0 -> Recall is 0; 
+        Recall is (TruePositives/(TruePositives + FalseNegatives))),
+    % calculate the precision, rate of real positive examples among all positives (pr = tp/(tp+fp))
+    (TestPrecision is (TruePositives + FalsePositives), TestPrecision = 0 -> Precision is 0; 
+        Precision is (TruePositives/(TruePositives + FalsePositives))),
+
+    % calculate the F-measure
+    (TestFMeasure is (Precision+Recall), TestFMeasure = 0 -> FMeasure is 0; 
+        FMeasure is (2*Precision*Recall/(Precision+Recall))),
+
+    % count the generated rules
+    aggregate_all(count, clause(final_positive(_, _), _), GeneratedRules),
+
+    % save the new testing information
+    retractall(test_final(_)),
+    assertz(test_final([
+        n(AllNegatives),
+        p(AllPositives),
+        rules(GeneratedRules),
+        tp_rate(TruePosRate),
+        tn_rate(TrueNegRate),
+        fp_rate(FalsePosRate),
+        fn_rate(FalseNegRate),
+        tn(TrueNegatives),
+        fn(FalseNegatives), 
+        tp(TruePositives),
+        fp(FalsePositives),
+        precision(Precision),
+        recall(Recall),
+        f_measure(FMeasure)
+    ]))
     .
 
 /**
@@ -619,7 +880,7 @@ learn(TotalFolds, Step) :-
     complete_set(Examples),
     % create the root node
     log_d('learn', ['Create root node for step', Step, '.']),
-    RootNode = node('root', root, root, root),
+    RootNode = node('root', root, _Root, root),
     assertz(RootNode),
     % bootstrap the algorithm with the root node
     log_i('learn', ['Bootstrapping C4.5 for step ', Step, '...']),
@@ -640,25 +901,32 @@ learn(TotalFolds, Step) :-
 
  c45(Node, Examples, Attributes) :- 
     Node = node(NodeName, _, Attribute, _),
-    log_d('c45', ['Executing C4.5 for node ', NodeName, '.']),
-    % STEP 1: check if every training example is in the same class
-    % find all the different target values in the current subset, after cleaning it from null values
+    log_v('c45', ['Executing C4.5 for node ', NodeName, '.']),
+
     target_class(TargetAttr),
+
+    % get all the current target values
     findall(Value,  (
         member(ID, Examples),
-        train_example(_, ID, Attribute, NotNullValue), NotNullValue \= '$null$', 
+        train_example(_, ID, Attribute, NotNullValue),
+        NotNullValue \= '$null$', 
         train_example(_, ID, TargetAttr, Value)), 
     TargetValues),
+
+    % STEP 1: check if every training example is in the same class
+    % find all the different target values in the current subset, after cleaning it from null values
+    log_v('c45', ['Current examples are : ', Examples]),
     % if all current examples are in one class only (p or n) the node has a label (yay!)
     % TODO: check the percentage and apply a threshold
-    length(TargetValues, DifferentValues),
+    setof(TheID, member(TheID, TargetValues), DifferentTargetsList),
+    log_v('c45-test', ['Non null different training targets left: ', DifferentTargetsList]),
+    length(DifferentTargetsList, DifferentValues),
     (
         DifferentValues = 1 ->
         TargetValues = [SingleValue|_],
         log_d('c45', ['All examples are in the same class: ', SingleValue, '.']),
         assertz(node_label(Node, SingleValue)),
-        fail
-        ;
+        fail;
         true
     ),
 
@@ -670,8 +938,7 @@ learn(TotalFolds, Step) :-
         log_d('c45', ['There are no more attributes to analyze.']),
         list_most_common(TargetValues, MostCommonValue, _),
         assertz(node_label(Node, MostCommonValue)),
-        fail
-        ;
+        fail;
         true
     ),
 
@@ -707,7 +974,6 @@ learn(TotalFolds, Step) :-
                 list_most_common(TargetValues, MostCommonValue, _),
                 assertz(node_label(ChildNode, MostCommonValue))
                 ;
-                log_d('c45', ['Recursively calling C4.5 on ', ChildNodeName, '.']),
                 c45(ChildNode, NewExamples, RemainingAttributes)
             ),
         % loop until all ranges are analyzed and nodes are created
@@ -719,10 +985,10 @@ c45(_,_,_) :- true.
 /**
  * print_le_tree is semidet.
  *
- * Print the learnt tree, if there is a `node('root', root, root, root)`.
+ * Print the learnt tree, if there is a `node('root', root, Root, root)`.
  */
 print_le_tree :-
-    RootNode = node('root', root, root, root),
+    RootNode = node('root', root, _Root, root),
     print_le_branch(RootNode, 0).
 
 /**
@@ -839,7 +1105,7 @@ gen_rule(Node, Step) :-
  * @param List              The list of conditions to return.
  */
 get_rule_list(Node, PrevList, List) :-
-    Node = node(root, root, root, root),
+    Node = node(root, root, _Root, root),
     List = PrevList, !
     ;
     Node = node(_, Parent, Attribute, Range),
@@ -849,7 +1115,31 @@ get_rule_list(Node, PrevList, List) :-
     .
 
 /**
- * check_condition_list(+ID, +List) is semidet.
+ * ensure_not_null_conditions(+ID, +List:list) is semidet.
+ * 
+ * Succeed if:
+ *   - the List is empty
+ *   - there is at least one condition Attribute that example/4 with the given ID has not null
+ * Otherwise, it fails.
+ *
+ * @param ID                The ID of the example/4 to check.
+ * @param List              The list of condition/2 to loop through.
+ */
+% for empty list, always succeed
+ensure_not_null_conditions(_, []).
+% if here, the list has 1 element only
+ensure_not_null_conditions(ID, [condition(Attribute, _)]) :-
+    % if the Attribute is found, the value must not be null
+    example(_, ID, Attribute, Value), !,
+    Value \= '$null$', !.
+% if here, Tail contains at least 1 element
+ensure_not_null_conditions(ID, [condition(Attribute, _) | Tail]) :-
+    ensure_not_null_conditions(ID, [condition(Attribute, _)]), !
+    ;
+    ensure_not_null_conditions(ID, Tail), !.
+
+/**
+ * check_condition_list(+ID, +List:list) is semidet.
  * 
  * Check if a given example with an ID matches all the conditions in the input list.
  * 
@@ -858,7 +1148,8 @@ get_rule_list(Node, PrevList, List) :-
  */
 check_condition_list(ID, List) :-
     % make sure the example with the given ID exists
-    example(_, ID, 'ID', ID),
+    example(_, ID, 'ID', ID), !,
+    ensure_not_null_conditions(ID, List),
     forall(
         member(Condition, List),
         (
@@ -870,19 +1161,12 @@ check_condition_list(ID, List) :-
             (Value \= '$null$' -> 
                 is_in_range(Value, Range),
                 log_v('check', [
-                    'Test OK: ID ', ID, ', Attribute ', Attribute, 
-                    ', value ', Value, ', ', Range, '.']
-                ),
-                % remember that the example matched at least once
-                MatchedOnce = true;
-                % if value is null, assume it's ok
+                    'Test OK: ID ', ID, ', Attribute ', Attribute, ', value ', Value, ', ', Range, '.']
+                );
                 true
             )
         )
-    ),
-    % only return true if the condition list matched at least once
-    % (assume negative the examples that have all null values for the condition list)
-    MatchedOnce = true
+    )
     .
 
 /**
@@ -910,7 +1194,7 @@ print_report(Elapsed) :-
     log_i('report', ['Learning algorithm finished in ', Time, '.']),
     log_i('report', ['Symptom: ', PositiveID]),
 
-    aggregate_all(count, test_error_rate(_, _, _, _), Runs),
+    aggregate_all(count, test_step(_,_), Runs),
 
     aggregate_all(count, example(positive, ID, 'ID', ID), PositiveCount),
     aggregate_all(count, example(negative, ID, 'ID', ID), NegativeCount),
@@ -922,30 +1206,80 @@ print_report(Elapsed) :-
     log_i('report', 'Runs recap:'),
     forall(between(1, Runs, Run), 
         (
-        aggregate_all(count, clause(is_positive(_, Run), _), GeneratedRules),
-        test_error_rate(Run, ErrorRate, FalsePosRate, FalseNegRate),
+        test_step(Run, RunData),
+        member(tp_rate(TruePosRate), RunData),
+        member(fp_rate(FalsePosRate), RunData),
+        member(precision(Precision), RunData),
+        member(recall(Recall), RunData),
+        member(f_measure(FMeasure), RunData),
+        member(rules(GeneratedRules), RunData),
         % print results to screen
-        log_i('report', 
-            ['  - Run ', Run, ' | Rules : ', GeneratedRules, ' | Error Rate : ', ErrorRate, 
-            ' | False Pos. Rate : ', FalsePosRate, ' | False Neg. Rate : ', FalseNegRate])
+        log_i('report', [
+            '  - Run ', Run, 
+            ' | Rules : ', GeneratedRules,
+            ' | TP Rate : ', TruePosRate, 
+            ' | FP Rate : ', FalsePosRate, 
+            ' | Precision : ', Precision, 
+            ' | Recall : ', Recall, 
+            ' | F-Measure : ', FMeasure
+            ])
         )
     ),
 
-    aggregate_all(sum(SingleError), test_error_rate(_, SingleError, _, _), ErrorSum),
-    aggregate_all(sum(FalsePosRate), test_error_rate(_, _, FalsePosRate, _), FalsePosSum),
-    aggregate_all(sum(FalseNegRate), test_error_rate(_, _, _, FalseNegRate), FalseNegSum),
-    aggregate_all(count, test_error_rate(_, _, _, _), Runs),
-    TotalError is ErrorSum/Runs,
-    TotalFalsePosRate is FalsePosSum/Runs,
-    TotalFalseNegRate is FalseNegSum/Runs,
-    aggregate_all(count, clause(is_positive(_, _), _), TotalRules),
-    log_i('report', ['TOTAL RULES: ', TotalRules]),
-    log_i('report', ['TOTAL FALSE POS RATE: ', TotalFalsePosRate]),
-    log_i('report', ['TOTAL FALSE NEG RATE: ', TotalFalseNegRate]),
-    log_i('report', ['TOTAL ERROR: ', TotalError]),
+    aggregate_all(sum(TruePosRate), (test_step(_, Data), member(tp_rate(TruePosRate), Data)),
+        TruePosRateSum),
+    aggregate_all(sum(FalsePosRate), (test_step(_, Data), member(fp_rate(FalsePosRate), Data)), 
+        FalsePosRateSum),
+    aggregate_all(sum(Precision), (test_step(_, Data), member(precision(Precision), Data)), 
+        PrecisionSum),
+    aggregate_all(sum(Recall), (test_step(_, Data), member(recall(Recall), Data)), 
+        RecallSum),
+    aggregate_all(sum(FMeasure), (test_step(_, Data), member(f_measure(FMeasure), Data)), 
+        FMeasureSum),
 
-    log_d('report', 'Report printed.')
-    .
+    AverageTruePosRate is TruePosRateSum/Runs,
+    AverageFalsePosRate is FalsePosRateSum/Runs,
+    AveragePrecision is PrecisionSum/Runs,
+    AverageRecall is RecallSum/Runs,
+    AverageFMeasure is FMeasureSum/Runs,
+
+    log_i('report', ['AVERAGES:']),
+    log_i('report', ['  - TP Rate:   ', AverageTruePosRate]),
+    log_i('report', ['  - FP Rate:   ', AverageFalsePosRate]),
+    log_i('report', ['  - Precision: ', AveragePrecision]),
+    log_i('report', ['  - Recall:    ', AverageRecall]),
+    log_i('report', ['  - F-Measure: ', AverageFMeasure]),
+
+    % save the new testing information
+    test_final(Data),
+    member(tp(TruePositives), Data),
+    member(tn(TrueNegatives), Data),
+    member(fp(FalsePositives), Data),
+    member(fn(FalseNegatives), Data),
+    member(tp_rate(TruePosRate), Data),
+    member(tn_rate(TrueNegRate), Data),
+    member(fp_rate(FalsePosRate), Data),
+    member(fn_rate(FalseNegRate), Data),
+    member(precision(Precision), Data),
+    member(recall(Recall), Data),
+    member(f_measure(FMeasure), Data),
+    member(rules(GeneratedRules), Data),
+
+    log_i('test', ['FINAL:         ']),
+    log_i('test', ['  - TP:        ', TruePositives]),
+    log_i('test', ['  - TN:        ', TrueNegatives]),
+    log_i('test', ['  - FP:        ', FalsePositives]),
+    log_i('test', ['  - FN:        ', FalseNegatives]),
+    log_i('test', ['  - TP Rate:   ', TruePosRate]),
+    log_i('test', ['  - TN Rate:   ', TrueNegRate]),
+    log_i('test', ['  - FP Rate:   ', FalsePosRate]),
+    log_i('test', ['  - FN Rate:   ', FalseNegRate]),
+    log_i('test', ['  - Precision: ', Precision]),
+    log_i('test', ['  - Recall:    ', Recall]),
+    log_i('test', ['  - F-Measure: ', FMeasure]),
+    log_i('test', ['  - Rules:     ', GeneratedRules]),
+
+    log_d('report', 'Report printed.').
 
 /**
  * save_log(+Elapsed) is det.
@@ -957,17 +1291,21 @@ print_report(Elapsed) :-
  *   - the symptom ID (always the same for each file)
  *   - the run index
  *   - the number of generated rules
- *   - the error rate
+ *   - the true positive rate
  *   - the false positive rate
- *   - the false negative rate
+ *   - the precision
+ *   - the recall
+ *   - the F-Measure
  * 
  * The last line contains:
  *   - the time of total execution (in seconds)
  *   - the number of positive examples (including both training and testing examples)
- *   - the total number of generated rules
- *   - the total error rate
- *   - the total false positive rate
- *   - the total false negative rate
+ *   - the final number of generated rules
+ *   - the final true positive rate
+ *   - the final false positive rate
+ *   - the final precision
+ *   - the final recall
+ *   - the final F-Measure
  * 
  * @param Elapsed           Total time of execution, in seconds.
  */
@@ -975,50 +1313,62 @@ save_log(Elapsed) :-
     % get the positive ID
     positive_target(PositiveID), 
     % get the number of total runs
-    aggregate_all(count, test_error_rate(_, _, _, _), Runs),
+    aggregate_all(count, test_step(_, _), Runs),
+
     % open a csv file to log the results
     atom_string(PositiveID, SymptomString),
     concat_string_list(['runs/log_', SymptomString, '.csv'], PathCSV),
     open(PathCSV, write, Log),
 
-    write(Log, '"Symptom";"Run";"Rules";"Error Rate";"False Pos Rate";"False Neg Rate";\n'),
+    write(Log, '"Symptom";"Run";"Rules";"TP Rate";"FP Rate";"Precision";"Recall";"F-Measure";\n'),
 
     % for every run
     forall(between(1, Runs, Run), (
-        % count the rules 
-        aggregate_all(count,  clause(is_positive(_, Run), _), GeneratedRules),
-        % get the error rate
-        test_error_rate(Run, ErrorRate, FalsePosRate, FalseNegRate),
+        % get the run information
+        test_step(Run, RunData),
+        member(rules(GeneratedRules), RunData),
+        member(tp_rate(TruePosRate), RunData),
+        member(fp_rate(FalsePosRate), RunData),
+        member(precision(Precision), RunData),
+        member(recall(Recall), RunData),
+        member(f_measure(FMeasure), RunData),
         % log the run to the csv
         write(Log, SymptomString), write(Log, ';'),
         write(Log, Run), write(Log, ';'),
         write(Log, GeneratedRules), write(Log, ';'),
-        write(Log, ErrorRate), write(Log, ';'),
+        write(Log, TruePosRate), write(Log, ';'),
         write(Log, FalsePosRate), write(Log, ';'),
-        write(Log, FalseNegRate), write(Log, ';\n')
+        write(Log, Precision), write(Log, ';'),
+        write(Log, Recall), write(Log, ';'),
+        write(Log, FMeasure), write(Log, ';'),
+        write(Log, '\n')
     )),
-
-    aggregate_all(sum(SingleError), test_error_rate(_, SingleError, _, _), ErrorSum),
-    aggregate_all(sum(FalsePosRate), test_error_rate(_, _, FalsePosRate, _), FalsePosSum),
-    aggregate_all(sum(FalseNegRate), test_error_rate(_, _, _, FalseNegRate), FalseNegSum),
-    aggregate_all(count, test_error_rate(_, _, _, _), Runs),
-    TotalError is ErrorSum/Runs,
-    TotalFalsePosRate is FalsePosSum/Runs,
-    TotalFalseNegRate is FalseNegSum/Runs,
-    aggregate_all(count, clause(is_positive(_, _), _), TotalRules),
-    aggregate_all(count, positive(ID,'ID',ID), TotalPositives),
 
     % separator
     write(Log, '"";"";"";"";\n'),
-    write(Log, '"Time (s)";"Positives";"Rules";"Total Error";"Total False Pos Rate";"Total False Neg Rate";\n'),
+    write(Log, 
+        '"Time (s)";"Positives";"Rules";"TP Rate";"FP Rate";"Precision";"Recall";"F-Measure";\n'),
+
+    % grab the data from test_final/1
+    test_final(Data),
+    member(p(FinalPositives), Data),
+    member(rules(FinalRules), Data),
+    member(tp_rate(FinalTruePosRate), Data),
+    member(fp_rate(FinalFalsePosRate), Data),
+    member(precision(FinalPrecision), Data),
+    member(recall(FinalRecall), Data),
+    member(f_measure(FinalFMeasure), Data),
 
     % log final data
     write(Log, Elapsed), write(Log, ';'),
-    write(Log, TotalPositives), write(Log, ';'),
-    write(Log, TotalRules), write(Log, ';'),
-    write(Log, TotalError), write(Log, ';'),
-    write(Log, TotalFalsePosRate), write(Log, ';'),
-    write(Log, TotalFalseNegRate), write(Log, ';'),
+    write(Log, FinalPositives), write(Log, ';'),
+    write(Log, FinalRules), write(Log, ';'),
+
+    write(Log, FinalTruePosRate), write(Log, ';'),
+    write(Log, FinalFalsePosRate), write(Log, ';'),
+    write(Log, FinalPrecision), write(Log, ';'),
+    write(Log, FinalRecall), write(Log, ';'),
+    write(Log, FinalFMeasure), write(Log, ';'),
 
     % close the csv
     write(Log, '\n'),
@@ -1041,7 +1391,7 @@ save_rules :-
     concat_string_list(['runs/rules_', SymptomString, '.pl'], PathPL),
     open(PathPL, write, RulesFile),
     % write the generated rules
-    with_output_to(RulesFile, listing(is_positive(_, _))),
+    with_output_to(RulesFile, listing(final_positive(_, _))),
     close(RulesFile),
 
     log_d('save_rules', 'Rules written to file.')

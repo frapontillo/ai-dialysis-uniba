@@ -3,6 +3,7 @@
 \usepackage[shortcuts]{extdash}
 \usepackage[utf8]{inputenc}
 \usepackage{bigfoot}
+\usepackage{amsmath}
 \pagenumbering{arabic}
 
 \begin{document}
@@ -425,7 +426,7 @@ Dopo aver generato le categorie, \'e possibile avviare il processo (iterativo e 
 Lo scopo di questa fase \'e di generare due tipi di regole:
 \begin{itemize}
 \item \verb|is_positive(ID, LearningStep| determina se, secondo le regole generate ad un certo passo \verb|LearningStep|, un esempio con un determinato \verb|ID| \'e ritenuto un positivo.
-\item \verb|test_error_rate(LearningStep, ErrorRate)| restituisce l'\textit{error rate} calcolato dal processo di test ad uno specifico passo di apprendimento.
+\item \verb|test_step(LearningStep, StepData)| restituisce diverse misure relative allo step specificato, fra cui ``true positive rate'', ``false positive rate'', F-Measure, ecc.
 \end{itemize}
 
 L'iterazione principale del processo di apprendimento \'e definita dal $k$\textit{-fold cross-validation}:
@@ -433,7 +434,7 @@ L'iterazione principale del processo di apprendimento \'e definita dal $k$\texti
 \item L'insieme degli esempi (positivi e negativi) viene diviso in $k$ sottoinsiemi. Per lo scopo del progetto, si \'e impostato un $k$ fisso a $10$.
 \item\label{apprendimento-k-fold} Ad ogni iterazione, un sottoinsieme viene messo da parte per la fase di test, mentre gli altri $9$ concorrono all'apprendimento vero e proprio.
 \item L'apprendimento viene avviato, generando regole di tipo \verb|is_positive/2|.
-\item Viene eseguito il test con l'insieme di esempi selezionato, generando regole di tipo \verb|test_error_rate/2|.
+\item Viene eseguito il test con l'insieme di esempi selezionato, generando regole di tipo \verb|test_step/2|.
 \item Si itera dal punto \ref{apprendimento-k-fold} fino ad esaurimento dei $k$ \textit{fold} creati.
 \end{enumerate}
 
@@ -524,7 +525,7 @@ L'entropia viene calcolata dalla regola \verb|entropy/2|, che utilizza i \verb|t
 \label{fig:prolog-best-attribute}
 \end{figure}
 
-Prima di ogni calcolo di entropia o di information gain, l'insieme degli esempi da analizzare $S$ per un certo attributo $A$ viene ripulito da tutti i dati che hanno un valore nullo in corrispondenza dell'attributo $A$.
+Si nota che la misura dell'\textit{information gain} equivale all'entropia quando il sottoinsieme selezionato dalla coppia attributo-range \'e nullo, o se tutti gli esempi appartengono a una delle due classi (positivo o negativo), cio\'e se il sottoinsieme selezionato ha minima entropia ($0$).
 
 \paragraph{Split sui range}
 Dopo aver calcolato l'\textit{information gain} per tutti gli attributi, si seleziona quello con la misura pi\'u elevata e si ottengono tutti i suoi \textit{range}.
@@ -550,12 +551,37 @@ Una volta appreso l'albero di decisione ad uno specifico passo $i$, il programma
 La regola principale che si occupa della generazione delle regole \'e \verb|gen_all_the_rulez/1|, che chiama ricorsivamente \verb|gen_rule/2| per ogni nodo foglia.
 
 \subsubsection{Test}
-Dopo la generazione delle regole al passo $i$, si esegue un processo di test, che asserisce in memoria un \textit{error rate} per il passo in analisi, corrispondente alla frazione di falsi positivi e falsi negativi sul numero totale di esempi di test:
-\[ Error\_Rate_i = \frac{False\_P_i + False\_N_i}{Test\_Examples_i} \]
+Dopo la generazione delle regole al passo $i$, si esegue un processo di test, che asserisce in memoria (nel predicato \verb|test_step/2|) diverse informazioni relative al passo in analisi.
+
+I predicati \verb|p/1| e \verb|n/1| esplicitano, banalmente, il numero di positivi e negativi analizzati al passo corrente. Tali valori sono utilizzati, insieme ad altri calcoli, per generare anche:
+\begin{itemize}
+\item \verb|tn(TrueNegatives)|, ovvero la quantit\'a di negativi non classificati (ovvero classificati come negativi, poich\'e il sistema genera regole per la sola classe positiva)
+\item \verb|fn(FalseNegatives)|, cio\'e i positivi erroneamente classificati come negativi
+\item \verb|tp(TruePositives)|, i positivi correttamente classificati
+\item \verb|fp(FalsePositives)|, cio\'e i negativi erroneamente classificati come positivi
+\item \verb|tp_rate(TruePosRate)|, la proporzione dei veri positivi su tutti i positivi
+\item \verb|tn_rate(TrueNegRate)|, la proporzione dei veri negativi su tutti i negativi
+\item \verb|fp_rate(FalsePosRate)|, la proporzione dei falsi positivi su tutti i negativi
+\item \verb|fn_rate(FalseNegRate)|, la proporzione dei falsi negativi su tutti i positivi
+\item \verb|precision(Precision)|
+\item \verb|recall(Recall)|
+\item \verb|f_measure(FMeasure)|
+\end{itemize}
+
+Inoltre, vengono calcolate anche \textit{precision} e \textit{recall}:
+\[
+\begin{cases}
+precision = \frac{tp}{tp+fp} \\
+recall = \frac{tp}{tp+fn}
+\end{cases}
+\]
+Tali valori vengono esposti, nella lista restituita da \verb|test_step/2|, come \verb|precision(Precision)| e \verb|recall(Recall)|.
+
+Infine, viene calcolata anche la $F_1\textnormal{-}Measure$, equivalente a:
+\[ F_1\textnormal{-}Measure = \frac{2*precision*recall}{precision+recall} \]
 
 \subsubsection{Terminazione dell'apprendimento}
-Una volta che tutti i $k$ cicli di apprendimento-test sono terminati, viene stampato un report (da \verb|print_report/0|, vedi figura \ref{fig:prolog-report}) che stampa l'\textit{error rate} calcolato per ogni esecuzione e, infine, l'\textit{error rate} totale, calcolato come:
-\[ Error\_Rate = \frac{\sum_{i=1}^k Error\_Rate_i}{k} \]
+Una volta che tutti i $k$ cicli di apprendimento-test sono terminati, viene stampato un report (da \verb|print_report/0|, vedi figura \ref{fig:prolog-report}) che stampa una ricapitolazione di tutte le informazioni asserite ad ogni esecuzione e, infine, la loro media.
 
 \begin{figure}[!htb]
 \centering

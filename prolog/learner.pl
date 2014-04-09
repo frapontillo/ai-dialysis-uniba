@@ -834,7 +834,7 @@ learn(TotalFolds, Step) :-
     % get a list of every training example
     complete_set(Examples),
     % create the root node
-    log_d('learn', ['Create root node for step', Step, '.']),
+    log_d('learn', ['Create root node for step ', Step, '.']),
     RootNode = node('root', root, _Root, root),
     assertz(RootNode),
     % bootstrap the algorithm with the root node

@@ -392,20 +392,64 @@ b. start the testing phase</li>
 </ol>
 
 </dd>
-<dt class="pubdef"><span style="float:right"></span><a name="test_error_rate/4"><b class="pred">test_error_rate</b><var class="arglist">(?Step, ?ErrorRate, ?FalsePosPerc, ?TrueNegPerc)</var></a> is <b class="det">nondet</b></dt><dd class="defbody">Holds information about the error rate calculated at a particular <var>Step</var>.
+<dt class="pubdef"><span style="float:right"></span><a name="test_step/2"><b class="pred">test_step</b><var class="arglist">(?Step, ?List)</var></a> is <b class="det">nondet</b></dt><dd class="defbody">Holds information about a particular step run.
 
 <dl class="tags">
 <dt class="tag">Arguments:</dt><dd>
 
 <table class="arglist">
 <tr><td><var>Step</var></td><td class="argdescr">- The step the error rate was calculated at.</td></tr>
-<tr><td><var>ErrorRate</var></td><td class="argdescr">- The total error rate.</td></tr>
-<tr><td><var>FalsePosPerc</var></td><td class="argdescr">- The percentage of false positives (wrong classification).</td></tr>
-<tr><td><var>FalseNegPerc</var></td><td class="argdescr">- The percentage of false negatives (missed classification).</td></tr>
+<tr><td><var>List</var></td><td class="argdescr">- <var>List</var> containing the following:
+<ul>
+<li><code>n(AllNegatives)</code></li>
+<li><code>p(AllPositives)</code></li>
+<li><code>rules(GeneratedRules)</code></li>
+<li><code>tn(TrueNegatives)</code></li>
+<li><code>fn(FalseNegatives)</code></li>
+<li><code>tp(TruePositives)</code></li>
+<li><code>fp(FalsePositives)</code></li>
+<li><code>true_pos_rate(TruePosRate)</code></li>
+<li><code>true_neg_rate(TrueNegRate)</code></li>
+<li><code>false_pos_rate(FalsePosRate)</code></li>
+<li><code>false_neg_rate(FalseNegRate)</code></li>
+<li><code>precision(Precision)</code></li>
+<li><code>recall(Recall)</code></li>
+</ul>
+</td></tr>
 </table>
 
 </dd>
 <dt class="keyword-see">See also</dt><dd class="keyword-see">- <a href="/doc_for?object=user:test/1">test/1</a>.</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="test_final/1"><b class="pred">test_final</b><var class="arglist">(?List)</var></a> is <b class="det">nondet</b></dt><dd class="defbody">Holds information about the final testing process.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>List</var></td><td class="argdescr">- <var>List</var> containing the following:
+<ul>
+<li><code>n(AllNegatives)</code></li>
+<li><code>p(AllPositives)</code></li>
+<li><code>rules(GeneratedRules)</code></li>
+<li><code>tn(TrueNegatives)</code></li>
+<li><code>fn(FalseNegatives)</code></li>
+<li><code>tp(TruePositives)</code></li>
+<li><code>fp(FalsePositives)</code></li>
+<li><code>true_pos_rate(TruePosRate)</code></li>
+<li><code>true_neg_rate(TrueNegRate)</code></li>
+<li><code>false_pos_rate(FalsePosRate)</code></li>
+<li><code>false_neg_rate(FalseNegRate)</code></li>
+<li><code>precision(Precision)</code></li>
+<li><code>recall(Recall)</code></li>
+</ul>
+</td></tr>
+</table>
+
+</dd>
+<dt class="keyword-see">See also</dt><dd class="keyword-see">- <a href="/doc_for?object=user:test_step/2">test_step/2</a>.</dd><dd class="keyword-see">- <a href="/doc_for?object=user:test/0">test/0</a>.</dd>
 </dl>
 
 </dd>
@@ -415,7 +459,7 @@ b. start the testing phase</li>
 <dt class="tag">Arguments:</dt><dd>
 
 <table class="arglist">
-<tr><td><var>ID</var></td><td class="argdescr">- The <var>ID</var> of the <a class="extmanual" href="http://www.swi-prolog.org/pldoc/man?predicate=fact/3">fact/3</a> to check for.</td></tr>
+<tr><td><var>ID</var></td><td class="argdescr">- The <var>ID</var> of the <a class="extmanual" href="http://www.swi-prolog.org/pldoc/man?predicate=example/3">example/3</a> to check for.</td></tr>
 <tr><td><var>LearningStep</var></td><td class="argdescr">- The step number of the learning process.</td></tr>
 </table>
 
@@ -431,7 +475,7 @@ satisfies the current <var>ID</var>, succeed; otherwise, fail.
 <dt class="tag">Arguments:</dt><dd>
 
 <table class="arglist">
-<tr><td><var>ID</var></td><td class="argdescr">- The <var>ID</var> of the <a class="extmanual" href="http://www.swi-prolog.org/pldoc/man?predicate=fact/3">fact/3</a> to check for.</td></tr>
+<tr><td><var>ID</var></td><td class="argdescr">- The <var>ID</var> of the <a class="extmanual" href="http://www.swi-prolog.org/pldoc/man?predicate=example/3">example/3</a> to check for.</td></tr>
 <tr><td><var>LearningStep</var></td><td class="argdescr">- The step number of the learning process.</td></tr>
 </table>
 
@@ -440,9 +484,47 @@ satisfies the current <var>ID</var>, succeed; otherwise, fail.
 </dl>
 
 </dd>
-<dt class="pubdef"><span style="float:right"></span><a name="test/1"><b class="pred">test</b><var class="arglist">(+Step)</var></a> is <b class="det">det</b></dt><dd class="defbody">Test all <a href="/doc_for?object=user:test_positive/3">test_positive/3</a> and <a href="/doc_for?object=user:test_negative/3">test_negative/3</a> and calculates an error rate as wrong predictions
-on the total number of predictions (single tests) executed.
-The calculated error rate is asserted as <a href="/doc_for?object=user:test_error_rate/4">test_error_rate/4</a>.
+<dt class="pubdef"><span style="float:right"></span><a name="check_final_positive/1"><b class="pred">check_final_positive</b><var class="arglist">(+ID)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Final one-time check for the complete and purged set of rules.
+If there is at least one <a href="/doc_for?object=user:final_positive/2">final_positive/2</a> that satisfies the current <var>ID</var>, succeed;
+otherwise, fail.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>ID</var></td><td class="argdescr">- The <var>ID</var> of the <a class="extmanual" href="http://www.swi-prolog.org/pldoc/man?predicate=example/3">example/3</a> to check for.</td></tr>
+</table>
+
+</dd>
+<dt class="keyword-see">See also</dt><dd class="keyword-see">- <a href="/doc_for?object=user:is_positive/2">is_positive/2</a></dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="final_positive/2"><b class="pred">final_positive</b><var class="arglist">(?ID, ?StepList)</var></a> is <b class="det">nondet</b></dt><dd class="defbody">Check if a given <a href="/doc_for?object=user:example/4">example/4</a> <var>ID</var> is positive. If the example is positive, <var>StepList</var> will be
+instantiated with a list of steps that generated the rule that classifies the example
+as positive.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>ID</var></td><td class="argdescr">- The <var>ID</var> of the <a class="extmanual" href="http://www.swi-prolog.org/pldoc/man?predicate=example/3">example/3</a> to check for.</td></tr>
+<tr><td><var>StepList</var></td><td class="argdescr">- A list of step indexes where the satisfactory rule was asserted in.</td></tr>
+</table>
+
+</dd>
+<dt class="keyword-see">See also</dt><dd class="keyword-see">- <a href="/doc_for?object=user:is_positive/2">is_positive/2</a>, <a class="extmanual" href="http://www.swi-prolog.org/pldoc/man?predicate=check_condition_list/3">check_condition_list/3</a></dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="purge_rules/0"><b class="pred">purge_rules</b></a> is <b class="det">det</b></dt><dd class="defbody">From the list of rules generated at each step of the learning process, assert in the Prolog
+memory a set of the same rules, but without any duplicate.
+A duplicate rule is considered a <a href="/doc_for?object=user:is_positive/2">is_positive/2</a> rule with the same body.
+Rules will be asserted as <a href="/doc_for?object=user:final_positive/2">final_positive/2</a>, where the first argument is the ID of the example
+to check for and the second argument is the list of steps where the rule was found (duplicated).</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="test/1"><b class="pred">test</b><var class="arglist">(+Step)</var></a> is <b class="det">det</b></dt><dd class="defbody">Test all <a href="/doc_for?object=user:test_positive/3">test_positive/3</a> and <a href="/doc_for?object=user:test_negative/3">test_negative/3</a> and calculates several useful information.
+The calculated information is asserted as <a href="/doc_for?object=user:test_step/2">test_step/2</a>.
+In the end, it prints a report of the run.
 
 <dl class="tags">
 <dt class="tag">Arguments:</dt><dd>
@@ -452,7 +534,15 @@ The calculated error rate is asserted as <a href="/doc_for?object=user:test_erro
 </table>
 
 </dd>
-<dt class="keyword-see">See also</dt><dd class="keyword-see">- <a href="/doc_for?object=user:test_error_rate/4">test_error_rate/4</a></dd>
+<dt class="keyword-see">See also</dt><dd class="keyword-see">- <a href="/doc_for?object=user:test_step/2">test_step/2</a></dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="test/0"><b class="pred">test</b></a> is <b class="det">det</b></dt><dd class="defbody">Test all <a href="/doc_for?object=user:positive/3">positive/3</a> and <a href="/doc_for?object=user:negative/3">negative/3</a> and calculates several useful information.
+The calculated information is asserted as <a href="/doc_for?object=user:test_final/1">test_final/1</a>.
+
+<dl class="tags">
+<dt class="keyword-see">See also</dt><dd class="keyword-see">- <a href="/doc_for?object=user:test_final/1">test_final/1</a></dd>
 </dl>
 
 </dd>
@@ -487,7 +577,7 @@ passed and the available attributes still left.
 </dl>
 
 </dd>
-<dt class="pubdef"><span style="float:right"></span><a name="print_le_tree/0"><b class="pred">print_le_tree</b></a> is <b class="det">semidet</b></dt><dd class="defbody">Print the learnt tree, if there is a <code>node('root', root, root, root)</code>.</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="print_le_tree/0"><b class="pred">print_le_tree</b></a> is <b class="det">semidet</b></dt><dd class="defbody">Print the learnt tree, if there is a <code>node('root', root, Root, root)</code>.</dd>
 <dt class="pubdef"><span style="float:right"></span><a name="print_le_branch/2"><b class="pred">print_le_branch</b><var class="arglist">(+Node, +NestLevel)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Print a given node with a nest level that decides how much left space
 the node representation must have.
 
@@ -570,7 +660,28 @@ the conditions to the given <var>PrevList</var> (can be empty).
 </dl>
 
 </dd>
-<dt class="pubdef"><span style="float:right"></span><a name="check_condition_list/2"><b class="pred">check_condition_list</b><var class="arglist">(+ID, +List)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Check if a given example with an <var>ID</var> matches all the conditions in the input list.
+<dt class="pubdef"><span style="float:right"></span><a name="ensure_not_null_conditions/2"><b class="pred">ensure_not_null_conditions</b><var class="arglist">(+ID, +List:list)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Succeed if:
+<ul>
+<li>the <var>List</var> is empty</li>
+<li>there is at least one condition Attribute that <a href="/doc_for?object=user:example/4">example/4</a> with the given <var>ID</var> has not null</li>
+</ul>
+
+<p>
+Otherwise, it fails.</p>
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>ID</var></td><td class="argdescr">- The <var>ID</var> of the <a href="/doc_for?object=user:example/4">example/4</a> to check.</td></tr>
+<tr><td><var>List</var></td><td class="argdescr">- The list of <a href="/doc_for?object=user:condition/2">condition/2</a> to loop through.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="check_condition_list/2"><b class="pred">check_condition_list</b><var class="arglist">(+ID, +List:list)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Check if a given example with an <var>ID</var> matches all the conditions in the input list.
 
 <dl class="tags">
 <dt class="tag">Arguments:</dt><dd>
@@ -620,9 +731,11 @@ The file will list, for each run:</p>
 <li>the symptom ID (always the same for each file)</li>
 <li>the run index</li>
 <li>the number of generated rules</li>
-<li>the error rate</li>
+<li>the true positive rate</li>
 <li>the false positive rate</li>
-<li>the false negative rate</li>
+<li>the precision</li>
+<li>the recall</li>
+<li>the F-Measure</li>
 </ul>
 
 <p>
@@ -630,10 +743,12 @@ The last line contains:</p>
 <ul>
 <li>the time of total execution (in seconds)</li>
 <li>the number of positive examples (including both training and testing examples)</li>
-<li>the total number of generated rules</li>
-<li>the total error rate</li>
-<li>the total false positive rate</li>
-<li>the total false negative rate</li>
+<li>the final number of generated rules</li>
+<li>the final true positive rate</li>
+<li>the final false positive rate</li>
+<li>the final precision</li>
+<li>the final recall</li>
+<li>the final F-Measure</li>
 </ul>
 
 <dl class="tags">

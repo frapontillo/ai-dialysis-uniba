@@ -357,7 +357,7 @@ Entrambi i parametri supportano i meta-valori \verb|default| e \verb|ask|: \verb
 \begin{figure}[!htb]
 \centering
 \includegraphics[width=250pt]{figures/prolog-start.png}
-\caption{Avvio del programma per il sintomo $8$}
+\caption{Avvio del programma per il sintomo $2$}
 \label{fig:prolog-start}
 \end{figure}
 
@@ -436,6 +436,7 @@ L'iterazione principale del processo di apprendimento \'e definita dal $k$\texti
 \item L'apprendimento viene avviato, generando regole di tipo \verb|is_positive/2|.
 \item Viene eseguito il test con l'insieme di esempi selezionato, generando regole di tipo \verb|test_step/2|.
 \item Si itera dal punto \ref{apprendimento-k-fold} fino ad esaurimento dei $k$ \textit{fold} creati.
+\item Tutte le regole create vengono unite in un unico insieme, rimuovendo i duplicati.
 \end{enumerate}
 
 L'apprendimento, per ogni fase, \'e avviato da \verb|learn(Step)|.
@@ -513,7 +514,7 @@ Se nessuna delle verifiche precedenti porta a risultati, il nodo corrente dovr\'
 
 \paragraph{Attributo migliore}
 \label{apprendimento-attributo-migliore}
-Per poter decidere quale, fra gli attributi rimanenti, costituisce il migliore ai fini del processo di apprendimento, si \'e deciso di utilizzare la misura dell'~\textit{information gain} (vedi \ref{information-gain}), che a sua volta si basa fortemente sull'entropia (vedi \ref{entropia}). Un esempio di esecuzione \'e visibile in figura \ref{fig:prolog-best-attribute}, dove viene scelto \verb|KTV| poich\'e possiede il massimo \textit{information gain} di $1$.
+Per poter decidere quale, fra gli attributi rimanenti, costituisce il migliore ai fini del processo di apprendimento, si \'e deciso di utilizzare la misura dell'~\textit{information gain} (vedi \ref{information-gain}), che a sua volta si basa fortemente sull'entropia (vedi \ref{entropia}). Un esempio di esecuzione \'e visibile in figura \ref{fig:prolog-best-attribute}, dove viene scelto \verb|PatientSex| poich\'e possiede il massimo \textit{information gain}.
 
 L'entropia viene calcolata dalla regola \verb|entropy/2|, che utilizza i \verb|train_example/4|; l'\textit{information gain}, invece, viene calcolato da \verb|info_gain/3|, che si basa sul calcolo dell'entropia e che somma, per ogni range dell'attributo $A$, il valore restituito da \verb|partial_info_gain/4|:
 \[\frac{|S_a|}{|S|} \times entropia(S_a)\]
@@ -525,7 +526,11 @@ L'entropia viene calcolata dalla regola \verb|entropy/2|, che utilizza i \verb|t
 \label{fig:prolog-best-attribute}
 \end{figure}
 
-Si nota che la misura dell'\textit{information gain} equivale all'entropia quando il sottoinsieme selezionato dalla coppia attributo-range \'e nullo, o se tutti gli esempi appartengono a una delle due classi (positivo o negativo), cio\'e se il sottoinsieme selezionato ha minima entropia ($0$).
+Si noti che la misura dell'\textit{information gain} equivale all'entropia quando tutti i sottoinsiemi selezionati dalle coppie attributo-range:
+\begin{itemize}
+\item sono vuoti, rendendo $|S_a|=0$
+\item alternativamente se tutti gli esempi appartengono a una sola delle due classi (positivo o negativo), cio\'e se il sottoinsieme selezionato ha minima entropia ($0$)
+\end{itemize}
 
 \paragraph{Split sui range}
 Dopo aver calcolato l'\textit{information gain} per tutti gli attributi, si seleziona quello con la misura pi\'u elevata e si ottengono tutti i suoi \textit{range}.
@@ -543,14 +548,23 @@ Si chiama, infine, la regola \verb|c45| con parametri:
 \end{itemize}
 
 \paragraph{Terminazione locale}
-Quando non ci sono pi\'u esempi da analizzare, o gli attributi su cui eseguire lo \textit{split} sono terminati, l'algoritmo termina, avendo prodotto un albero di decisione completo\footnote{\'E possibile avviare il programma, controllandone ogni passo, chiamando manualmente le clausole in \verb|main/2|; in questo modo si pu\'o avviare manualmente il processo di apprendimento e chiamare, alla fine del passo di generazione dell'albero, la regola \verb|print_le_tree/0|, che stampa a video una rappresentazione grafica e formattata dell'albero di decisione prodotto, in cui ogni elemento foglia (positivo) avr\'a un check verde.}.
+Quando non ci sono pi\'u esempi da analizzare, o gli attributi su cui eseguire lo \textit{split} sono terminati, l'algoritmo termina, avendo prodotto un albero di decisione completo.
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=250pt]{figures/prolog-le-tree.png}
+\caption{Stampa dell'albero generato al passo corrente}
+\label{fig:prolog-le-tree}
+\end{figure}
+
+Viene quindi stampata a video, richiamando la regola \verb|print_le_tree/0|, una rappresentazione grafica e formattata dell'albero di decisione prodotto, in cui ogni elemento foglia (positivo) avr\'a un check verde (vedi figura \ref{fig:prolog-le-tree}).
 
 \subsubsection{Generazione di regole}
-Una volta appreso l'albero di decisione ad uno specifico passo $i$, il programma genera le regole \verb|is_positive/2| andando a risalire l'albero di decisione, da ogni nodo foglia positivo \verb|node_label/2|, e aggiungendo in lista una condizione di appartenenza dell'attributo su cui il nodo \'e stato ``splittato'' al range del nodo stesso\footnote{Vengono generate regole per i soli nodi foglia positivi.}.
+Una volta appreso l'albero di decisione ad uno specifico passo $i$, il programma genera le regole \verb|is_positive/2| andando a risalire l'albero di decisione da ogni nodo foglia positivo \verb|node_label/2|, e aggiungendo in lista una condizione di appartenenza dell'attributo su cui il nodo \'e stato ``splittato'' al range del nodo stesso\footnote{Vengono generate regole per i soli nodi foglia positivi.}.
 
 La regola principale che si occupa della generazione delle regole \'e \verb|gen_all_the_rulez/1|, che chiama ricorsivamente \verb|gen_rule/2| per ogni nodo foglia.
 
-\subsubsection{Test}
+\subsubsection{Test del passo}\label{test-step}
 Dopo la generazione delle regole al passo $i$, si esegue un processo di test, che asserisce in memoria (nel predicato \verb|test_step/2|) diverse informazioni relative al passo in analisi.
 
 I predicati \verb|p/1| e \verb|n/1| esplicitano, banalmente, il numero di positivi e negativi analizzati al passo corrente. Tali valori sono utilizzati, insieme ad altri calcoli, per generare anche:
@@ -563,9 +577,6 @@ I predicati \verb|p/1| e \verb|n/1| esplicitano, banalmente, il numero di positi
 \item \verb|tn_rate(TrueNegRate)|, la proporzione dei veri negativi su tutti i negativi
 \item \verb|fp_rate(FalsePosRate)|, la proporzione dei falsi positivi su tutti i negativi
 \item \verb|fn_rate(FalseNegRate)|, la proporzione dei falsi negativi su tutti i positivi
-\item \verb|precision(Precision)|
-\item \verb|recall(Recall)|
-\item \verb|f_measure(FMeasure)|
 \end{itemize}
 
 Inoltre, vengono calcolate anche \textit{precision} e \textit{recall}:
@@ -580,89 +591,323 @@ Tali valori vengono esposti, nella lista restituita da \verb|test_step/2|, come 
 Infine, viene calcolata anche la $F_1\textnormal{-}Measure$, equivalente a:
 \[ F_1\textnormal{-}Measure = \frac{2*precision*recall}{precision+recall} \]
 
-\subsubsection{Terminazione dell'apprendimento}
-Una volta che tutti i $k$ cicli di apprendimento-test sono terminati, viene stampato un report (da \verb|print_report/0|, vedi figura \ref{fig:prolog-report}) che stampa una ricapitolazione di tutte le informazioni asserite ad ogni esecuzione e, infine, la loro media.
+\subsection{Terminazione dell'apprendimento}
+Una volta che tutti i $k$ cicli di apprendimento-test sono terminati, il programma termina l'esecuzione tramite alcuni passi finali.
 
-\begin{figure}[!htb]
+\subsubsection{Generazione regole}
+\label{unione-regole}
+Tutte le regole generate ai diversi passi vengono inglobate in un unico insieme di regole, e riasserite come \verb|final_positive(ID, ListaPassi|), dove \verb|ListaPassi| \'e la lista degli indici dei passi che hanno generato quella regola.
+
+Il metodo che si occupa di unire le regole in un insieme singolo \'e \verb|purge_rules/0| che, avvalendosi dei predicati \verb|clause/2| e \verb|bagof/3|, ricerca tutti i corpi delle regole \verb|is_positive/2| e li unisce, rimuovendo i duplicati.
+
+\subsubsection{Test finale}
+Una volta unite le regole, queste vengono applicate all'\textbf{intero insieme di esempi}, in modo da validare in maniera completa tutto il processo di apprendimento. Tale passo si rivela importante soprattutto nel caso in cui l'insieme degli esempi di partenza \'e molto piccolo.
+
+Il test asserisce, in memoria Prolog, il fatto \verb|test_final/1|, che contiene le stesse informazioni presenti in \verb|test_step/2| (cfr. \ref{test-step}).
+
+\subsubsection{Stampa report}
+Tutte le informazioni vengono quindi stampate a schermo da \verb|print_report/0| (vedi figura \ref{fig:prolog-report}) che, avvalendosi del sistema di logging implementato, mostra sul livello \verb|info|:
+\begin{itemize}
+\item una ricapitolazione di tutte le informazioni asserite ad ogni esecuzione
+\item la media delle singole esecuzioni\footnote{Come gi\'a detto, la media potrebbe essere poco indicativa per dataset molto piccoli.}
+\item l'esecuzione del test finale
+\end{itemize}
+
+\begin{figure}[!h]
 \centering
 \includegraphics[width=250pt]{figures/prolog-report.png}
 \caption{Stampa del report di fine processo}
 \label{fig:prolog-report}
 \end{figure}
 
+\subsubsection{Salvataggio log e regole}
+
 Al termine di ogni processo di apprendimento viene creato un file, \verb|runs/log_{ID}.csv|\footnote{Per la creazione dei file di log, \'e necessario che la cartella \verb|runs| esista gi\'a.} contenente, per ogni esecuzione: il sintomo, il passo, il numero di regole generate e l'error rate; infine, il file riporta il tempo di esecuzione in secondi, il numero totale di esempi positivi presenti, il numero totale di regole generate e l'errore medio complessivo.
 
-Inoltre, tutte le regole generate durante l'apprendimento vengono salvate nel file \verb|runs/rules_{ID}.pl|\footnote{Per la verifica delle regole \'e necessario che sia caricato in memoria Prolog anche la regola \verb|check_condition_list/2|, che serve ad eseguire il \textit{matching} dei range descritti dalla regole generate.}, ad esempio:
+Inoltre, tutte le regole unite alla fine dell'apprendimento (vedi \ref{unione-regole}) vengono salvate nel file \verb|runs/rules_{ID}.pl|\footnote{Per la verifica delle regole \'e necessario che sia caricato in memoria Prolog anche la regola \verb|check_condition_list/2|, che serve ad eseguire il \textit{matching} dei range descritti dalla regole generate.}, ad esempio:
 \begin{verbatim}
-is_positive(A, 10) :-
+final_positive(A, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) :-
 	check_condition_list(A,
-	     
-	     [ condition('ProgDuration',
-	          range(228.0, 231.0)),
-	       condition('DeltaWeight',
-	           range(0.0, 0.171028)),
-	       condition('RealWeightLoss',
-	           range(1.9050000000000002, 2.438)),
-	       condition('ProgWeightLoss',
-	           range(1.854, 2.342)),
-	       condition('QB',
-	           range(64.55200160000003,
-	                 72.62100180000003)),
-	       condition('KTV',
-	           range(1.39, 9.351)),
-	       condition('PatientRace',
-	           range(1, 1)),
-	       condition('PatientSex',
-	           range(1, 1)),
-	       condition('PatientAge',
-	           range(28108.1, 28617.199999999997))
-	     ]).
+			     
+			     [ condition('PatientAge',
+					 range(22231.000000000004,
+					       24032.200000000004))
+			     ]).
 \end{verbatim}
 
 \section{Risultati}
-Il programma \'e stato eseguito su $9$ sintomi target distinti e con un diverso numero di esempi positivi; la macchina utilizzata per il test ha le seguenti caratteristiche:
+Il programma \'e stato eseguito su $9$ sintomi target distinti e con un diverso numero di esempi positivi\footnote{La macchina utilizzata per il test ha le seguenti caratteristiche:
 \begin{itemize}
 \item CPU Intel i7-4500U @ 1.80GHz
 \item 8GB RAM DDR3
 \item Samsung SSD EVO 840 250GB (fino a 540 MB/s in lettura, fino a 520 MB/s in scrittura)
 \item Windows 8.1 x64
+\end{itemize}}.
+
+\subsection{Prime considerazioni}
+
+La tabella \ref{table:risultati-ktv-qb-test} mostra un breve riepilogo dei risultati dei test (finali) eseguiti sull'intero dataset, per i sintomi $2$, $3$, $4$ ,$5$, $6$, $7$, $8$, $9$, $10$. I valori mostrati in tabella\footnote{Tutti i report delle esecuzioni, con tutti i valori calcolati, anche parziali, si trovano nella cartelle \verb|runs/| e \verb|runs_ktv_qb/|.} sono:
+\begin{itemize}
+\item \verb|ID| del sintomo analizzato
+\item Tempo di esecuzione, in secondi, del processo di apprendimento e di test con la $10$\textit{-fold cross-validation}
+\item Numero di esempi positivi analizzati (i negativi sono sempre $100$)
+\item Numero di regole (differenti) generate
+\item \textit{True Positive Rate}, ovvero il rapporto dei veri positivi sul numero dei positivi
+\item Misura di \textit{precision}
+\item Misura di \textit{recall}
+\item La \textit{F-Measure}
 \end{itemize}
 
-I risultati sono stati sintetizzati nelle tabelle \ref{table:risultati-errori} e \ref{table:risultati-tempi} che mostrano, rispettivamente, l'\textit{error rate} medio (assieme al numero massimo di regole generate per ogni passo) e i tempi di esecuzione relativamente ai diversi sintomi analizzati.
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|c|c|c|c|c|} \hline
+& \textbf{T} &\textbf{+} &\textbf{\#Reg} &\textbf{TPR} &\textbf{Prec.} &\textbf{Rec.} &\textbf{F-M.}  \\ \hline \hline
+$2$	&$66$	&$19$	&$2$	&$0.053$	&$0.5$		&$0.053$	&$0.095$	\\ \hline
+$3$ &$33$	&$56$	&$2$	&$0.179$	&$0.909$	&$0.179$	&$0.299$	\\ \hline
+$4$ &$12$	&$7$	&$0$	&$0$		&$0$		&$0$		&$0$		\\ \hline
+$5$ &$50$	&$100$	&$10$	&$0.79$		&$0.94$		&$0.79$		&$0.859$	\\ \hline
+$6$ &$15$	&$34$	&$0$	&$0$		&$0$		&$0$		&$0$		\\ \hline
+$7$ &$11$	&$1$	&$1$	&$1$		&$1$		&$1$		&$1$		\\ \hline
+$8$ &$33$	&$100$	&$1$	&$0.01$		&$1$		&$0.01$		&$0.0198$	\\ \hline
+$9$	&$16$	&$5$	&$14$	&$1$		&$0.833$	&$1$		&$0.909$	\\ \hline
+$10$&$25$	&$59$	&$0$	&$0$		&$0$		&$0$		&$0$		\\
+\hline\end{tabular}
+\caption{Risultati dei test su $9$ sintomi, includendo fra gli attributi sia \texttt{KTV} che \texttt{QB}}
+\label{table:risultati-ktv-qb-test}
+\end{table}
+
+Durante l'esecuzione del programma sui vari sintomi, per\'o, si \'e notato che gli attributi \verb|KTV| e \verb|QB| condizionavano enormemente le regole prodotte, poich\'e venivano scelti molto spesso come attributo con maggior \textit{information gain}.
+
+\subsection{Eliminazione di KTV e QB}
+\label{risultati-no-ktv-qb}
+Si \'e quindi effettuata un'altra esecuzione del programma, sugli stessi sintomi, eliminando gli attributi \verb|KTV| e \verb|QB| dall'analisi. I risultati di tale esecuzione sono riportati in tabella \ref{table:risultati-test}, dalla quale risultano evidenti alcune situazioni.
+
+Innanzitutto si nota che con un \textbf{basso numero di esempi positivi} vengono generate numerose regole. Tuttavia, bisogna considerare che alcune regole potrebbero essere superflue, ovvero hanno senso di esistere esclusivamente all'interno di uno specifico insieme di \textit{fold} considerato ad un passo; potrebbe capitare, infatti, che esistano regole pi\'u generali che coprano almeno gli stessi esempi di una o pi\'u regola specifica, senza introdurre grosse variazioni di precisione\footnote{In tal senso, sarebbe utile estendere il programma con una funzionalit\'a di pulizia delle regole superflue.}.
+
+Avendo a disposizione un \textbf{elevato numero di esempi positivi} (si vedano i sintomi $3$, $5$ e $8$), invece, la proporzione $regole/positivi$ si mantiene intorno allo $0.5$. Anche in questo caso, comunque, si deve fare la stessa considerazione precedente, ovvero che alcune regole potrebbero essere eliminate senza grossi problemi.
+
+Altre regole, invece, potrebbero essere eliminate andando ad accorpare range ``adiacenti'' (immediatamente successivi) di attributi si trovano in alto nell'albero di decisione generato.
 
 \begin{table}[h]
 \centering
-\begin{tabular}{|c|c|c|c|} \hline
-\textbf{Sintomo} & \textbf{Positivi} & \textbf{Error Rate} & \textbf{Regole} \\ \hline \hline
-$2$ & 19 & 0.26 & 1 \\ \hline
-$3$ & 56 & 0.35 & 1 \\ \hline
-$4$ & 7 & 0.11 & 0 \\ \hline
-$5$ & 100 & 0.18 & 90 \\ \hline
-$6$ & 34 & 0.27 & 0 \\ \hline
-$7$ & 1 & 0.02 & 1 \\ \hline
-$8$ & 100 & 0.08 & 1 \\ \hline
-$9$ & 5 & 0.06 & 93 \\
+\begin{tabular}{|c|c|c|c|c|c|c|c|} \hline
+& \textbf{T} &\textbf{+} &\textbf{\#Reg} &\textbf{TPR} &\textbf{Prec.} &\textbf{Rec.} &\textbf{F-M.}  \\ \hline \hline
+$2$	&$90$	&$19$	&$22$	&$1$	&$0.826$	&$1$	&$0.905$	\\ \hline
+$3$ &$90$	&$56$	&$26$	&$1$	&$0.875$	&$1$	&$0.933$	\\ \hline
+$4$ &$25$	&$7$	&$23$	&$1$	&$0.636$	&$1$	&$0.778$	\\ \hline
+$5$ &$358$	&$100$	&$60$	&$1$	&$0.909$	&$1$	&$0.952$	\\ \hline
+$6$ &$220$	&$34$	&$49$	&$1$	&$0.829$	&$1$	&$0.907$	\\ \hline
+$7$ &$12$	&$1$	&$1$	&$1$	&$1$		&$1$	&$1$		\\ \hline
+$8$ &$132$	&$100$	&$44$	&$1$	&$0.971$	&$1$	&$0.985$	\\ \hline
+$9$	&$14$	&$5$	&$15$	&$1$	&$0.833$	&$1$	&$0.909$	\\ \hline
+$10$&$51$	&$59$	&$25$	&$1$	&$0.967$	&$1$	&$0.983$	\\
 \hline\end{tabular}
-\caption{\textit{Error rate} medio su tutti i passi}
-\label{table:risultati-errori}
+\caption{Risultati dei test su $9$ sintomi, escludendo dagli attributi sia \texttt{KTV} che \texttt{QB}}
+\label{table:risultati-test}
 \end{table}
+
+\subsection{Altri sistemi}
+Lo stesso dataset \'e stato sottoposto ad altri sistemi di apprendimento automatico, in modo tale da poter valutare ci\'o che \'e stato realizzato, paragonandolo ad algoritmi ben pi\'u collaudati.
+
+\subsubsection{Weka}
+Il tool di Data Mining utilizzato \'e Weka\cite{Weka:2014:Online}, che mette a disposizione numerosi algoritmi pre-implementati per la classificazione e generazione di alberi di decisione (e regole).\\
+Sono stati testati $3$ diversi algoritmi sul sintomo target $8$: J48, J48Graft e ConjunctiveRule. 
+
+Una volta importati i dati del dataset di esempio in Weka Explorer (si veda \ref{appendix-weka} per una guida all'importazione e trasformazione), si possono andare a selezionare gli algoritmi da applicare.
+
+\paragraph{J48}
+J48 è un'implementazione in Java di C4.5 per Weka che opera applicando, all'albero di decisione generato, tecniche di \textit{pruning} per semplificarne la descrizione.
+
+Lasciando i parametri di default in Weka, selezionando la $10$\textit{-fold cross-validation} come modalit\'a di test e avviando la classificazione per il sintomo target $8$, sono stati ottenuti i risultati mostrati in tabella \ref{table:risultati-j48}.
+
+L'output di esecuzione restituito\footnote{L'output non \'e completo; per l'output completo, vedere il file \verb|weka/|} \'e il seguente:
+
+\begin{verbatim}
+=== Classifier model (full training set) ===
+
+J48 pruned tree
+------------------
+
+PATIENT_AGE <= 29067: 8 (88.0/1.0)
+PATIENT_AGE > 29067
+|   PATIENT_AGE <= 30141
+|   |   DAP_START <= 79: 1 (93.0/1.0)
+|   |   DAP_START > 79
+|   |   |   DELTA_BLOOD_FLOW <= 12: 8 (5.0/1.0)
+|   |   |   DELTA_BLOOD_FLOW > 12: 1 (6.0)
+|   PATIENT_AGE > 30141: 8 (8.0)
+
+Number of Leaves  :   5
+
+Size of the tree :  9
+
+
+Time taken to build model: 0 seconds
+
+=== Stratified cross-validation ===
+=== Summary ===
+
+Correctly Classified Instances   189  94.5 %
+Incorrectly Classified Instances 11   5.5  %
+\end{verbatim}
 
 \begin{table}[h]
 \centering
-\begin{tabular}{|c|c|c|c|} \hline
-\textbf{Sintomo} & \textbf{Positivi} & \textbf{Time} \\ \hline \hline
-$2$ & 19 &  \\ \hline
-$3$ & 56 &  \\ \hline
-$4$ & 7 &  \\ \hline
-$5$ & 100 &  \\ \hline
-$6$ & 34 &  \\ \hline
-$7$ & 1 &  \\ \hline
-$8$ & 100 &  \\ \hline
-$9$ & 5 &  \\
+\begin{tabular}{|r|l|} \hline
+\multicolumn{2}{|c|}{\textbf{J48}} \\ \hline \hline 
+\textbf{T} & $0$ \\ \hline
+\textbf{+} & $100$ \\ \hline
+\textbf{\#Reg} & $3$\\ \hline
+\textbf{TPR} & $0.94$ \\ \hline
+\textbf{Precision} & $0.949$ \\ \hline
+\textbf{Recall} & $0.94$ \\  \hline
+\textbf{F-Measure} & $0.945$ \\
 \hline\end{tabular}
-\caption{Tempi di esecuzione per sintomo}
-\label{table:risultati-tempi}
+\caption{Risultato di esecuzione con J48}
+\label{table:risultati-j48}
 \end{table}
+
+A fronte di un tempo di esecuzione di gran lunga inferiore (praticamente nullo), precision e recall non differiscono di molto:
+\[
+\begin{cases}
+precision_m = 0.971 \\
+recall_m = 1 \\
+fmeasure_m = 0.985
+\end{cases}
+\mbox{vs}
+\begin{cases}
+precision_{j48} = 0.949 \\
+recall_{j48} = 0.94 \\
+fmeasure_{j48} = 0.945
+\end{cases}
+\]
+
+\paragraph{J48 Graft} J48 Graft \'e un algoritmo incluso in Weka che genera un albero di decisione con lo stesso algoritmo di J48, ma applicando la tecnica del \textit{grafting}\cite{Webb1999}, ovvero cercando di aggiungere, dove necessario, nuovi nodi all'albero prodotto per cercare di ridurre l'errore predittivo.
+
+Utilizzando lo stesso dataset precedente e la stessa modalit\'a di testing con $10$-fold cross-validation, l'output principale ottenuto \'e il seguente:
+\begin{verbatim}
+=== Classifier model (full training set) ===
+
+J48graft pruned tree
+------------------
+
+PATIENT_AGE <= 29067: 8 (88.0/1.0)
+PATIENT_AGE > 29067
+|   PATIENT_AGE <= 30141
+|   |   DAP_START <= 79: 1 (93.0/1.0)
+|   |   DAP_START > 79
+|   |   |   DELTA_BLOOD_FLOW <= 12: 8 (5.0/1.0)
+|   |   |   DELTA_BLOOD_FLOW > 12: 1 (6.0)
+|   PATIENT_AGE > 30141: 8 (8.0)
+
+Number of Leaves  :   5
+
+Size of the tree :  9
+
+
+Time taken to build model: 0.01 seconds
+
+=== Stratified cross-validation ===
+=== Summary ===
+
+Correctly Classified Instances   187  93.5 %
+Incorrectly Classified Instances 13   6.5  %
+\end{verbatim}
+
+L'albero di decisione generato, e le misurazioni complete mostrate in tabella \ref{table:risultati-j48-graft} non indicano alcuna differenza con J48.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|r|l|} \hline
+\multicolumn{2}{|c|}{\textbf{J48 Graft}} \\ \hline \hline 
+\textbf{T} & $0.01$ \\ \hline
+\textbf{+} & $100$ \\ \hline
+\textbf{\#Reg} & $3$\\ \hline
+\textbf{TPR} & $0.92$ \\ \hline
+\textbf{Precision} & $0.948$ \\ \hline
+\textbf{Recall} & $0.92$ \\  \hline
+\textbf{F-Measure} & $0.934$ \\
+\hline\end{tabular}
+\caption{Risultato di esecuzione con J48 Graft}
+\label{table:risultati-j48-graft}
+\end{table}
+
+\paragraph{Conjunctive Rule}
+Un output pi\'u simile a quello ottenuto dal programma realizzato \'e restituito dall'algoritmo Conjunctive Rule di Weka, che genera un insieme di regole composte da un antecedente (il corpo) di clausole in congiunzione ed un sequente (la testa) che corrisponde al valore classificato.\\
+Anche Conjunctive Rule calcola la misura dell'\textit{information gain} del corpo della regola generata ed esegue il \textit{pruning} in base al numero delle clausole presenti. Per la classificazione, l'informazione relativa al corpo della regola generata \'e la media pesata delle entropie degli esempi coperti dalla regola e di quelli non coperti.
+
+L'esecuzione di Conjunctive Rule sul solito dataset ha prodotto le misure in tabella \ref{table:risultati-conjunctive-rule} e il seguente output:
+\begin{verbatim}
+=== Classifier model (full training set) ===
+
+Single conjunctive rule learner:
+--------------------------------
+(PATIENT_AGE <= 29653.5) => SYMPTOM_ID = 8
+
+Class distributions:
+Covered by the rule:
+1 8 
+0 1 
+
+Not covered by the rule:
+1 8 
+0.893333  0.106667  
+
+Time taken to build model: 0.21 seconds
+
+=== Stratified cross-validation ===
+=== Summary ===
+
+Correctly Classified Instances   185  92.5 %
+Incorrectly Classified Instances 15   7.5  %
+\end{verbatim}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|r|l|} \hline
+\multicolumn{2}{|c|}{\textbf{Conjunctive Rule}} \\ \hline \hline 
+\textbf{T} & $0.21$ \\ \hline
+\textbf{+} & $100$ \\ \hline
+\textbf{\#Reg} & $1$\\ \hline
+\textbf{TPR} & $0.87$ \\ \hline
+\textbf{Precision} & $0.978$ \\ \hline
+\textbf{Recall} & $0.87$ \\  \hline
+\textbf{F-Measure} & $0.921$ \\
+\hline\end{tabular}
+\caption{Risultato di esecuzione con Conjunctive Rule}
+\label{table:risultati-conjunctive-rule}
+\end{table}
+
+A fronte degli stessi esempi di training, quindi, Conjunctive Rule ha generato una sola regola, mantenendo elevata la precisione a discapito del \textit{recall}, comportando un maggior numero di falsi negativi (mancate classificazioni).
+\[
+\begin{cases}
+precision_m = 0.971 \\
+recall_m = 1 \\
+fmeasure_m = 0.985
+\end{cases}
+\mbox{vs}
+\begin{cases}
+precision_{cr} = 0.978 \\
+recall_{cr} = 0.87 \\
+fmeasure_{cr} = 0.921
+\end{cases}
+\]
+
+Andando a confrontare le regole generate dal sistema realizzato e la regola generata da Conjunctive Rule, si trova qualche disaccordo. Ad esempio:
+\begin{verbatim}
+final_positive(A, [1, 2, 3, 4, 5, 6, 7, 8, 10]) :-
+	check_condition_list(A,
+			     [condition('PatientAge', range(35805, 38046))]).
+\end{verbatim}
+\'e chiaramente opposta a
+\begin{verbatim}
+(PATIENT_AGE <= 29653.5) => SYMPTOM_ID = 8
+\end{verbatim}
+
+Tra l'altro, la regola in esempio \'e stata generata in pi\'u passi di apprendimento, con l'unica eccezione il passo in cui tutti gli esempi che la generavano si trovavano, evidentemente, nel sottoinsieme di testing.
+
+\subsubsection{BayesDB}
+
 
 \section{Sviluppi futuri}
 \label{sviluppi-futuri}
@@ -670,7 +915,9 @@ L'implementazione base del C4.5 realizzata \'e migliorabile in molti punti.
 
 Un primo miglioramento potrebbe riguardare la generazione dinamica dei range degli attributi: la cardinalit\'a di ogni range non sarebbe pi\'u fissa, ma varierebbe a seconda della vicinanza dei valori degli esempi o secondo altri criteri.
 
-Inoltre, si potrebbe confrontare l'\textit{error rate} del programma nel caso i valori nulli non vengano riempiti ``a monte'' del processo (ovvero nel database), e vengano quindi ignorati completamente.
+Come gi\'a detto in \ref{risultati-no-ktv-qb}, sarebbe molto utile eliminare, a fine processo, tutte quelle regole che risultano superflue nel senso che non vanno a includere molti esempi positivi in pi\'u rispetto alle altre; le regole, quindi, potrebbero risultare anche pi\'u compatte.
+
+Inoltre, si potrebbe confrontare la precisione del programma nel caso i valori nulli non vengano riempiti ``a monte'' del processo (ovvero nel database), e vengano quindi ignorati completamente.
 
 Ad oggi, il programma gestisce gli esempi come strettamente positivi o negativi. Avendo a disposizione circa $60$ sintomi, tuttavia, potrebbe risultare utile riadattare alcune parti dell'algoritmo con il fine di classificare, in un unico albero di decisione, tutti i sintomi. Un possibile svantaggio si potrebbe avere relativamente a sintomi che hanno pochi esempi che li soddisfano, e che potrebbero non essere rappresentati da nessuna regola generata. Ci sarebbe, in questo caso, anche da valutare il costo dell'algoritmo, sicuramente pi\'u complesso (si veda il calcolo dell'entropia).
 
@@ -682,19 +929,18 @@ Miglioramenti implementativi potrebbero essere:
 \item spostamento dell'intero processo di apprendimento su macchine virtuali nel cloud; \'e gi\'a in studio una migrazione su Google Compute Engine
 \item apprendimento multi-threading sui diversi split dei $k$\textit{-fold}
 \item apprendimento multi-threading sui diversi \textit{range} dell'attributo migliore ad ogni livello dell'albero 
+\item eliminazione di regole troppo lunghe o che classificano pochi elementi (necessario un set esterno di validazione)
 \item ordinamento delle regole in base all'\textit{error rate} del passo in cui sono state apprese (diretta proporzionalit\'a tra ordine regola e ordine \textit{error rate}) e alla loro semplicit\'a (minor numero di clausole, maggiore rilevanza)
 \end{itemize}
 
-% The following two commands are all you need in the
-% initial runs of your .tex file to
-% produce the bibliography for the citations in your paper.
 \bibliographystyle{abbrv} % standard abbrv style
-\bibliography{bibliography}  % substitute the name of 'your' Bibliography here
-% You must have a proper ".bib" file
-% and remember to run:
-% latex bibtex latex latex (in that particular order) in order to resolve all the 'numerical values'
-% be they for figures, equation numbers, references, footnotes, etc. etc.
-%
+\bibliography{bibliography}
+
+\appendix
+
+\section{Weka}
+\label{appendix-weka}
+
 \balancecolumns
 
 % That's all folks! % GM Sept. 2008

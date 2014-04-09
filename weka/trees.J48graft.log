@@ -1,6 +1,6 @@
 === Run information ===
 
-Scheme:weka.classifiers.trees.J48 -C 0.25 -M 2
+Scheme:weka.classifiers.trees.J48graft -C 0.25 -M 2
 Relation:     QueryResult-weka.filters.unsupervised.attribute.Remove-R4-5-weka.filters.unsupervised.attribute.NumericToNominal-Rfirst,2,last
 Instances:    200
 Attributes:   19
@@ -27,7 +27,7 @@ Test mode:10-fold cross-validation
 
 === Classifier model (full training set) ===
 
-J48 pruned tree
+J48graft pruned tree
 ------------------
 
 PATIENT_AGE <= 29067: 8 (88.0/1.0)
@@ -44,35 +44,35 @@ Number of Leaves  :   5
 Size of the tree :  9
 
 
-Time taken to build model: 0 seconds
+Time taken to build model: 0.01 seconds
 
 === Stratified cross-validation ===
 === Summary ===
 
-Correctly Classified Instances         189               94.5    %
-Incorrectly Classified Instances        11                5.5    %
-Kappa statistic                          0.89  
-K&B Relative Info Score              17506.7452 %
-K&B Information Score                  175.0675 bits      0.8753 bits/instance
+Correctly Classified Instances         187               93.5    %
+Incorrectly Classified Instances        13                6.5    %
+Kappa statistic                          0.87  
+K&B Relative Info Score              17151.616  %
+K&B Information Score                  171.5162 bits      0.8576 bits/instance
 Class complexity | order 0             200      bits      1      bits/instance
-Class complexity | scheme             5408.305  bits     27.0415 bits/instance
-Complexity improvement     (Sf)      -5208.305  bits    -26.0415 bits/instance
-Mean absolute error                      0.065 
-Root mean squared error                  0.2317
-Relative absolute error                 12.9935 %
-Root relative squared error             46.3453 %
+Class complexity | scheme             5418.9668 bits     27.0948 bits/instance
+Complexity improvement     (Sf)      -5218.9668 bits    -26.0948 bits/instance
+Mean absolute error                      0.0735
+Root mean squared error                  0.2512
+Relative absolute error                 14.7    %
+Root relative squared error             50.2437 %
 Total Number of Instances              200     
 
 === Detailed Accuracy By Class ===
 
                TP Rate   FP Rate   Precision   Recall  F-Measure   ROC Area  Class
-                 0.95      0.06       0.941     0.95      0.945      0.933    1
-                 0.94      0.05       0.949     0.94      0.945      0.933    8
-Weighted Avg.    0.945     0.055      0.945     0.945     0.945      0.933
+                 0.95      0.08       0.922     0.95      0.936      0.932    1
+                 0.92      0.05       0.948     0.92      0.934      0.932    8
+Weighted Avg.    0.935     0.065      0.935     0.935     0.935      0.932
 
 === Confusion Matrix ===
 
   a  b   <-- classified as
  95  5 |  a = 1
-  6 94 |  b = 8
+  8 92 |  b = 8
 

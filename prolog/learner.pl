@@ -374,27 +374,7 @@ info_gain(Set, Attribute, InfoGain) :-
     ),
     % sum all of the partial gains
     aggregate_all(sum(PartialInfoGain), PartialGains, PartialGainSum),
-    % log_v('info_gain', ['Info gain sum for ', Attribute, ' is ', PartialGainSum]),
 
-    /* TODO
-    % calculate the partial intrinsic value on each split of the Attribute (category or class)
-    PartialIntrinsicValues = (
-        % get the list of splits for the given Attribute
-        class(Attribute, RangeList),
-        % loop through every range in the list
-        member(Range, RangeList),
-        % calculate the current partial info gain
-        partial_intrinsic_value(Set, Attribute, Range, PartialIntrinsicValue)
-    ),
-
-    % sum all of the partial intrinsic values
-    aggregate_all(sum(PartialIntrinsicValue), PartialIntrinsicValues, PartialIntrinsicValueSum),
-    log_v('info_gain', ['Intrinsic value sum for ', Attribute, ' is ', PartialIntrinsicValueSum]),
-
-    catch(InfoGain is ((TotalEntropy - PartialGainSum)/(-1*PartialIntrinsicValueSum)),
-        _,
-        InfoGain is 0),
-    */
     InfoGain is (TotalEntropy - PartialGainSum),
     log_v('info_gain', ['Info gain for ', Attribute, ' is ', InfoGain])
     .
@@ -449,33 +429,6 @@ partial_info_gain(Set, Attribute, Range, PartialInfoGain) :-
     %,log_v('par_info_gain', [
     %    'Partial info gain for ', Attribute, ' with ', Range, ' is ', PartialInfoGain])
     .
-
-/**
- * TODO
-partial_intrinsic_value(Set, Attribute, Range, PartialIntrinsicValue) :-
-    clean_set(Set, Attribute, CleanSet),
-    % get all the training examples that satisfy the given Range
-    Subset = (
-        member(ID, CleanSet),
-        train_example(_, ID, Attribute, Value),
-        is_in_range(Value, Range)
-    ),
-    % get a list of the IDs
-    findall(ID, Subset, SubsetList),
-    % get the size of the subset
-    length(SubsetList, SubsetLength),
-    % get the size of the original set
-    length(Set, SetLength),
-    catch(
-        (InnerValue is (SubsetLength / SetLength),
-        log2(InnerValue, InnerValueLog),
-        PartialIntrinsicValue is (InnerValue * InnerValueLog)),
-        _, PartialIntrinsicValue is 0
-    ),
-    log_v('par_ins_val', [
-        'Partial intrinsic value for ', Attribute, ' with ', Range, ' is ', PartialIntrinsicValue])
-    .
- */
 
 /**
  * clean_set(+Set:list, +Attribute, -CleanSet) is det.
@@ -573,6 +526,8 @@ learn_please :-
 
     % print and save the learning information
     print_report(Elapsed),
+
+    % save the log of the execution
     save_log(Elapsed),
 
     % save the rules to file
@@ -917,7 +872,6 @@ learn(TotalFolds, Step) :-
     % find all the different target values in the current subset, after cleaning it from null values
     log_v('c45', ['Current examples are : ', Examples]),
     % if all current examples are in one class only (p or n) the node has a label (yay!)
-    % TODO: check the percentage and apply a threshold
     setof(TheID, member(TheID, TargetValues), DifferentTargetsList),
     log_v('c45-test', ['Non null different training targets left: ', DifferentTargetsList]),
     length(DifferentTargetsList, DifferentValues),

@@ -19,8 +19,8 @@
 data_type('PatientSex', category).
 data_type('PatientRace', category).
 data_type('PatientAge', number).
-% data_type('KTV', number).
-% data_type('QB', number).
+%data_type('KTV', number).
+%data_type('QB', number).
 data_type('ProgWeightLoss', number).
 data_type('RealWeightLoss', number).
 data_type('DeltaWeight', number).

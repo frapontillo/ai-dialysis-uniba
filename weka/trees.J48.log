@@ -1,0 +1,76 @@
+=== Run information ===
+
+Scheme:weka.classifiers.trees.J48 -C 0.25 -M 2
+Relation:     QueryResult-weka.filters.unsupervised.attribute.NumericToNominal-Rfirst,2,last
+Instances:    119
+Attributes:   21
+              PATIENT_SEX
+              PATIENT_RACE
+              PATIENT_AGE
+              KTV
+              QB
+              PROG_WEIGHT_LOSS
+              REAL_WEIGHT_LOSS
+              DELTA_WEIGHT
+              PROG_DURATION
+              REAL_DURATION
+              DELTA_DURATION
+              SAP_START
+              SAP_END
+              AVG_SAP
+              DAP_START
+              DAP_END
+              AVG_DAP
+              BLOOD_VOLUME
+              DELTA_BLOOD_FLOW
+              DELTA_UF
+              SYMPTOM_ID
+Test mode:10-fold cross-validation
+
+=== Classifier model (full training set) ===
+
+J48 pruned tree
+------------------
+
+PATIENT_AGE <= 29463
+|   QB <= 56.495156: 1 (2.92/0.92)
+|   QB > 56.495156: 2 (16.08)
+PATIENT_AGE > 29463: 1 (100.0/2.0)
+
+Number of Leaves  : 	3
+
+Size of the tree : 	5
+
+
+Time taken to build model: 0.02 seconds
+
+=== Stratified cross-validation ===
+=== Summary ===
+
+Correctly Classified Instances         112               94.1176 %
+Incorrectly Classified Instances         7                5.8824 %
+Kappa statistic                          0.7658
+K&B Relative Info Score               8236.0688 %
+K&B Information Score                   54.6797 bits      0.4595 bits/instance
+Class complexity | order 0              75.4728 bits      0.6342 bits/instance
+Class complexity | scheme             1103.23   bits      9.2708 bits/instance
+Complexity improvement     (Sf)      -1027.7572 bits     -8.6366 bits/instance
+Mean absolute error                      0.0723
+Root mean squared error                  0.2202
+Relative absolute error                 26.5044 %
+Root relative squared error             60.0941 %
+Total Number of Instances              119     
+
+=== Detailed Accuracy By Class ===
+
+               TP Rate   FP Rate   Precision   Recall  F-Measure   ROC Area  Class
+                 0.98      0.263      0.951     0.98      0.966      0.856    1
+                 0.737     0.02       0.875     0.737     0.8        0.856    2
+Weighted Avg.    0.941     0.224      0.939     0.941     0.939      0.856
+
+=== Confusion Matrix ===
+
+  a  b   <-- classified as
+ 98  2 |  a = 1
+  5 14 |  b = 2
+

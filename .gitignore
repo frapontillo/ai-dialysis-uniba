@@ -8,3 +8,4 @@ prolog/sublime.sublime-workspace
 prolog/config/*.properties
 !prolog/config/database-example.properties
 scripts/connection.properties
+openshift/

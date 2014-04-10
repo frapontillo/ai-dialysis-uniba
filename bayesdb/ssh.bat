@@ -1,0 +1,1 @@
+ssh -i vm_guest_id_rsa -p 2222 -o StrictHostKeyChecking=no bayesdb@localhost

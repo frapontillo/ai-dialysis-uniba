@@ -25,7 +25,7 @@
 \maketitle
 
 \begin{abstract}
-Implementazione Prolog dell'algoritmo di Intelligenza Artificiale C4.5, con k-fold test e confronto con altri sistemi pre-esistenti di classificazione.
+Implementazione base di C4.5, algoritmo di apprendimento di regole, in Prolog, con $k$\textit{-fold cross-validation} test e confronto con Weka, come \textit{tool} di data mining, e BayesDB, come \textit{tool} di classificazione bayesiana.
 \end{abstract}
 
 \section{Obiettivo}
@@ -40,7 +40,7 @@ I dati a disposizione nella base di dati da analizzare sono numerosi, e devono e
 Ogni seduta di dialisi memorizza (1) una \textbf{data} di svolgimento, (2) la \textbf{durata} della seduta stessa, (3) un identificativo del \textbf{paziente}, (4) altri \textbf{parametri} registrati durante la sessione e (5) eventuali \textbf{sintomatologie} riscontrate.
 
 \subsection{Dati del paziente}
-Le informazioni relative ai pazienti sono ricavate, anonimizzandole, dalla base di dati originale. Ai fini del processo di estrazione delle regole, \'e opportuno considerare il \textbf{sesso} del paziente e la sua \textbf{et\'a} al momento della seduta di dialisi in analisi\footnote{Ci\'o non esclude la possibilit\'a di considerare altri dati relativi al paziente; l'algoritmo da realizzare potrebbe essere esteso andando a considerare anche i dati relativi alle malattie pregresse del paziente ed eventuali comorbidit\'a registrate.}.
+Le informazioni relative ai pazienti sono ricavate dalla base di dati originale. Ai fini del processo di estrazione delle regole, \'e opportuno considerare il \textbf{sesso} del paziente e la sua \textbf{et\'a} al momento della seduta di dialisi in analisi\footnote{Ci\'o non esclude la possibilit\'a di considerare altri dati relativi al paziente; l'algoritmo da realizzare potrebbe essere esteso andando a considerare anche i dati relativi alle malattie pregresse del paziente ed eventuali comorbidit\'a registrate.}.
 
 \subsection{Parametri della seduta di dialisi}
 I parametri pi\'u rilevanti di una seduta di dialisi, al fine di prevedere eventuali sintomatologie successive, sono divisi in pi\'u categorie \cite{bellazziintelligent}  \cite{pmid15749092}.
@@ -457,7 +457,7 @@ Il filtraggio degli esempi viene poi eseguito da \verb|test_example/4| e \verb|t
 \begin{figure}[!htb]
 \centering
 \includegraphics[width=250pt]{figures/prolog-k-fold.png}
-\caption{Suddivisione in $10$ fold}
+\caption{Suddivisione in $10$ fold, al passo $9$: il secondo \textit{fold} viene selezionato per il test, gli esempi rimanenti come training set}
 \label{fig:prolog-k-fold}
 \end{figure}
 
@@ -710,7 +710,34 @@ Lo stesso dataset \'e stato sottoposto ad altri sistemi di apprendimento automat
 
 \subsubsection{Weka}
 Il tool di Data Mining utilizzato \'e Weka\cite{Weka:2014:Online}, che mette a disposizione numerosi algoritmi pre-implementati per la classificazione e generazione di alberi di decisione (e regole).\\
-Sono stati testati $3$ diversi algoritmi sul sintomo target $8$: J48, J48Graft e ConjunctiveRule. 
+Sono stati testati $3$ diversi algoritmi sul sintomo target $8$: J48, J48Graft e ConjunctiveRule.
+
+Per l'importazione degli esempi \'e stata eseguita la query:
+\begin{verbatim}
+(SELECT 
+  `PATIENT_SEX`, `PATIENT_RACE`, `PATIENT_AGE`,
+  `PROG_WEIGHT_LOSS`, `REAL_WEIGHT_LOSS`,
+  `DELTA_WEIGHT`,  `PROG_DURATION`, `REAL_DURATION`,
+  `DELTA_DURATION`, `SAP_START`, `SAP_END`,
+  `AVG_SAP`, `DAP_START`, `DAP_END`, `AVG_DAP`, 
+  `BLOOD_VOLUME`,  `DELTA_BLOOD_FLOW`, 
+  `DELTA_UF`, `SYMPTOM_ID`
+FROM `patient_dialysis_symptom_for_analysis`
+WHERE
+  `SYMPTOM_ID` = 1 ORDER BY `SCORE` DESC LIMIT 100)
+UNION
+(SELECT
+  `PATIENT_SEX`, `PATIENT_RACE`, `PATIENT_AGE`,
+  `PROG_WEIGHT_LOSS`, `REAL_WEIGHT_LOSS`,
+  `DELTA_WEIGHT`,  `PROG_DURATION`, `REAL_DURATION`,
+  `DELTA_DURATION`, `SAP_START`, `SAP_END`,
+  `AVG_SAP`, `DAP_START`, `DAP_END`, `AVG_DAP`, 
+  `BLOOD_VOLUME`,  `DELTA_BLOOD_FLOW`, 
+  `DELTA_UF`, `SYMPTOM_ID`
+FROM `patient_dialysis_symptom_for_analysis`
+WHERE
+  `SYMPTOM_ID` = 8 ORDER BY `SCORE` DESC LIMIT 100)
+\end{verbatim}
 
 Una volta importati i dati del dataset di esempio in Weka Explorer (si veda \ref{appendix-weka} per una guida all'importazione e trasformazione), si possono andare a selezionare gli algoritmi da applicare.
 
@@ -898,7 +925,7 @@ final_positive(A, [1, 2, 3, 4, 5, 6, 7, 8, 10]) :-
 	check_condition_list(A,
 			     [condition('PatientAge', range(35805, 38046))]).
 \end{verbatim}
-\'e chiaramente opposta a
+\'e chiaramente opposta a:
 \begin{verbatim}
 (PATIENT_AGE <= 29653.5) => SYMPTOM_ID = 8
 \end{verbatim}
@@ -906,7 +933,128 @@ final_positive(A, [1, 2, 3, 4, 5, 6, 7, 8, 10]) :-
 Tra l'altro, la regola in esempio \'e stata generata in pi\'u passi di apprendimento, con l'unica eccezione il passo in cui tutti gli esempi che la generavano si trovavano, evidentemente, nel sottoinsieme di testing.
 
 \subsubsection{BayesDB}
+BayesDB\cite{BayesDB:2014:Online} è un ``database di tabelle bayesiane che permette di inferire le probabili implicazioni dei dati tabulati, con la stessa facilit\'a con cui si chiedono i dati ad un database SQL''. \'E un tool per inferenze molto recente, sviluppato dal MIT in collaborazione con DARPA e Google.
 
+BayesDB, a partire da una tabella con qualsiasi attributo e valore, permette di:
+\begin{itemize}
+\item selezionare i dati con una regolare \verb|SELECT|
+\item inferire i dati mancanti su alcune (o tutte le) colonne con uno specifico livello di confidenza, tramite \verb|INFER|
+\item simulare uno o pi\'u attributi a partire da altri forniti, con \verb|SIMULATE|
+\item stimare le probabilit\'a di dipendenza fra gli attributi della tabella, con \verb|ESTIMATE DEPENDENCE PROBABILITIES|
+\end{itemize}
+
+Dopo il setup iniziale di BayesDB (vedi \ref{appendix-bayesdb}), si \'e proceduto prima all'importazione dei dati, quindi al \textit{querying} e \textit{testing}.
+
+\paragraph{Esportazione dei dati}
+La migrazione dei dati da MySQL a BayesDB \'e avvenuta\footnote{Il file di migrazione \'e gi\'a disponibile in \verb|bayesdb/learn_data.csv|.} tramite selezione di:
+\begin{itemize}
+\item $100$ esempi negativi (sintomo $1$)
+\item $100$ esempi positivi (sintomo $8$)
+\item $200$ esempi non classificati
+\end{itemize}
+In realt\'a, per eseguire un test che avesse significato, i $200$ esempi non classificati sono gli stessi esempi positivi e negativi; per simulare il \textit{testing}, tutti i dati hanno sia una colonna \verb|SYMPTOM_ID|, contenente il valore target (nullo negli esempi non classificati), che una colonna \verb|REAL_SYMPTOM_ID| contenente il valore reale del dato di testing da controllare dopo la classificazione.
+\\
+Successivamente, su BayesDB \'e stato specificato di non considerare come attributo di apprendimento \verb|REAL_SYMPTOM_ID|, che altrimenti avrebbe avuto una probabilit\'a di dipendenza con l'attributo target \verb|SYMPTOM_ID| di $1$!
+
+Lo script di migrazione, troppo lungo per essere riportato\footnote{Lo script completo \'e contenuto in \verb|bayesdb/learn_data_export.sql|} include una prima riga (header fisso) contenente i nomi delle colonne, e di seguito i $400$ esempi sopra descritti.
+
+Tramite la \textit{query} di MySQL:
+\begin{verbatim}
+SELECT
+	...
+INTO OUTFILE 'learn_data.csv'
+FIELDS TERMINATED BY ','
+\end{verbatim}
+\'e stato possibile generare un file \verb|csv| contenente l'\textit{header}, i dati e i campi separati da virgola, come richiesto da BayesDB.
+
+\paragraph{Importazione dei dati}
+Una volta esportati i dati, ci si \'e collegati alla macchina virtuale su cui BayesDB \'e installato e sono stati copiati i seguenti file (per la copia dei file, vedi \ref{appendix-bayesdb-trasferimento}):
+\begin{itemize}
+\item \verb|learn_data.csv| precedentemente generato
+\item lo script python \verb|learn_data_import.py|, appositamente creato per caricare i dati
+\end{itemize}
+
+Dalla macchina virtuale (o tramite accesso SSH, vedi \ref{appendix-bayesdb-collegamento}), \'e stato eseguito il comando:
+\begin{verbatim}
+$ python /home/bayesdb/learn_data_import.py
+\end{verbatim}
+
+Lo script esegue, a catena, i seguenti comandi:
+\begin{enumerate}
+\item elimina un'eventuale tabella precedentemente creata
+\item importa i dati dal \verb|csv| nella tabella \verb|dialysisai|
+\item specifica come \verb|continuous| gli attributi \verb|PROG_DURATION| e \verb|BLOOD_VOLUME|, e ignora \verb|REAL_SYMPTOM_ID|
+\item crea $20$ modelli per la tabella creata
+\item analizza la tabella per $100$ iterazioni\footnote{Questa operazione potrebbe impiegare molti minuti per completare.}
+\end{enumerate}
+
+A questo punto, il modello bayesiano \'e stato costruito, ed \'e possibile andare a fare inferenze\footnote{Il modello \'e stato pre-costruito ed esportato in \verb|bayesdb/dialysisai.pkl.gz|; per importarlo, eseguire \verb|IMPORT SAMPLES dialysisai INTO dialysisai|.}.
+
+\paragraph{Stime delle probabilit\'a di dipendenza}
+Si sono volute valutare le probabilit\'a di dipendenza fra gli attributi del dataset caricato; pertanto \'e stata eseguita la \textit{query} (per conoscere come eseguire \textit{query} su BayesDB, consultare \ref{appendix-bayesdb-query}):
+\begin{verbatim}
+ESTIMATE DEPENDENCE PROBABILITIES FROM dialysisai;
+\end{verbatim}
+che ha generato l'immagine in figura \ref{fig:bayesdb-dep-prob1}, dalla quale sono ricavabili tutte le dipendenze.
+
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=250pt]{../bayesdb/dialysis_prob_dependencies.png}
+\caption{Probabilit\'a di dipendenza fra gli attributi}
+\label{fig:bayesdb-dep-prob1}
+\end{figure}
+
+Essendo interessati esclusivamente alle dipendenze fra la sintomatologia e tutti gli altri attributi, si raffina la \textit{query} precedente:
+\begin{verbatim}
+ESTIMATE DEPENDENCE PROBABILITIES FROM dialysisai
+REFERENCING symptom_id WITH CONFIDENCE 0.9;
+\end{verbatim}
+che restituisce l'immagine in figura \ref{fig:bayesdb-dep-prob2}; questa mostra solo gli attributi con una evidente una dipendenza della sintomatologia, quali differenza del flusso del sangue, età e sesso (ignorando la banale dipendenza con \verb|real_symptom_id|).
+
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=250pt]{../bayesdb/dialysis_prob_dependencies_symptom.png}
+\caption{Probabilit\'a di dipendenza fra sintomo e gli altri attributi}
+\label{fig:bayesdb-dep-prob2}
+\end{figure}
+
+\paragraph{Predizione del sintomo}
+Per predire la sintomatologia per ogni record non classificato, si pu\'o eseguire la \textit{query}:
+\begin{verbatim}
+INFER symptom_id
+FROM dialysisai
+WITH CONFIDENCE 0.9;
+\end{verbatim}
+
+Il risultato restituito a video \'e la lista di tutte le predizioni dei valori di sintomatologia: dove il valore \'e stato predetto, esso \'e preceduto da un asterisco \verb|*|, altrimenti viene mostrato il valore pre-esistente.
+
+\paragraph{Test e risultati}
+Il Bayesian Query Language (BQL), linguaggio alla base di BayesDB, non \'e ancora del tutto completo\footnote{La versione utilizzata \'e la \verb|0.1.0 alpha|.}, pertanto non permette una veloce aggregazione dei risultati (conteggi, medie, ecc.).\\
+Per questa ragione, \'e stato creato uno script Python\footnote{Lo script \'e \verb|bayesdb/learn_data_test.py|.} che, una volta avviato, stampa a video e su file\footnote{Il log avr\'a il nome \verb|learn_data_test.log|.} il risultato dei test sulla predizione effettuata.
+
+La query eseguita seleziona il sintomo vero, che non verr\'a modificato poich\'e sempre presente, e il sintomo da predire, che sar\'a inferito dal sistema con un livello di confidenza di $0.9$\footnote{Il valore inferito viene solo caricato e mostrato a video, la base di dati non viene modificata.}.
+\begin{verbatim}
+INFER real_symptom_id, symptom_id 
+FROM dialysisai
+WITH CONFIDENCE 0.9;
+\end{verbatim}
+
+Quindi, lo script procede ad analizzare i dati restituiti dalla query, calcolando \textit{true positive rate}, \textit{false positive rate}, \textit{precision}, \textit{recall} e F-Measure, mostrate in tabella \ref{table:risultati-bayesdb}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|r|l|} \hline
+\multicolumn{2}{|c|}{\textbf{BayesDB}} \\ \hline \hline 
+\textbf{+} & $100$ \\ \hline
+\textbf{TPR} & $0.90$ \\ \hline
+\textbf{FPR} & $0.01$ \\ \hline
+\textbf{Precision} & $0.98$ \\ \hline
+\textbf{Recall} & $0.90$ \\  \hline
+\textbf{F-Measure} & $0.94$ \\
+\hline\end{tabular}
+\caption{Risultato di esecuzione di BayesDB}
+\label{table:risultati-bayesdb}
+\end{table}
 
 \section{Sviluppi futuri}
 \label{sviluppi-futuri}
@@ -969,7 +1117,58 @@ cp=%CLASSPATH%;%MY_SQL_PATH%/Connector J 5.1.29/
   mysql-connector-java-5.1.29-bin.jar
 \end{verbatim}
 
-\section{Setup di BayesDB}
+\section{BayesDB}
+
+\subsection{Installazione di BayesDB}
+\label{appendix-bayesdb}
+Per avviare una versione funzionante di BayesDB, si suggerisce di utilizzare la VirtualBox VM messa a disposizione sul \href{http://probcomp.csail.mit.edu/bayesdb/#Download}{sito ufficiale}, in quanto contiene una versione gi\'a configurata e pronta all'uso.\\
+All'avvio della VM, \'e possibile utilizzare BayesDB, essendo avviato in automatico.
+
+\subsection{Collegamento alla VM}
+\label{appendix-bayesdb-collegamento}
+La macchina virtuale su cui BayesDB \'e preinstallato non supporta la configurazione di tastiera italiana; pertanto \'e conveniente accedere alla \textit{shell} Ubuntu tramite protocollo SSH.
+
+Su sistemi Linux/Mac OS X, digitare in una shell:
+\begin{verbatim}
+$ ssh -i vm_guest_id_rsa -p 2222 
+  -o StrictHostKeyChecking=no bayesdb@localhost
+\end{verbatim}
+
+Su sistemi Windows, \verb|ssh| \'e incluso nella distribuzione di \href{http://git-scm.com/}{Git}.
+
+\subsection{Trasferimento da e verso BayesDB}
+\label{appendix-bayesdb-trasferimento}
+Per inviare file dalla macchina locale alla VM (e viceversa), utilizzare l'eseguibile \verb|scp| (secure \verb|cp|).
+
+Su sistemi Linux/Mac OS X, digitare in una shell:
+\begin{verbatim}
+$ scp -r -i vm_guest_id_rsa -p 2222 
+  -o StrictHostKeyChecking=no 
+  path/to/file bayesdb@localhost:/home/bayesdb/file
+\end{verbatim}
+
+Su Windows, installare \href{http://winscp.net/eng/index.php}{WinSCP} e configurarlo con i seguenti parametri:
+\begin{itemize}
+\item server: \verb|localhost|
+\item port: \verb|2222|
+\item username: \verb|bayesdb|
+\item password: \verb|bayesdb|
+\item key: utilizzare la chiave \verb|vm_guest_id_rsa|, fornita nel pacchetto della VirtualBox VM scaricato dal sito di BayesDB (ignorare gli avvisi di incompatibilit\'a della chiave con Putty)
+\end{itemize}
+
+\subsection{Esecuzione di query}
+\label{appendix-bayesdb-query}
+Dopo aver fatto accesso alla VM in SSH, aprire una console Python digitando il comando \verb|python|, e ottenere un'istanza del client BayesDB:
+\begin{verbatim}
+>>> from bayesdb.client import Client
+>>> client = Client()
+\end{verbatim}
+A questo punto, si pu\'o utilizzare \verb|client| per eseguire qualsiasi \textit{query}, ad esempio:
+\begin{verbatim}
+>>> client('INFER real_symptom_id, symptom_id '
+...     'FROM dialysisai '
+...     'WITH CONFIDENCE 0.9;')
+\end{verbatim}
 
 \balancecolumns
 

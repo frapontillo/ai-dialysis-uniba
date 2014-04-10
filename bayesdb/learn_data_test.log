@@ -1,0 +1,11 @@
+=== BayesDB Classification ===
+
+TP:                 90
+TN:                 99
+FP:                 1
+FN:                 10
+TP Rate:            0.900000
+FP Rate:            0.010000
+Precision:          0.989011
+Recall:             0.900000
+F-Measure:          0.942408

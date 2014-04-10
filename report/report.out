@@ -53,3 +53,8 @@
 \BOOKMARK [1][-]{section.10}{References}{}% 53
 \BOOKMARK [1][-]{appendix.A}{Importazione dei dati}{}% 54
 \BOOKMARK [1][-]{appendix.B}{Setup di Weka}{}% 55
+\BOOKMARK [1][-]{appendix.C}{BayesDB}{}% 56
+\BOOKMARK [2][-]{subsection.C.1}{Installazione di BayesDB}{appendix.C}% 57
+\BOOKMARK [2][-]{subsection.C.2}{Collegamento alla VM}{appendix.C}% 58
+\BOOKMARK [2][-]{subsection.C.3}{Trasferimento da e verso BayesDB}{appendix.C}% 59
+\BOOKMARK [2][-]{subsection.C.4}{Esecuzione di query}{appendix.C}% 60

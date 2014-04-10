@@ -1,10 +1,9 @@
-/**
- * <module> categories
- *
- * Module to categorize fetched examples' attributes into categories.
- *
- * @author Francesco Pontillo
- * @license Apache License, Version 2.0
+/** <module> Categories module
+
+Module to categorize fetched examples' attributes into categories.
+
+@author Francesco Pontillo
+@license Apache License, Version 2.0
 */
 
 /**

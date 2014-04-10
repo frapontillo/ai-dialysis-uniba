@@ -1,0 +1,1292 @@
+\documentclass[11pt]{article}
+\usepackage{times}
+\usepackage{pldoc}
+\sloppy
+\makeindex
+
+\begin{document}
+% This LaTeX document was generated using the LaTeX backend of PlDoc,
+% The SWI-Prolog documentation system
+
+
+
+\section{main.pl}
+
+\label{sec:main}
+
+\begin{description}
+    \predicate[det]{main}{2}{+Config, +SymptomID}
+Start the main process with custom parameters.
+
+\begin{arguments}
+\arg{Config} & The name of the configuration file. It can be:
+
+\begin{itemize}
+    \item default, for the default 'database.properties' file
+    \item ask, in order to type in the file name
+    \item a proper configuration file name
+\end{itemize}
+
+ \\
+\arg{Symptom} & The symptom ID to use as positive target. It can be:
+
+\begin{shortlist}
+    \item default, for the default (2)
+    \item ask, in order to type in the ID
+    \item a proper ID
+\end{shortlist}
+
+ \\
+\end{arguments}
+
+    \predicate[det]{main_def}{0}{}
+Start \predref{main}{2} with default parameters.
+
+    \predicate[det]{main}{0}{}
+Start \predref{main}{2} and asks for configurations.
+
+    \predicate[det]{make_doc}{0}{}
+Generate the documentation in both html and tex formats.
+Both documentations will be under the 'doc' folder.
+
+    \predicate[det]{out}{0}{}
+Disconnects and halts.
+\end{description}
+
+\section{database.pl}
+
+\label{sec:database}
+
+\begin{description}
+    \predicate[semidet]{db_param}{2}{?Name, ?Value}
+Holds database parameters in the form \verb$db_param(Name, Value)$.
+Relevant names are: server, port, database, username, password.
+
+    \predicate[det]{get_config_path}{1}{-ConfigPath}
+Ask the user to insert the configuration file name, to be found under the 'config' folder.
+
+\begin{arguments}
+\arg{ConfigPath} & The name of the database configuration file. The file has to be in the
+'.properties' format. \\
+\end{arguments}
+
+    \predicate[semidet]{read_database_params}{6}{-Driver, -Server, -Port, -Database, -User, -Password}
+Retrieves all the database connection parameters from a config file whose name is entered
+by the user when requested.
+If the user-entered configuration file doesn't exist, fall back on 'config/database.properties'.
+
+\begin{arguments}
+\arg{Driver} & The ODBC driver name. \\
+\arg{Server} & The server address. \\
+\arg{Port} & The server port. \\
+\arg{Database} & The database to connect to. \\
+\arg{User} & The username to use. \\
+\arg{Password} & The password to use. \\
+\end{arguments}
+
+    \predicate[semidet]{read_database_params}{7}{+Path, -Driver, -Server, -Port, -Database, -User, -Password}
+Retrieves all the database connection parameters from a given config file.
+
+\begin{arguments}
+\arg{Path} & The database configuration file name. \\
+\arg{Driver} & The ODBC driver name. \\
+\arg{Server} & The server address. \\
+\arg{Port} & The server port. \\
+\arg{Database} & The database to connect to. \\
+\arg{User} & The username to use. \\
+\arg{Password} & The password to use. \\
+\end{arguments}
+
+    \predicate[det]{read_database_param}{2}{+PropertiesFile, +Row}
+Read database params from an open '.properties' file at the given index.
+Every read property is asserts into the Prolog in-memory database.
+It always iterates until the reading is over. Then, always succeeds.
+
+\begin{arguments}
+\arg{PropertiesFile} & An open '.properties' file. \\
+\arg{Row} & The row to start reading from. \\
+\end{arguments}
+
+    \predicate[det]{connect}{1}{+ConfigPath}
+Connect to the database by relying on the \arg{ConfigPath} variable.
+
+\begin{arguments}
+\arg{ConfigPath} & The name of the database configuration file to be found in the
+'config' folder, or:
+
+\begin{itemize}
+    \item default, use the 'config/database.properties' file
+    \item ask, prompt the user for a file name
+\end{itemize}
+
+ \\
+\end{arguments}
+
+    \predicate[semidet]{connect}{6}{-Driver, -Server, -Port, -Database, -User, -Password}
+Try to connect to the database by using the provided prameters.
+
+\begin{arguments}
+\arg{Driver} & The ODBC driver name. \\
+\arg{Server} & The server address. \\
+\arg{Port} & The server port. \\
+\arg{Database} & The database to connect to. \\
+\arg{User} & The username to use. \\
+\arg{Password} & The password to use. \\
+\end{arguments}
+
+    \predicate[semidet]{disconnect}{0}{}
+If there is an open connection, disconnects from it.
+
+    \predicate[semidet]{is_connected}{0}{}
+Check if there is a currently open connection.
+
+    \predicate[semidet]{symptom}{3}{?ID, ?Attribute, ?Value}
+Holds information for all retrieved symptoms.
+
+\begin{arguments}
+\arg{ID} & The \arg{ID} of the symptom. \\
+\arg{Attribute} & The name of the attribute (can be '\arg{ID}' or 'Description'). \\
+\arg{Value} & The value of the cell. \\
+\end{arguments}
+
+    \predicate[det]{clear_symptoms}{0}{}
+Retract all \predref{symptoms}{3}.
+
+    \predicate[semidet]{get_symptoms}{0}{}
+Fetch and assert all \predref{symptom}{2} from the database.
+Requires an open connection named dialysis_connection.
+
+    \predicate[det]{print_symptoms}{0}{}
+Print all the symptom facts in the 'ID:Description' format.
+
+    \predicate[semidet]{update_symptoms}{0}{}
+Clear (with \predref{clear_symptoms}{0}) and refresh (with \predref{get_symptoms}{0}) all symptoms.
+
+    \predicate[semidet]{exists_symptom}{1}{+ID}
+Check if the given symptom \arg{ID} exists.
+
+\begin{arguments}
+\arg{ID} & \arg{ID} of the symptom to check for. \\
+\end{arguments}
+
+    \predicate[det]{exists_symptom}{1}{-Count}
+\arg{Count} the number of symptoms.
+
+\begin{arguments}
+\arg{Count} & The number of existing symptoms. \\
+\end{arguments}
+
+    \predicate[semidet]{ask_target}{0}{}
+Print all existing symptoms and ask the user to choose the one to predict outcomes for.
+If the user-entered symptom is not valid, the default one is selected, by calling
+\predref{fallback_default_target}{0}.
+
+    \predicate[det]{fallback_default_target}{0}{}
+Fall back to the default target symptom, after printing a warning.
+
+    \predicate[det]{update_target}{1}{+PositiveID}
+Save the positive and negative symptom IDs to be used for the learning step.
+
+    \predicate[semidet]{positive}{3}{?ID, ?Attribute, ?Value}
+Hold all the positive examples info, will then be split: \predref{train_positive}{3}, \predref{test_positive}{3}.
+
+\begin{arguments}
+\arg{ID} & The \arg{ID} of the example. \\
+\arg{Attribute} & The \arg{Attribute} for the cell, can be: '\arg{ID}', 'Patient', 'Center',
+'PatientSex', 'PatientRace', 'PatientAge', 'SessionID', 'SessionDate',
+'KTV', 'QB', 'ProgWeightLoss', 'RealWeightLoss', 'DeltaWeight',
+'ProgDuration', 'RealDuration', 'DeltaDuration', 'SAPStart', 'SAPEnd',
+'SAPAverage', 'DAPStart', 'DAPEnd', 'DAPAverage', 'DeltaBloodFlow',
+'DeltaUF', 'SymptomID', 'Score' \\
+\arg{Value} & The \arg{Value} for the cell. \\
+\end{arguments}
+
+\begin{tags}
+    \tag{See also}
+\predref{negative}{3}
+\end{tags}
+
+    \predicate[semidet]{negative}{3}{?ID, ?Attribute, ?Value}
+Hold all the negative examples info, will then be split: \predref{train_negative}{3}, \predref{test_negative}{3}.
+
+\begin{arguments}
+\arg{ID} & The \arg{ID} of the example. \\
+\arg{Attribute} & The \arg{Attribute} for the cell, can be: '\arg{ID}', 'Patient', 'Center',
+'PatientSex', 'PatientRace', 'PatientAge', 'SessionID', 'SessionDate',
+'KTV', 'QB', 'ProgWeightLoss', 'RealWeightLoss', 'DeltaWeight',
+'ProgDuration', 'RealDuration', 'DeltaDuration', 'SAPStart', 'SAPEnd',
+'SAPAverage', 'DAPStart', 'DAPEnd', 'DAPAverage', 'DeltaBloodFlow',
+'DeltaUF', 'SymptomID', 'Score' \\
+\arg{Value} & The \arg{Value} for the cell. \\
+\end{arguments}
+
+\begin{tags}
+    \tag{See also}
+\predref{positive}{3}
+\end{tags}
+
+    \predicate[det]{clear_records}{1}{+RecordName}
+Clear the records from the in-memory Prolog database.
+
+\begin{arguments}
+\arg{RecordName} & The name of the record, can be positive or negative. \\
+\end{arguments}
+
+    \predicate[det]{save_records}{2}{+Statement, +RecordName}
+Fetch all records from a prepared \arg{Statement}.
+
+\begin{arguments}
+\arg{Statement} & The prepared statement to fetch records from. \\
+\arg{RecordName} & The name of the record to assert rows into; can be positive or negative. \\
+\end{arguments}
+
+    \predicate[semidet]{get_records}{2}{+SymptomID, +RecordName}
+Get all records for a given \arg{SymptomID} and assert them with a given \arg{RecordName}.
+
+\begin{arguments}
+\arg{SymptomID} & The ID of the target attribute of the record. \\
+\arg{RecordName} & The name of the record to assert rows into; can be positive or negative. \\
+\end{arguments}
+
+    \predicate[det]{print_records}{1}{RecordName}
+Print all records with the given \arg{RecordName}
+
+\begin{arguments}
+\arg{RecordName} & The name of the record to assert rows into; can be positive or negative. \\
+\end{arguments}
+
+    \predicate[semidet]{update_records}{1}{+SymptomID}
+Update both positive and negative examples by fetching them from the database.
+The negative ID is fixed (1), but the positive can be passed to this predicate.
+
+\begin{arguments}
+\arg{SymptomID} & The ID of the symptom to be used as positive target, or:
+
+\begin{shortlist}
+    \item default, use the 2
+    \item ask, let the user decide
+\end{shortlist}
+
+ \\
+\end{arguments}
+
+    \predicate[semidet]{update_records}{0}{}
+Clear (\predref{clear_records}{1}) and updates (\predref{get_records}{2}) all positive and negative examples.
+
+    \predicate[semidet]{exists_record}{2}{+RecordName, ?ID}
+Check if the given record \arg{ID} was asserted with the given \arg{RecordName}.
+
+\begin{arguments}
+\arg{RecordName} & The name the record was asserted with; can be positive or negative. \\
+\arg{ID} & The \arg{ID} of the record. \\
+\end{arguments}
+
+    \predicate[det]{count_records}{2}{+RecordName, ?Count}
+\arg{Count} the number of existing records with a given name.
+
+\begin{arguments}
+\arg{RecordName} & The name of the record to count; can be positive or negative. \\
+\arg{Count} & The number of records. \\
+\end{arguments}
+
+    \predicate[det]{count_all_examples}{1}{-Count}
+Return the number of all examples in the Prolog in-memory database.
+@see \predref{example}{4}
+
+\begin{arguments}
+\arg{Count} & The number of retrieved examples \\
+\end{arguments}
+\end{description}
+
+\section{categories.pl}
+
+\label{sec:categories}
+
+\begin{description}
+    \predicate[semidet]{data_type}{2}{?Attribute, ?Type}
+Define the type of the attribute data.
+
+\begin{arguments}
+\arg{Attribute} & The \arg{Attribute} name. \\
+\arg{Type} & The \arg{Type} of the \arg{Attribute}, can be category or number. \\
+\end{arguments}
+
+    \predicate[semidet]{target_class}{1}{?Attribute}
+Holds information of the target \arg{Attribute} to predict for.
+
+\begin{arguments}
+\arg{Attribute} & The \arg{Attribute} name holding the target information (always 'SymptomID'). \\
+\end{arguments}
+
+    \predicate[semidet]{class}{2}{?Attribute, ?RangeList:list}
+Holds range information for each attribute.
+Note: only attributes with at least one value will be classified
+
+\begin{arguments}
+\arg{Attribute} & The \arg{Attribute} name. \\
+\arg{RangeList} & The (ordered) list of ranges the attribute was split into. \\
+\end{arguments}
+
+    \predicate[det]{update_categories}{0}{}
+Make ranges for all of the available attributes.
+For a category: every possible value is both the start and end of the class
+For a number: use ranges that span (\Sbar{}max-min\Sbar{}/10) values
+
+    \predicate[det]{make_class}{2}{+Attribute, +Type}
+Make ranges for a generic \arg{Attribute} with a given \arg{Type}.
+
+\begin{arguments}
+\arg{Attribute} & The \arg{Attribute} name. \\
+\arg{Type} & The \arg{Type} of the \arg{Attribute}. \\
+\end{arguments}
+
+    \predicate[det]{get_range_span}{2}{+Difference, -Span}
+Calculate \arg{Difference}/10 as the range \arg{Span}.
+
+\begin{arguments}
+\arg{Difference} & The difference between a minimum and maximum value. \\
+\arg{Span} & The resulting range cardinality. \\
+\end{arguments}
+
+    \predicate[det]{generate_range}{4}{+Attribute, +Min, +Max, +Span}
+Recursively generate ranges for the given \arg{Attribute}.
+
+\begin{arguments}
+\arg{Attribute} & The \arg{Attribute} to generate ranges for. \\
+\arg{Min} & The current minimum value of the range. \\
+\arg{Max} & The current maximum value of the range. \\
+\arg{Span} & The calculated range cardinality. \\
+\end{arguments}
+
+    \predicate[semidet]{add_to_class}{3}{+Attribute, +Bottom, +Top}
+Add the input range to the ranges of the \arg{Attribute} (\predref{class}{2}).
+
+\begin{arguments}
+\arg{Attribute} & The \arg{Attribute} to add the range to. \\
+\arg{Bottom} & The minimum value of the range. \\
+\arg{Top} & The maximum value of the range. \\
+\end{arguments}
+
+    \predicate[nondet]{is_in_range}{2}{+Value, ?Range}
+Check if the given \arg{Value} is included in the given \arg{Range}.
+If \arg{Range} is a category, Bottom equals Top, so only a check on Bottom = \arg{Value} is performed.
+If \arg{Range} is a number, \arg{Value} must be higher or equal than Bottom and
+
+\begin{arguments}
+\arg{Value} & A value, can be a number or a category. \\
+\arg{Range} & A \arg{Range} structure, as \verb$range(Bottom, Top)$. \\
+\end{arguments}
+\end{description}
+
+\section{util.pl}
+
+\label{sec:util}
+
+\begin{description}
+    \predicate[det]{measure_time}{0}{}
+Reset the global timer.
+
+    \predicate[semidet]{measure_time}{1}{-Time}
+Return the time (in milliseconds) elapsed from the last call to \predref{measure_time}{0}.
+
+\begin{arguments}
+\arg{Time} & The elapsed time, in milliseconds. \\
+\end{arguments}
+
+    \predicate[nondet]{timer_time}{2}{?Name, ?Time}
+Holds information for existing timers.
+
+\begin{arguments}
+\arg{TimerName} & The name of the timer. \\
+\arg{TimerStart} & The date (in seconds, UNIX epoch time) when the timer was started. \\
+\end{arguments}
+
+    \predicate[semidet]{timer_start}{1}{+Name}
+Start a new timer with a given name.
+If another timer with the given name exists, an error is raised.
+
+\begin{arguments}
+\arg{Name} & The name of the new timer. \\
+\end{arguments}
+
+    \predicate[semidet]{timer_get}{2}{+Name, -Elapsed}
+Get the elapsed time from a given timer.
+
+\begin{arguments}
+\arg{Name} & The name of the timer. \\
+\arg{Elapsed} & The number of elapsed seconds since the timer was started. \\
+\end{arguments}
+
+    \predicate[semidet]{timer_stop}{2}{+Name, -Elapsed}
+Stop and destroy a given timer.
+
+\begin{arguments}
+\arg{Name} & The name of the timer to be stopped. \\
+\arg{Elapsed} & The number of elapsed seconds since the timer was started. \\
+\end{arguments}
+
+    \predicate[semidet]{timer_must_not_exist}{1}{+Name}
+Check if a timer exists and logs an error if it does.
+
+\begin{arguments}
+\arg{Name} & The name of the timer to check for. \\
+\end{arguments}
+
+    \predicate[semidet]{timer_must_exist}{1}{+Name}
+Check if a timer doesn't exists and logs an error if it does not.
+
+\begin{arguments}
+\arg{Name} & The name of the timer to check for. \\
+\end{arguments}
+
+    \predicate[semidet]{format_ms}{4}{?Time, ?Minutes, ?Seconds, ?Milliseconds}
+Convert a bunch of milliseconds into minutes, seconds an milliseconds.
+
+\begin{arguments}
+\arg{Time} & The time in milliseconds. \\
+\arg{Minutes} & The number of minutes in \arg{Time}. \\
+\arg{Seconds} & The number of seconds in \arg{Time}. \\
+\arg{Milliseconds} & The number of remaining milliseconds in \arg{Time}. \\
+\end{arguments}
+
+    \predicate[semidet]{format_s}{2}{?Time, ?String}
+Convert a bunch of seconds into a string representation.
+
+\begin{arguments}
+\arg{Time} & The time in seconds. \\
+\arg{Minutes} & The string representation of \arg{Time}, in the '\{M\}m \{S\}s \{MS\}ms' format. \\
+\end{arguments}
+
+    \predicate[semidet]{format_ms}{2}{?Time, ?String}
+Convert a bunch of seconds into a string representation.
+
+\begin{arguments}
+\arg{Time} & The time in milliseconds. \\
+\arg{Minutes} & The string representation of \arg{Time}, in the '\{M\}m \{S\}s \{MS\}ms' format. \\
+\end{arguments}
+
+    \predicate[det]{println}{1}{+Element}
+Print something without a separator.
+
+\begin{arguments}
+\arg{Element} & The element to print. \\
+\end{arguments}
+
+\begin{tags}
+    \tag{See also}
+\predref{println}{2}.
+\end{tags}
+
+    \predicate[semidet]{list_min}{2}{+List:list, ?Min}
+Get the minimum element from a numeric list.
+
+\begin{arguments}
+\arg{List} & The list to look the minimum into. \\
+\arg{Min} & The minimum element of the list. \\
+\end{arguments}
+
+    \predicate[semidet]{list_max}{2}{+List:list, ?Max}
+Get the maximum element from a numeric list.
+
+\begin{arguments}
+\arg{List} & The list to look the minimum into. \\
+\arg{Max} & The maximum element of the list. \\
+\end{arguments}
+
+    \predicate[semidet]{list_most_common}{3}{+List:list, ?Element, ?Count}
+Get the most common \arg{Element} from a \arg{List}, returning the \arg{Count}.
+
+\begin{arguments}
+\arg{List} & The list to look into. \\
+\arg{Element} & The most common element of the list. \\
+\arg{Count} & The number of times the most common element was found in the list. \\
+\end{arguments}
+
+    \predicate[semidet]{index_of}{3}{+List:list, +Element, ?Index}
+Get the position of an element in a list.
+
+\begin{arguments}
+\arg{List} & The list to look into. \\
+\arg{Element} & The element to find the position for. \\
+\arg{Index} & The index of the element in the list. \\
+\end{arguments}
+
+    \predicate[det]{list_push}{3}{+List:list, +Element, -ResultingList:list}
+Add an element to the end of a list.
+
+\begin{arguments}
+\arg{List} & The list to append the element to. \\
+\arg{Element} & The element to be appended. \\
+\arg{ResultingList} & The resulting list. \\
+\end{arguments}
+
+    \predicate[det]{list_unshift}{3}{+List:list, +Element, -ResultingList:list}
+Add an element to the top of a list.
+
+\begin{arguments}
+\arg{List} & The list to unshift the element to. \\
+\arg{Element} & The element to be unshifted. \\
+\arg{NewList} & The resulting list. \\
+\end{arguments}
+
+    \predicate[det]{list_append}{3}{+A, +B, -ResultingList:list}
+Concat two generic elements in one list. Both elements can be lists or atoms, indipendently.
+
+\begin{arguments}
+\arg{A} & The first element (atom or list). \\
+\arg{B} & The second element (atom or list). \\
+\arg{List} & The resulting list. \\
+\end{arguments}
+
+    \predicate[det]{log2}{2}{+Expr, -R}
+Calculate the base-2 logarithm of \arg{Expr}.
+
+\begin{arguments}
+\arg{Expr} & The expression to calculate the log2 for. \\
+\arg{R} & The result of the calculation. \\
+\end{arguments}
+\end{description}
+
+\section{learner.pl}
+
+\label{sec:learner}
+
+\begin{description}
+    \predicate[semidet]{example}{4}{Kind, ID, Attribute, Value}
+Accessory predicate to access any kind of example (both training or testing) by specifying
+the name the record was asserted with (negative or positive).
+
+\begin{arguments}
+\arg{Kind} & The name the record was asserted with; can be positive or negative. \\
+\arg{ID} & The \arg{ID} of the example. \\
+\arg{Attribute} & The \arg{Attribute} of the example. \\
+\arg{Value} & The \arg{Value} of the example. \\
+\end{arguments}
+
+    \predicate[det]{split_examples}{2}{+FoldCount, +TestFold}
+Split all examples between \predref{train_examples}{1} and \predref{test_examples}{1}.
+
+\begin{arguments}
+\arg{FoldCount} & The number of total fold to split the examples between. \\
+\arg{TestFold} & The index of the testing fold at the current step. \\
+\end{arguments}
+
+    \predicate[det]{split_examples}{5}{+PositiveNegative, +FoldCount, +TestFold, -TrainExamples, -TestExamples}
+Split positive or negative examples in two different lists: training and testing, according
+to the fold number and the current test fold.
+If \arg{FoldCount} and \arg{TestFold} equal to 1, simulate the testing and training set as being the same.
+
+\begin{arguments}
+\arg{PositiveNegative} & The classification of the example, can be positive or negative. \\
+\arg{FoldCount} & The number of total fold to split the examples between. \\
+\arg{TestFold} & The index of the testing fold at the current step. \\
+\arg{TrainExamples} & The generated training examples list of IDs. \\
+\arg{TestExamples} & The generated testing examples list of IDs. \\
+\end{arguments}
+
+    \predicate[semidet]{train_examples}{1}{-List:list}
+Return the list of current training examples.
+
+\begin{arguments}
+\arg{List} & The list of training examples. \\
+\end{arguments}
+
+    \predicate[nondet]{train_example}{4}{Kind, ID, Attribute, Value}
+Access any kind of training example by specifying the name the record was asserted with
+(negative or positive).
+
+\begin{arguments}
+\arg{Kind} & The name the record was asserted with; can be positive or negative. \\
+\arg{ID} & The \arg{ID} of the example. \\
+\arg{Attribute} & The \arg{Attribute} of the example. \\
+\arg{Value} & The \arg{Value} of the example. \\
+\end{arguments}
+
+    \predicate[semidet]{test_examples}{1}{-List:list}
+Return the list of current testing examples.
+
+\begin{arguments}
+\arg{List} & The list of testing examples. \\
+\end{arguments}
+
+    \predicate[nondet]{test_example}{4}{Kind, ID, Attribute, Value}
+Access any kind of testing example by specifying the name the record was asserted with
+(negative or positive).
+
+\begin{arguments}
+\arg{Kind} & The name the record was asserted with; can be positive or negative. \\
+\arg{ID} & The \arg{ID} of the example. \\
+\arg{Attribute} & The \arg{Attribute} of the example. \\
+\arg{Value} & The \arg{Value} of the example. \\
+\end{arguments}
+
+    \predicate[nondet]{train_positive}{3}{?ID, ?Attribute, ?Value}
+Hold positive training examples information.
+
+\begin{arguments}
+\arg{ID} & The \arg{ID} of the example. \\
+\arg{Attribute} & The \arg{Attribute} for the cell, can be: '\arg{ID}', 'Patient', 'Center',
+'PatientSex', 'PatientRace', 'PatientAge', 'SessionID', 'SessionDate',
+'KTV', 'QB', 'ProgWeightLoss', 'RealWeightLoss', 'DeltaWeight',
+'ProgDuration', 'RealDuration', 'DeltaDuration', 'SAPStart', 'SAPEnd',
+'SAPAverage', 'DAPStart', 'DAPEnd', 'DAPAverage', 'DeltaBloodFlow',
+'DeltaUF', 'SymptomID', 'Score' \\
+\arg{Value} & The \arg{Value} for the cell. \\
+\end{arguments}
+
+\begin{tags}
+    \tag{See also}
+\predref{negative}{3}
+\end{tags}
+
+    \predicate[nondet]{train_negative}{3}{?ID, ?Attribute, ?Value}
+Hold negative training examples information.
+
+\begin{arguments}
+\arg{ID} & The \arg{ID} of the example. \\
+\arg{Attribute} & The \arg{Attribute} for the cell, can be: '\arg{ID}', 'Patient', 'Center',
+'PatientSex', 'PatientRace', 'PatientAge', 'SessionID', 'SessionDate',
+'KTV', 'QB', 'ProgWeightLoss', 'RealWeightLoss', 'DeltaWeight',
+'ProgDuration', 'RealDuration', 'DeltaDuration', 'SAPStart', 'SAPEnd',
+'SAPAverage', 'DAPStart', 'DAPEnd', 'DAPAverage', 'DeltaBloodFlow',
+'DeltaUF', 'SymptomID', 'Score' \\
+\arg{Value} & The \arg{Value} for the cell. \\
+\end{arguments}
+
+\begin{tags}
+    \tag{See also}
+\predref{positive}{3}
+\end{tags}
+
+    \predicate[nondet]{test_positive}{3}{?ID, ?Attribute, ?Value}
+Hold positive testing examples information.
+
+\begin{arguments}
+\arg{ID} & The \arg{ID} of the example. \\
+\arg{Attribute} & The \arg{Attribute} for the cell, can be: '\arg{ID}', 'Patient', 'Center',
+'PatientSex', 'PatientRace', 'PatientAge', 'SessionID', 'SessionDate',
+'KTV', 'QB', 'ProgWeightLoss', 'RealWeightLoss', 'DeltaWeight',
+'ProgDuration', 'RealDuration', 'DeltaDuration', 'SAPStart', 'SAPEnd',
+'SAPAverage', 'DAPStart', 'DAPEnd', 'DAPAverage', 'DeltaBloodFlow',
+'DeltaUF', 'SymptomID', 'Score' \\
+\arg{Value} & The \arg{Value} for the cell. \\
+\end{arguments}
+
+\begin{tags}
+    \tag{See also}
+\predref{negative}{3}
+\end{tags}
+
+    \predicate[nondet]{test_negative}{3}{?ID, ?Attribute, ?Value}
+Hold negative testing examples information.
+
+\begin{arguments}
+\arg{ID} & The \arg{ID} of the example. \\
+\arg{Attribute} & The \arg{Attribute} for the cell, can be: '\arg{ID}', 'Patient', 'Center',
+'PatientSex', 'PatientRace', 'PatientAge', 'SessionID', 'SessionDate',
+'KTV', 'QB', 'ProgWeightLoss', 'RealWeightLoss', 'DeltaWeight',
+'ProgDuration', 'RealDuration', 'DeltaDuration', 'SAPStart', 'SAPEnd',
+'SAPAverage', 'DAPStart', 'DAPEnd', 'DAPAverage', 'DeltaBloodFlow',
+'DeltaUF', 'SymptomID', 'Score' \\
+\arg{Value} & The \arg{Value} for the cell. \\
+\end{arguments}
+
+\begin{tags}
+    \tag{See also}
+\predref{positive}{3}
+\end{tags}
+
+    \predicate[semidet]{complete_set}{1}{?CompleteSet:list}
+Get the complete set of training example IDs as a list.
+
+\begin{arguments}
+\arg{CompleteSet} & The list of all the training example IDs. \\
+\end{arguments}
+
+    \predicate[semidet]{entropy}{2}{+IncludedValues, -Entropy}
+Calculate the entropy of a given list of training examples (by IDs).
+
+\begin{arguments}
+\arg{IncludedValues} & A list of the example IDs to be included when considering the entropy
+calculus. The resulting examples will be intersected with the positive
+and negative examples.
+If you don't want to filter anything, pass in all of the example IDs:
+
+\begin{code}
+findall(ID, (train_example(_, ID, 'ID', ID),
+train_example(_, ID, 'DeltaWeight', 1)), IncludedValues).
+\end{code}
+
+ \\
+\arg{Entropy} & The resulting entropy of the examples passed by IDs. \\
+\end{arguments}
+
+    \predicate[semidet]{entropy}{1}{-Entropy}
+Calculate the entropy of the whole set of training examples. This is a shortcut clause for:
+
+\begin{code}
+findall(ID, train_example(ID,'ID',ID), List), entropy(List, Entropy).
+\end{code}
+
+\begin{arguments}
+\arg{Entropy} & The resulting entropy of the whole set of training examples. \\
+\end{arguments}
+
+    \predicate[semidet]{best_attribute}{3}{+Set:list, +Attributes:list, -Attribute}
+Select the best attribute from the given lists of attributes and examples,
+using the information gain measure.
+
+\begin{arguments}
+\arg{Set} & The list of example IDs to calculate the best attribute for. \\
+\arg{Set} & The list of attributes to select the best attribute from. \\
+\arg{Attribute} & The best attribute for the given set. \\
+\end{arguments}
+
+    \predicate[semidet]{best_attribute}{1}{-Attribute}
+Select the best attribute from the whole set of attributes and training examples.
+This is a shortcut clause for:
+
+\begin{code}
+findall(ID, train_example(ID,'ID',ID), Examples),
+findall(Attribute, class(Attribute, _), Attributes),
+best_attribute(Examples, Attributes, Entropy).
+\end{code}
+
+\begin{arguments}
+\arg{Attribute} & The best attribute for all of the exmmples and attributes. \\
+\end{arguments}
+
+    \predicate[semidet]{info_gain}{3}{+Set:list, +Attribute, -InfoGain}
+Calculate the Information Gain for a set of training exampes and a given attribute.
+
+\begin{arguments}
+\arg{Set} & A list of IDs to be included when considering the info gain calculus. \\
+\arg{Attribute} & The attribute to calculate the information gain for. \\
+\arg{InfoGain} & The calculated information gain. \\
+\end{arguments}
+
+    \predicate[det]{info_gain}{2}{+Attribute, -InfoGain}
+Calculate the Information Gain for all training examples and one attribute.
+This is a shortcut clause for:
+
+\begin{code}
+findall(ID, train_example(ID,'ID',ID), Examples),
+info_gain(CompleteSet, Attribute, InfoGain).
+\end{code}
+
+\begin{arguments}
+\arg{Attribute} & The attribute to calculate the information gain for. \\
+\arg{InfoGain} & The calculated information gain. \\
+\end{arguments}
+
+    \predicate[semidet]{partial_info_gain}{4}{+Set:list, +Attribute, +Range, -PartialInfoGain}
+Calculate a partial value used to compute the info gain for a given attribute.
+
+\begin{arguments}
+\arg{Set} & The list of example IDs to calculate the value for. \\
+\arg{Attribute} & The attribute name to calculate the value for. \\
+\arg{Range} & The specific \verb$range(Bottom, Top)$ for the given \arg{Attribute}. \\
+\arg{PartialInfoGain} & The partial value to be used to compute the whole \arg{Attribute} Info Gain. \\
+\end{arguments}
+
+    \predicate[det]{clean_set}{3}{+Set:list, +Attribute, -CleanSet}
+Clean the given list of example IDs (doesn't matter if training or testing) from '\$null\$' values.
+
+\begin{arguments}
+\arg{Set} & The set of example IDs to clean. \\
+\arg{Attribute} & The attribute whose \$null\$ value must be deleted. \\
+\arg{CleanSet} & The \arg{CleanSet}, a list whose \arg{Attribute} does not have '\$null\$'' values. \\
+\end{arguments}
+
+    \predicate[det]{partition_examples}{4}{+InExamples:list, +Attribute, +Range, -OutExamples}
+Partition a list of example IDs by analyzing an attribute in a given range.
+
+\begin{arguments}
+\arg{InExamples} & List of example IDs to analyze and filter. \\
+\arg{Attribute} & The attribute to filter on. \\
+\arg{Range} & The range to filter with. \\
+\arg{OutExamples} & List of example IDs to return. \\
+\end{arguments}
+
+    \predicate[semidet]{node}{4}{?NodeName, ?ParentNode, ?SplitAttribute, ?SplitRange}
+Holds the node name information, the parent node, and the splitting attribute and range.
+
+    \predicate[semidet]{node_label}{2}{?Node, ?Label}
+Holds the node name information, the parent node, and the splitting attribute and range.
+
+    \predicate[det]{learn_please}{0}{}
+Start the learning process:
+
+\begin{enumerate}
+    \item partition the \predref{positive}{3} data set in 10 folds
+    \item partition the \predref{negative}{3} data set in 10 folds
+    \item for every generated fold:
+a. start the learning phase
+b. start the testing phase
+\end{enumerate}
+
+    \predicate[nondet]{test_step}{2}{?Step, ?List}
+Holds information about a particular step run.
+
+\begin{arguments}
+\arg{Step} & The step the error rate was calculated at. \\
+\arg{List} & \arg{List} containing the following:
+
+\begin{shortlist}
+    \item \verb$n(AllNegatives)$
+    \item \verb$p(AllPositives)$
+    \item \verb$rules(GeneratedRules)$
+    \item \verb$tn(TrueNegatives)$
+    \item \verb$fn(FalseNegatives)$
+    \item \verb$tp(TruePositives)$
+    \item \verb$fp(FalsePositives)$
+    \item \verb$true_pos_rate(TruePosRate)$
+    \item \verb$true_neg_rate(TrueNegRate)$
+    \item \verb$false_pos_rate(FalsePosRate)$
+    \item \verb$false_neg_rate(FalseNegRate)$
+    \item \verb$precision(Precision)$
+    \item \verb$recall(Recall)$
+\end{shortlist}
+
+ \\
+\end{arguments}
+
+\begin{tags}
+    \tag{See also}
+\predref{test}{1}.
+\end{tags}
+
+    \predicate[nondet]{test_final}{1}{?List}
+Holds information about the final testing process.
+
+\begin{arguments}
+\arg{List} & \arg{List} containing the following:
+
+\begin{shortlist}
+    \item \verb$n(AllNegatives)$
+    \item \verb$p(AllPositives)$
+    \item \verb$rules(GeneratedRules)$
+    \item \verb$tn(TrueNegatives)$
+    \item \verb$fn(FalseNegatives)$
+    \item \verb$tp(TruePositives)$
+    \item \verb$fp(FalsePositives)$
+    \item \verb$true_pos_rate(TruePosRate)$
+    \item \verb$true_neg_rate(TrueNegRate)$
+    \item \verb$false_pos_rate(FalsePosRate)$
+    \item \verb$false_neg_rate(FalseNegRate)$
+    \item \verb$precision(Precision)$
+    \item \verb$recall(Recall)$
+\end{shortlist}
+
+ \\
+\end{arguments}
+
+\begin{tags}
+\mtag{See also}- \predref{test_step}{2}. \\- \predref{test}{0}.
+\end{tags}
+
+    \predicate[nondet]{is_positive}{2}{+ID, ?LearningStep}
+Check if a given \predref{example}{4} \arg{ID} is positive according to an optionally provided \arg{LearningStep}.
+
+\begin{arguments}
+\arg{ID} & The \arg{ID} of the \predref{example}{3} to check for. \\
+\arg{LearningStep} & The step number of the learning process. \\
+\end{arguments}
+
+\begin{tags}
+    \tag{See also}
+\predref{check_condition_list}{3}
+\end{tags}
+
+    \predicate[semidet]{check_positive}{2}{+ID, ?LearningStep}
+Semi-deterministic version of \predref{is_positive}{2}. If there is at least one \predref{is_positive}{2} that
+satisfies the current \arg{ID}, succeed; otherwise, fail.
+
+\begin{arguments}
+\arg{ID} & The \arg{ID} of the \predref{example}{3} to check for. \\
+\arg{LearningStep} & The step number of the learning process. \\
+\end{arguments}
+
+\begin{tags}
+    \tag{See also}
+\predref{is_positive}{2}
+\end{tags}
+
+    \predicate[semidet]{check_final_positive}{1}{+ID}
+Final one-time check for the complete and purged set of rules.
+If there is at least one \predref{final_positive}{2} that satisfies the current \arg{ID}, succeed;
+otherwise, fail.
+
+\begin{arguments}
+\arg{ID} & The \arg{ID} of the \predref{example}{3} to check for. \\
+\end{arguments}
+
+\begin{tags}
+    \tag{See also}
+\predref{is_positive}{2}
+\end{tags}
+
+    \predicate[nondet]{final_positive}{2}{?ID, ?StepList}
+Check if a given \predref{example}{4} \arg{ID} is positive. If the example is positive, \arg{StepList} will be
+instantiated with a list of steps that generated the rule that classifies the example
+as positive.
+
+\begin{arguments}
+\arg{ID} & The \arg{ID} of the \predref{example}{3} to check for. \\
+\arg{StepList} & A list of step indexes where the satisfactory rule was asserted in. \\
+\end{arguments}
+
+\begin{tags}
+    \tag{See also}
+\predref{is_positive}{2}, \predref{check_condition_list}{3}
+\end{tags}
+
+    \predicate[det]{purge_rules}{0}{}
+From the list of rules generated at each step of the learning process, assert in the Prolog
+memory a set of the same rules, but without any duplicate.
+A duplicate rule is considered a \predref{is_positive}{2} rule with the same body.
+Rules will be asserted as \predref{final_positive}{2}, where the first argument is the ID of the example
+to check for and the second argument is the list of steps where the rule was found (duplicated).
+
+    \predicate[det]{test}{1}{+Step}
+Test all \predref{test_positive}{3} and \predref{test_negative}{3} and calculates several useful information.
+The calculated information is asserted as \predref{test_step}{2}.
+In the end, it prints a report of the run.
+
+\begin{arguments}
+\arg{Step} & The learning step, defines the particular rules to test against. \\
+\end{arguments}
+
+\begin{tags}
+    \tag{See also}
+\predref{test_step}{2}
+\end{tags}
+
+    \predicate[det]{test}{0}{}
+Test all \predref{positive}{3} and \predref{negative}{3} and calculates several useful information.
+The calculated information is asserted as \predref{test_final}{1}.
+
+\begin{tags}
+    \tag{See also}
+\predref{test_final}{1}
+\end{tags}
+
+    \predicate[det]{learn}{1}{+Step}
+Start the learning process using given sets of training and testing examples by adding
+\predref{node}{4} and \predref{node_label}{2} clauses to the database.
+
+\begin{arguments}
+\arg{TotalFolds} & The number of folds to split the examples into. \\
+\arg{Step} & The current learning step. \\
+\end{arguments}
+
+    \predicate[det]{c45}{3}{+Node, +Examples:list, +Attributes:list}
+Apply the C4.5 algorithm to a given node, that will be split according to the training examples
+passed and the available attributes still left.
+
+\begin{arguments}
+\arg{Node} & The node to build. \\
+\arg{Examples} & The training examples. \\
+\arg{Attributes} & The list of attributes to be tested. \\
+\end{arguments}
+
+    \predicate[semidet]{print_le_tree}{0}{}
+Print the learnt tree, if there is a \verb$node('root', root, Root, root)$.
+
+    \predicate[semidet]{print_le_branch}{2}{+Node, +NestLevel}
+Print a given node with a nest level that decides how much left space
+the node representation must have.
+
+A node will be printed with:
+
+\begin{itemize}
+    \item a check character, if the node is terminal and classifies positive examples
+    \item a uncheck character, if the node is terminal and doesn't classify positive examples
+    \item a down arrow, if the node is not terminal
+\end{itemize}
+
+\begin{arguments}
+\arg{Node} & The node to print. \\
+\arg{NestLevel} & The nesting level to be used. \\
+\end{arguments}
+
+    \predicate[semidet]{gen_all_the_rulez}{1}{+Step}
+For each \predref{node_label}{2} with a positive outcome, generate the corresponding rule
+by going up from the leaf to the tree root node.
+The rule will be \predref{is_positive}{2}.
+
+\begin{arguments}
+\arg{Step} & The current learning step. \\
+\end{arguments}
+
+    \predicate[semidet]{gen_rule}{2}{+Node, +Step}
+Generate the rule for the corresponding input \arg{Node}.
+
+\begin{arguments}
+\arg{Node} & The leaf \arg{Node} that holds the rule information. \\
+\arg{Step} & The current learning step. \\
+\end{arguments}
+
+    \predicate[semidet]{condition}{2}{?Attribute, ?Range}
+Holds information about a condition of success for an \arg{Attribute} in a given \arg{Range}.
+
+\begin{arguments}
+\arg{Attribute} & The attribute to test the condition onto. \\
+\arg{Range} & The range to be used for the test. \\
+\end{arguments}
+
+    \predicate[semidet]{get_rule_list}{3}{+Node, +PrevList:list, -List:list}
+Builds a list of \verb$condition(Attribute, Range)$ given a node, concatenating
+the conditions to the given \arg{PrevList} (can be empty).
+
+\begin{arguments}
+\arg{Node} & The \arg{Node} to build the condition list for. \\
+\arg{PrevList} & The temporary list for recursion. \\
+\arg{List} & The list of conditions to return. \\
+\end{arguments}
+
+    \predicate[semidet]{ensure_not_null_conditions}{2}{+ID, +List:list}
+Succeed if:
+
+\begin{itemize}
+    \item the \arg{List} is empty
+    \item there is at least one condition Attribute that \predref{example}{4} with the given \arg{ID} has not null
+\end{itemize}
+
+Otherwise, it fails.
+
+\begin{arguments}
+\arg{ID} & The \arg{ID} of the \predref{example}{4} to check. \\
+\arg{List} & The list of \predref{condition}{2} to loop through. \\
+\end{arguments}
+
+    \predicate[semidet]{check_condition_list}{2}{+ID, +List:list}
+Check if a given example with an \arg{ID} matches all the conditions in the input list.
+
+\begin{arguments}
+\arg{ID} & The \arg{ID} of the example. \\
+\arg{List} & The \arg{List} of \predref{condition}{2}. \\
+\end{arguments}
+
+    \predicate[det]{get_conditions_from_list}{2}{+Conditions:list, -Condition}
+Generate a set of Prolog conjunctives from a list of \predref{condition}{2}.
+
+\begin{arguments}
+\arg{List} & The list of \predref{condition}{2}. \\
+\arg{Set} & The set of Prolog conjunctives. \\
+\end{arguments}
+
+    \predicate[det]{print_report}{1}{+Elapsed}
+Print a detailed report of the learning algorithm and of the executed tests.
+
+\begin{arguments}
+\arg{Elapsed} & The number of seconds the algorithm has taken to complete \\
+\end{arguments}
+
+    \predicate[det]{save_log}{1}{+Elapsed}
+Save a log .csv file: 'runs/log_\{ID\}.csv'.
+The 'runs' folder must exist.
+
+The file will list, for each run:
+
+\begin{shortlist}
+    \item the symptom ID (always the same for each file)
+    \item the run index
+    \item the number of generated rules
+    \item the true positive rate
+    \item the false positive rate
+    \item the precision
+    \item the recall
+    \item the F-Measure
+\end{shortlist}
+
+The last line contains:
+
+\begin{itemize}
+    \item the time of total execution (in seconds)
+    \item the number of positive examples (including both training and testing examples)
+    \item the final number of generated rules
+    \item the final true positive rate
+    \item the final false positive rate
+    \item the final precision
+    \item the final recall
+    \item the final F-Measure
+\end{itemize}
+
+\begin{arguments}
+\arg{Elapsed} & Total time of execution, in seconds. \\
+\end{arguments}
+
+    \predicate[det]{save_rules}{0}{}
+Save all generated rules in the prolog file: 'runs/rules_\{ID\}.pl'.
+The 'runs' folder must exist.
+\end{description}
+
+\section{log.pl}
+
+\label{sec:log}
+
+\begin{description}
+    \predicate[nondet]{log_level}{4}{?Priority, ?Name, ?StringRepr, ?OptList:list}
+Holds information for every logging level.
+
+\begin{arguments}
+\arg{Priority} & The priority value, the higher the better. \\
+\arg{Name} & The logging level name. \\
+\arg{StringRepr} & The string representation of the log level, to be used for printing. \\
+\arg{OptList} & The options for color printing the level. \\
+\end{arguments}
+
+    \predicate[semidet]{log_level}{1}{+Level}
+Set the log level, any level lesser than this will not be printed.
+This is a setter that checks that the input parameter is instantiated and that the specified
+level exists.
+
+\begin{arguments}
+\arg{Level} & The level to set the logging information to. \\
+\end{arguments}
+
+    \predicate[semidet]{log_level}{1}{-Level}
+Return the current log level, checking that the input parameter is an unbound variable that can
+be instantiated.
+
+\begin{arguments}
+\arg{Level} & The current minumum log level. \\
+\end{arguments}
+
+    \predicate[nondet]{can_log}{1}{?Level}
+Checks if a specified level can be currently printed.
+Succeed if the input log has a higher or equal priority than the current minimum level.
+Fails otherwise.
+
+\begin{arguments}
+\arg{Level} & The level to be checked. \\
+\end{arguments}
+
+    \predicate[det]{log_at}{3}{+Level, +Tag, +Log}
+\arg{Log} a message at a certain level with a given tag.
+
+\begin{arguments}
+\arg{Level} & The level to log the message with, choose between verbose, debug, info,
+warn, error, assert. \\
+\arg{Tag} & The tag to use as the log header. \\
+\arg{Log} & The actual log message. \\
+\end{arguments}
+
+    \predicate[det]{log_at}{2}{+Level, +Log}
+\arg{Log} a message at a certain level without a tag.
+Shortcut method to avoid the logging of the tag.
+
+\begin{tags}
+    \tag{See also}
+\predref{log_at}{3}.
+\end{tags}
+
+    \predicate[det]{log_tag}{3}{+Level, +Tag, +Max}
+Log a tag with a certain level (used for the color) and with a character limit, beyond which
+ellipsis are added.
+
+\begin{arguments}
+\arg{Level} & The level to log the tag with, choose between verbose, debug, info,
+warn, error, assert. \\
+\arg{Tag} & The tag to print. \\
+\arg{Max} & The maximum tag length. \\
+\end{arguments}
+
+    \predicate[det]{log_v}{2}{+Tag, +Log}
+\arg{Log} a tag and a message at verbose level.
+
+\begin{arguments}
+\arg{Tag} & The tag to be used in the logging entry. \\
+\arg{Log} & The log message to be printed. \\
+\end{arguments}
+
+    \predicate[det]{log_d}{2}{+Tag, +Log}
+\arg{Log} a tag and a message at debug level.
+
+\begin{arguments}
+\arg{Tag} & The tag to be used in the logging entry. \\
+\arg{Log} & The log message to be printed. \\
+\end{arguments}
+
+    \predicate[det]{log_i}{2}{+Tag, +Log}
+\arg{Log} a tag and a message at info level.
+
+\begin{arguments}
+\arg{Tag} & The tag to be used in the logging entry. \\
+\arg{Log} & The log message to be printed. \\
+\end{arguments}
+
+    \predicate[det]{log_w}{2}{+Tag, +Log}
+\arg{Log} a tag and a message at warn level.
+
+\begin{arguments}
+\arg{Tag} & The tag to be used in the logging entry. \\
+\arg{Log} & The log message to be printed. \\
+\end{arguments}
+
+    \predicate[det]{log_e}{2}{+Tag, +Log}
+\arg{Log} a tag and a message at error level.
+
+\begin{arguments}
+\arg{Tag} & The tag to be used in the logging entry. \\
+\arg{Log} & The log message to be printed. \\
+\end{arguments}
+
+    \predicate[det]{log_wtf}{2}{+Tag, +Log}
+\arg{Log} a tag and a message at assert level.
+
+\begin{arguments}
+\arg{Tag} & The tag to be used in the logging entry. \\
+\arg{Log} & The log message to be printed. \\
+\end{arguments}
+
+    \predicate[det]{log_v}{1}{+Log}
+\arg{Log} a message at verbose level.
+
+\begin{arguments}
+\arg{Log} & The log message to be printed. \\
+\end{arguments}
+
+    \predicate[det]{log_d}{1}{+Log}
+\arg{Log} a message at debug level.
+
+\begin{arguments}
+\arg{Log} & The log message to be printed. \\
+\end{arguments}
+
+    \predicate[det]{log_i}{1}{+Log}
+\arg{Log} a message at info level.
+
+\begin{arguments}
+\arg{Log} & The log message to be printed. \\
+\end{arguments}
+
+    \predicate[det]{log_w}{1}{+Log}
+\arg{Log} a message at warn level.
+
+\begin{arguments}
+\arg{Log} & The log message to be printed. \\
+\end{arguments}
+
+    \predicate[det]{log_e}{1}{+Log}
+\arg{Log} a message at error level.
+
+\begin{arguments}
+\arg{Log} & The log message to be printed. \\
+\end{arguments}
+
+    \predicate[det]{log_wtf}{1}{+Log}
+\arg{Log} a message at assert level.
+
+\begin{arguments}
+\arg{Log} & The log message to be printed. \\
+\end{arguments}
+
+    \predicate[det]{test_log}{0}{}
+Test the logging system by printing some messages.
+\end{description}
+
+
+\printindex
+\end{document}

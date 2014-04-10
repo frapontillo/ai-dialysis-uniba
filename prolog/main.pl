@@ -1,11 +1,10 @@
-/**
- * <module> main
- *
- * This module initializes all needed configuratins, facts and rules 
- * by calling other modules' predicates.
- *
- * @author Francesco Pontillo
- * @license Apache License, Version 2.0
+/** <module> Main module
+
+This module initializes all needed configurations, facts and rules 
+by calling other modules' predicates.
+
+@author Francesco Pontillo
+@license Apache License, Version 2.0
 */
 
 :- ['database.pl', 'categories.pl', 'util.pl', 'learner.pl', 'log.pl', library('dialect/hprolog')].
@@ -50,8 +49,23 @@ main_def :-
 main :-
     main(ask, ask).
 
+/**
+ * make_doc is det.
+ * 
+ * Generate the documentation in both html and tex formats.
+ * Both documentations will be under the 'doc' folder.
+ */
 make_doc :-
-	doc_save(., [doc_root('doc'), title('AI Dialyisis Symptomatology')]).
+	doc_save(., [doc_root('doc'), title('AI Dialyisis Symptomatology')]),
+	doc_latex(
+		['main.pl', 'database.pl', 'categories.pl', 'util.pl', 'learner.pl', 'log.pl'], 
+		'doc/doc.tex',
+		[stand_alone(false)]), !, fail;
+    doc_latex(
+        ['main.pl', 'database.pl', 'categories.pl', 'util.pl', 'learner.pl', 'log.pl'], 
+        'doc/doc_full.tex',
+        []), !
+	.
 
 /**
  * out is det.

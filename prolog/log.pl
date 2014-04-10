@@ -1,14 +1,13 @@
-/**
- * <module> log
- * 
- * Logging utilities that mimic Android Logcat.
- * 
- * @author Francesco Pontillo
- * @license Apache License, Version 2.0
+/** <module> Logging module
+
+Logging utilities that mimic Android Logcat.
+
+@author Francesco Pontillo
+@license Apache License, Version 2.0
 */
 
 % --------------------------------------------------------------------------- %
-%                                     LOG                                     %
+%                                  LOG FILTER                                 %
 % --------------------------------------------------------------------------- %
 
 /**
@@ -27,6 +26,61 @@ log_level(4, info, ' I ', [bold,bg(green)]).
 log_level(5, warn, ' W ', [bold,bg(yellow)]).
 log_level(6, error, ' E ', [bold,bg(red)]).
 log_level(7, assert, ' A ', [bold,bg(magenta)]).
+
+/**
+ * log_level(+Level) is semidet.
+ * 
+ * Set the log level, any level lesser than this will not be printed.
+ * This is a setter that checks that the input parameter is instantiated and that the specified 
+ * level exists.
+ * 
+ * @param Level             The level to set the logging information to.
+ */
+log_level(Level) :-
+    not(var(Level)),
+    (
+        log_level(_, Level, _, _) ->
+            true;
+            log_w('log', ['Log with level ', Level, ' not found!']),
+            fail
+    ),
+    retractall(log_min(_)),
+    assertz(log_min(Level)), !.             % cut so it doesn't fall into the level getter
+
+/**
+ * log_level(-Level) is semidet.
+ * 
+ * Return the current log level, checking that the input parameter is an unbound variable that can 
+ * be instantiated.
+ * 
+ * @param Level             The current minumum log level.
+ */
+log_level(Level) :-
+    var(Level),
+    log_min(X),
+    Level = X.
+
+/**
+ * can_log(?Level) is nondet.
+ * 
+ * Checks if a specified level can be currently printed.
+ * Succeed if the input log has a higher or equal priority than the current minimum level.
+ * Fails otherwise.
+ * 
+ * @param Level             The level to be checked.
+ */
+can_log(Level) :-
+    log_min(CurrentLevel),
+    log_level(CurrentPriority, CurrentLevel, _, _),
+    log_level(Priority, Level, _, _),
+    Priority >= CurrentPriority.
+
+% at the beginning, show everything
+:- log_level(verbose).
+
+% --------------------------------------------------------------------------- %
+%                                     LOG                                     %
+% --------------------------------------------------------------------------- %
 
 /**
  * log_at(+Level, +Tag, +Log) is det.
@@ -230,61 +284,6 @@ log_e(Log) :- log_e('', Log).
  */
 log_wtf(Log) :- log_wtf('', Log).
 
-% --------------------------------------------------------------------------- %
-%                                  LOG FILTER                                 %
-% --------------------------------------------------------------------------- %
-
-/**
- * log_level(+Level) is semidet.
- * 
- * Set the log level, any level lesser than this will not be printed.
- * This is a setter that checks that the input parameter is instantiated and that the specified 
- * level exists.
- * 
- * @param Level             The level to set the logging information to.
- */
-log_level(Level) :-
-    not(var(Level)),
-    (
-        log_level(_, Level, _, _) ->
-            true;
-            log_w('log', ['Log with level ', Level, ' not found!']),
-            fail
-    ),
-    retractall(log_min(_)),
-    assertz(log_min(Level)), !.             % cut so it doesn't fall into the level getter
-
-/**
- * log_level(-Level) is semidet.
- * 
- * Return the current log level, checking that the input parameter is an unbound variable that can 
- * be instantiated.
- * 
- * @param Level             The current minumum log level.
- */
-log_level(Level) :-
-    var(Level),
-    log_min(X),
-    Level = X.
-
-/**
- * can_log(?Level) is nondet.
- * 
- * Checks if a specified level can be currently printed.
- * Succeed if the input log has a higher or equal priority than the current minimum level.
- * Fails otherwise.
- * 
- * @param Level             The level to be checked.
- */
-can_log(Level) :-
-    log_min(CurrentLevel),
-    log_level(CurrentPriority, CurrentLevel, _, _),
-    log_level(Priority, Level, _, _),
-    Priority >= CurrentPriority.
-
-% at the beginning, show everything
-:- log_level(verbose).
-
 /**
  * test_log is det.
  * 
@@ -297,3 +296,4 @@ test_log :-
     log_w('warnFunction', 'some warn log'),
     log_e('ErrorPredicate', 'some other error log'),
     log_wtf('WHATTHEF', 'what the f. error log').
+    

@@ -16,6 +16,7 @@
 
 <table class="summary">
 <tr><th colspan="3" class="file"><span style="float:left"><a href="categories.html">categories.pl</a></span><span style="float:right"></span></th></tr>
+<tr class="public"><td><a href="/doc_for?object=module('Categories%20module')"></a></td><td class="summary">Categories module</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
 <tr class="public"><td><a href="/doc_for?object=add_to_class/3">add_to_class/3</a></td><td class="summary">Add the input range to the ranges of the Attribute (<a href="/doc_for?object=user:class/2">class/2</a>).</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
 <tr class="public"><td><a href="/doc_for?object=class/2">class/2</a></td><td class="summary">Holds range information for each attribute.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
 <tr class="public"><td><a href="/doc_for?object=data_type/2">data_type/2</a></td><td class="summary">Define the type of the attribute data.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
@@ -26,6 +27,7 @@
 <tr class="public"><td><a href="/doc_for?object=target_class/1">target_class/1</a></td><td class="summary">Holds information of the target Attribute to predict for.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
 <tr class="public"><td><a href="/doc_for?object=update_categories/0">update_categories/0</a></td><td class="summary">Make ranges for all of the available attributes.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
 <tr><th colspan="3" class="file"><span style="float:left"><a href="database.html">database.pl</a></span><span style="float:right"></span></th></tr>
+<tr class="public"><td><a href="/doc_for?object=module('Database%20module')"></a></td><td class="summary">Database module</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
 <tr class="public"><td><a href="/doc_for?object=ask_target/0">ask_target/0</a></td><td class="summary">Print all existing symptoms and ask the user to choose the one to predict outcomes for.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
 <tr class="public"><td><a href="/doc_for?object=clear_records/1">clear_records/1</a></td><td class="summary">Clear the records from the in-memory Prolog database.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
 <tr class="public"><td><a href="/doc_for?object=clear_symptoms/0">clear_symptoms/0</a></td><td class="summary">Retract all <a class="extmanual" href="http://www.swi-prolog.org/pldoc/man?predicate=symptoms/3">symptoms/3</a>.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
@@ -57,6 +59,7 @@
 <tr class="public"><td><a href="/doc_for?object=update_symptoms/0">update_symptoms/0</a></td><td class="summary">Clear (with <a href="/doc_for?object=user:clear_symptoms/0">clear_symptoms/0</a>) and refresh (with <a href="/doc_for?object=user:get_symptoms/0">get_symptoms/0</a>) all symptoms.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
 <tr class="public"><td><a href="/doc_for?object=update_target/1">update_target/1</a></td><td class="summary">Save the positive and negative symptom IDs to be used for the learning step.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
 <tr><th colspan="3" class="file"><span style="float:left"><a href="learner.html">learner.pl</a></span><span style="float:right"></span></th></tr>
+<tr class="public"><td><a href="/doc_for?object=module('Learner%20module')"></a></td><td class="summary">Learner module</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
 <tr class="public"><td><a href="/doc_for?object=best_attribute/1">best_attribute/1</a></td><td class="summary">Select the best attribute from the whole set of attributes and training examples.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
 <tr class="public"><td><a href="/doc_for?object=best_attribute/3">best_attribute/3</a></td><td class="summary">Select the best attribute from the given lists of attributes and examples, using the information gain measure.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
 <tr class="public"><td><a href="/doc_for?object=c45/3">c45/3</a></td><td class="summary">Apply the C4.5 algorithm to a given node, that will be split according to the training examples passed and the available attributes still left.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
@@ -105,6 +108,7 @@
 <tr class="public"><td><a href="/doc_for?object=train_negative/3">train_negative/3</a></td><td class="summary">Hold negative training examples information.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
 <tr class="public"><td><a href="/doc_for?object=train_positive/3">train_positive/3</a></td><td class="summary">Hold positive training examples information.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
 <tr><th colspan="3" class="file"><span style="float:left"><a href="log.html">log.pl</a></span><span style="float:right"></span></th></tr>
+<tr class="public"><td><a href="/doc_for?object=module('Logging%20module')"></a></td><td class="summary">Logging module</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
 <tr class="public"><td><a href="/doc_for?object=can_log/1">can_log/1</a></td><td class="summary">Checks if a specified level can be currently printed.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
 <tr class="public"><td><a href="/doc_for?object=log_at/2">log_at/2</a></td><td class="summary">Log a message at a certain level without a tag.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
 <tr class="public"><td><a href="/doc_for?object=log_at/3">log_at/3</a></td><td class="summary">Log a message at a certain level with a given tag.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
@@ -126,11 +130,14 @@
 <tr class="public"><td><a href="/doc_for?object=log_wtf/2">log_wtf/2</a></td><td class="summary">Log a tag and a message at assert level.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
 <tr class="public"><td><a href="/doc_for?object=test_log/0">test_log/0</a></td><td class="summary">Test the logging system by printing some messages.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
 <tr><th colspan="3" class="file"><span style="float:left"><a href="main.html">main.pl</a></span><span style="float:right"></span></th></tr>
+<tr class="public"><td><a href="/doc_for?object=module('Main%20module')"></a></td><td class="summary">Main module</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
 <tr class="public"><td><a href="/doc_for?object=main/0">main/0</a></td><td class="summary">Start <a href="/doc_for?object=user:main/2">main/2</a> and asks for configurations.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
 <tr class="public"><td><a href="/doc_for?object=main/2">main/2</a></td><td class="summary">Start the main process with custom parameters.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
 <tr class="public"><td><a href="/doc_for?object=main_def/0">main_def/0</a></td><td class="summary">Start <a href="/doc_for?object=user:main/2">main/2</a> with default parameters.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
+<tr class="public"><td><a href="/doc_for?object=make_doc/0">make_doc/0</a></td><td class="summary">Generate the documentation in both html and tex formats.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
 <tr class="public"><td><a href="/doc_for?object=out/0">out/0</a></td><td class="summary">Disconnects and halts.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
 <tr><th colspan="3" class="file"><span style="float:left"><a href="util.html">util.pl</a></span><span style="float:right"></span></th></tr>
+<tr class="public"><td><a href="/doc_for?object=module('Utility%20module')"></a></td><td class="summary">Utility module</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
 <tr class="public"><td><a href="/doc_for?object=format_ms/2">format_ms/2</a></td><td class="summary">Convert a bunch of seconds into a string representation.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
 <tr class="public"><td><a href="/doc_for?object=format_ms/4">format_ms/4</a></td><td class="summary">Convert a bunch of milliseconds into minutes, seconds an milliseconds.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
 <tr class="public"><td><a href="/doc_for?object=format_s/2">format_s/2</a></td><td class="summary">Convert a bunch of seconds into a string representation.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>

@@ -1,14 +1,13 @@
-/**
- * <module> learner
- *
- * The learner module contains all clauses used for starting the learning
- * process, once all of the examples and symptoms have been asserted by the
- * database.pl module and all classes have been extracted by the categories.pl
- * module.
- *
- * @author Francesco Pontillo
- * @license Apache License, Version 2.0
- */
+/** <module> Learner module
+
+The learner module contains all clauses used for starting the learning
+process, once all of the examples and symptoms have been asserted by the
+database.pl module and all classes have been extracted by the categories.pl
+module.
+
+@author Francesco Pontillo
+@license Apache License, Version 2.0
+*/
 
 % --------------------------------------------------------------------------- %
 %                               FOLDING EXAMPLES                              %

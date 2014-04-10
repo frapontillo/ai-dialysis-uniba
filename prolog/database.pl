@@ -1,10 +1,9 @@
-/** 
- * <module> database
- *
- * Use this module to connect to the database and fetch all of the relevant facts.
- *
- * @author Francesco Pontillo
- * @license Apache License, Version 2.0
+/** <module> Database module
+
+Use this module to connect to the database and fetch all of the relevant facts.
+
+@author Francesco Pontillo
+@license Apache License, Version 2.0
 */
 
 % --------------------------------------------------------------------------- %

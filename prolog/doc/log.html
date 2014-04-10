@@ -29,6 +29,50 @@
 </dl>
 
 </dd>
+<dt class="pubdef"><span style="float:right"></span><a name="log_level/1"><b class="pred">log_level</b><var class="arglist">(+Level)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Set the log level, any level lesser than this will not be printed.
+This is a setter that checks that the input parameter is instantiated and that the specified
+level exists.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Level</var></td><td class="argdescr">- The level to set the logging information to.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="log_level/1"><b class="pred">log_level</b><var class="arglist">(-Level)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Return the current log level, checking that the input parameter is an unbound variable that can
+be instantiated.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Level</var></td><td class="argdescr">- The current minumum log level.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right"></span><a name="can_log/1"><b class="pred">can_log</b><var class="arglist">(?Level)</var></a> is <b class="det">nondet</b></dt><dd class="defbody">Checks if a specified level can be currently printed.
+Succeed if the input log has a higher or equal priority than the current minimum level.
+Fails otherwise.
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Level</var></td><td class="argdescr">- The level to be checked.</td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
 <dt class="pubdef"><span style="float:right"></span><a name="log_at/3"><b class="pred">log_at</b><var class="arglist">(+Level, +Tag, +Log)</var></a> is <b class="det">det</b></dt><dd class="defbody"><var>Log</var> a message at a certain level with a given tag.
 
 <dl class="tags">
@@ -226,50 +270,6 @@ warn, error, assert.</td></tr>
 
 <table class="arglist">
 <tr><td><var>Log</var></td><td class="argdescr">- The log message to be printed.</td></tr>
-</table>
-
-</dd>
-</dl>
-
-</dd>
-<dt class="pubdef"><span style="float:right"></span><a name="log_level/1"><b class="pred">log_level</b><var class="arglist">(+Level)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Set the log level, any level lesser than this will not be printed.
-This is a setter that checks that the input parameter is instantiated and that the specified
-level exists.
-
-<dl class="tags">
-<dt class="tag">Arguments:</dt><dd>
-
-<table class="arglist">
-<tr><td><var>Level</var></td><td class="argdescr">- The level to set the logging information to.</td></tr>
-</table>
-
-</dd>
-</dl>
-
-</dd>
-<dt class="pubdef"><span style="float:right"></span><a name="log_level/1"><b class="pred">log_level</b><var class="arglist">(-Level)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Return the current log level, checking that the input parameter is an unbound variable that can
-be instantiated.
-
-<dl class="tags">
-<dt class="tag">Arguments:</dt><dd>
-
-<table class="arglist">
-<tr><td><var>Level</var></td><td class="argdescr">- The current minumum log level.</td></tr>
-</table>
-
-</dd>
-</dl>
-
-</dd>
-<dt class="pubdef"><span style="float:right"></span><a name="can_log/1"><b class="pred">can_log</b><var class="arglist">(?Level)</var></a> is <b class="det">nondet</b></dt><dd class="defbody">Checks if a specified level can be currently printed.
-Succeed if the input log has a higher or equal priority than the current minimum level.
-Fails otherwise.
-
-<dl class="tags">
-<dt class="tag">Arguments:</dt><dd>
-
-<table class="arglist">
-<tr><td><var>Level</var></td><td class="argdescr">- The level to be checked.</td></tr>
 </table>
 
 </dd>

@@ -1,10 +1,9 @@
-/**
- * <module> util
- * 
- * Utility methods: time, list, print, math.
- * 
- * @author Francesco Pontillo
- * @license Apache License, Version 2.0
+/** <module> Utility module
+
+Utility methods: time, list, print, math.
+
+@author Francesco Pontillo
+@license Apache License, Version 2.0
 */
 
 % --------------------------------------------------------------------------- %

@@ -10,7 +10,7 @@
 \begin{document}
 
 \title{Previsione di Sintomatologie Post-Dialisi}
-\subtitle{Studio e realizzazione di un sistema supervisionato di estrazione regole}
+\subtitle{Studio e realizzazione di un sistema supervisionato di estrazione regole per la sintomatologia post-dialitica}
 
 \numberofauthors{1}
 \author{
@@ -25,12 +25,12 @@
 \maketitle
 
 \begin{abstract}
-Implementazione base di C4.5, algoritmo di apprendimento di regole, in Prolog, con $k$\textit{-fold cross-validation} test e confronto con Weka, come \textit{tool} di data mining, e BayesDB, come \textit{tool} di classificazione bayesiana.
+Si presenta un'implementazione base di C4.5, algoritmo di apprendimento di alberi di decisione, in Prolog, con $k$\textit{-fold cross-validation} test e generazione di regole di decisione. L'algoritmo viene quindi confrontato con Weka, un \textit{tool} per il data mining, e con BayesDB, un sistema di classificazione bayesiana.
 \end{abstract}
 
 \section{Obiettivo}
-Obiettivo del processo di Data Mining del sistema da sviluppare \'e di prevedere possibili sintomatologie successive ad una seduta di emodialisi.
-A partire da specifici dati registrati durante una dialisi, si vuole prevedere quali classi di sintomatologie il paziente potr\'a riscontrare dal momento in cui la dialisi termina al momento in cui esegue la seduta di dialisi successiva.
+Obiettivo del processo di Data Mining del sistema da sviluppare \'e di \textbf{prevedere possibili sintomatologie successive ad una seduta di emodialisi}.
+A partire da specifici dati registrati durante una dialisi, si vuole prevedere quale classe di sintomatologia il paziente potr\'a riscontrare dal momento in cui la dialisi termina al momento in cui esegue la seduta di dialisi successiva.
 
 In questo modo, il medico pu\'o confermare la possibilit\'a di occorrenza di una o pi\'u problematiche suggerite, ed eventualmente prescrivere una opportuna terapia per contrastare la sua insorgenza.
 
@@ -40,7 +40,7 @@ I dati a disposizione nella base di dati da analizzare sono numerosi, e devono e
 Ogni seduta di dialisi memorizza (1) una \textbf{data} di svolgimento, (2) la \textbf{durata} della seduta stessa, (3) un identificativo del \textbf{paziente}, (4) altri \textbf{parametri} registrati durante la sessione e (5) eventuali \textbf{sintomatologie} riscontrate.
 
 \subsection{Dati del paziente}
-Le informazioni relative ai pazienti sono ricavate dalla base di dati originale. Ai fini del processo di estrazione delle regole, \'e opportuno considerare il \textbf{sesso} del paziente e la sua \textbf{et\'a} al momento della seduta di dialisi in analisi\footnote{Ci\'o non esclude la possibilit\'a di considerare altri dati relativi al paziente; l'algoritmo da realizzare potrebbe essere esteso andando a considerare anche i dati relativi alle malattie pregresse del paziente ed eventuali comorbidit\'a registrate.}.
+Le informazioni relative ai pazienti sono ricavate dalla base di dati originale. Ai fini del processo di estrazione delle regole, \'e opportuno considerare il \textbf{sesso} del paziente e la sua \textbf{et\'a} al momento della seduta di dialisi in analisi\footnote{Ci\'o non esclude la possibilit\'a di considerare altri dati relativi al paziente; l'algoritmo da realizzare potrebbe essere esteso andando a considerare anche i dati relativi alle malattie pregresse ed eventuali comorbidit\'a registrate.}.
 
 \subsection{Parametri della seduta di dialisi}
 I parametri pi\'u rilevanti di una seduta di dialisi, al fine di prevedere eventuali sintomatologie successive, sono divisi in pi\'u categorie \cite{bellazziintelligent}  \cite{pmid15749092}.
@@ -113,12 +113,12 @@ $\Delta UF$ & differenza UF medio \\
 \end{table}
 
 \subsection{Sintomatologie}
-Il sistema verr\'a addestrato con istanze di esempio pre\-/classificate. La classificazione consiste nell'assegnazione, ad ogni esempio, di una o pi\'u categorie di sintomi, ad esempio: aritmia sintomatica, aritmia asintomatica, astenia, brividi, brividi e dispnea, cefalea, collasso (PA < 30\% inizio), conati di vomito, crampi, depressione, ansia, diarrea, dispnea e molti altri.
+Il sistema verr\'a addestrato con istanze di esempio pre\-/classificate. La classificazione consiste nell'assegnazione, ad ogni esempio, di una categoria di sintomatologia, ad esempio: aritmia sintomatica, aritmia asintomatica, astenia, brividi, brividi e dispnea, cefalea, collasso (PA < 30\% inizio), conati di vomito, crampi, depressione, ansia, diarrea, dispnea e molti altri.
 
-Inoltre, \'e prevista la classe `asintomatico', che definisce una sintomatologia assente corrispondente ad un esempio negativo dal punto di vista della classificazione.
+Inoltre, \'e prevista la classe ``asintomatico'', che definisce una sintomatologia assente, corrispondente ad un esempio negativo dal punto di vista della classificazione.
 
 \section{Selezione dei dati}
-Le informazioni sottoposte all'algoritmo di apprendimento sono state selezionate a partire da una base dati molto ricca\footnote{Circa dal 1999 ai primi mesi del 2014.} e sono stati sottoposti ad una serie di passaggi\footnote{Tutte le trasformazioni e selezioni di dati descritte in questa sezione sono codificate nel \texttt{scripts/01-sql-server-tables.sql}.}.
+Le informazioni sottoposte all'algoritmo di apprendimento sono state selezionate a partire da una base dati molto ricca\footnote{Circa dal 1999 ai primi mesi del 2014.} e sono state sottoposte ad una serie di passaggi\footnote{Tutte le trasformazioni e selezioni di dati descritte in questa sezione sono codificate nel \texttt{scripts/01-sql-server-tables.sql}.}.
 
 \subsection{Creazione dei valori derivati}
 Per poter istanziare i valori degli attributi definiti in \ref{attributi-derivati}, \'e stata eseguita una query di tipo \texttt{SELECT} che preleva informazioni dalla tabella di origine ed effettua semplici calcoli di trasformazione.
@@ -126,8 +126,9 @@ Per poter istanziare i valori degli attributi definiti in \ref{attributi-derivat
 In questo modo, alla fine del processo di trasformazione, gli attributi per ogni seduta di dialisi sono:
 
 \begin{itemize}
+\item \verb|PATIENT|, l'identificativo del paziente
 \item \verb|SESSION_ID|, l'ID della seduta di dialisi, utile per identificare la seduta in ogni momento
-\item \verb|SESSION_DATE|, la data di esecuzione
+\item \verb|SESSION_DATE|, la data di esecuzione, non utilizzata ai fini dell'apprendimento
 \item \verb|KTV|, il valore di KT/V
 \item \verb|QB|, il valore di QB
 \item \verb|PROG_WEIGHT_LOSS|, la perdita peso programmata
@@ -152,7 +153,7 @@ Come si nota, sono stati eliminati alcuni attributi originali: il flusso di sang
 \subsection{Associazione con sintomatologie}
 \label{associazione-sintomi}
 Nel programma che genera i dati, le sintomatologie vengono comunicate e quindi inserite, dal medico o dall'infermiere, qualche momento prima della dialisi successiva del paziente. 
-Per poter mettere a confronto i dati della seduta di dialisi, di cui sopra, con i dati della sintomatologia rilevata, \'e stato necessario eseguire una query molto complessa per mettere in correlazione:
+Per poter mettere a confronto i dati della seduta di dialisi (di cui sopra) con i dati della sintomatologia rilevata, \'e stato necessario eseguire una query molto complessa per mettere in correlazione:
 \begin{itemize}
 \item il paziente
 \item la data di dialisi
@@ -160,39 +161,39 @@ Per poter mettere a confronto i dati della seduta di dialisi, di cui sopra, con 
 \end{itemize}
 
 \subsection{Associazione con dati del paziente}
-Infine, il dato della sintomatologia singola è stato associato univocamente con il paziente di riferimento, tramite l'apposito identificativo.
+Infine, il dato della sintomatologia è stato associato univocamente con il paziente di riferimento, tramite l'apposito identificativo.
 
 Tutte queste operazioni sono state eseguite staticamente, ovvero andando a creare una copia dei record in altre tabelle; ci\'o si \'e reso necessario in quanto, anche utilizzando macchine potenti, la selezione completa dei record impiegava interi minuti per completare, soprattutto a causa dell'associazione poco ottimizzata con le date (cfr. \ref{associazione-sintomi}).
 
 \subsection{Migrazione dei dati}
-Per una gestione pi\'u libera dei dati, si \'e scelto di migrare le tabelle create da Microsoft SQL Server a MySQL\footnote{Lo script di migrazione \'e presente in \texttt{scripts/02-mysql-migration-script.sql} e viene richiamato in automatico, tramite appositi parametri di connessione, dal file batch \texttt{03-mysql-copy-migrated-tables.cmd}.}, anche in ottica futura (cfr. \ref{sviluppi-futuri}).
+Per una gestione pi\'u libera dei dati, si \'e scelto di migrare le tabelle create da Microsoft SQL Server a MySQL\footnote{Lo script di migrazione \'e presente in \texttt{scripts/mysql-migration/02-mysql-migration-script.sql} e viene richiamato in automatico, tramite appositi parametri di connessione, dal file batch \texttt{scripts/mysql-migration/03-mysql-copy-migrated-tables.cmd}.}, anche in ottica futura (cfr. \ref{sviluppi-futuri}).
 
 \section{Pulizia dei dati}
 \label{pulizia-dati}
-Una volta spostati i dati su un database MySQL, si \'e scelto di eliminare alcuni record e mantenerne altri pi\'u rilevanti\footnote{Gli script rilevanti sono contenuti nel file \texttt{scripts/04-mysql-scores.sql}.}. La base dati originaria, infatti, contiene $185476$ record.
+Una volta spostati i dati su un database MySQL, si \'e scelto di eliminare alcuni record e mantenerne altri pi\'u rilevanti\footnote{Gli script rilevanti sono contenuti nel file \texttt{scripts/mysql-migration/04-mysql-scores.sql}.}. La base dati originaria, infatti, contiene $185476$ record.
 
 \subsection{Calcolo dello score}
 Ad ogni riga di rilevazione sintomo \'e stato associato un punteggio, o \textit{score}, che permetta di capire quanto quella riga \'e completa (e quindi pi\'u o meno rilevante rispetto alle altre).
 
-Fissato il numero degli attributi (di dialisi) a $15$, un record con \textit{score} pi\'u elevato sar\'a selezionato con pi\'u probabilit\'a per avviare il processo di apprendimento.
+Fissato il numero degli attributi a $15$, un record con \textit{score} pi\'u elevato sar\'a selezionato con pi\'u probabilit\'a per avviare il processo di apprendimento.
 
 \subsection{Pazienti rilevanti}
 Inoltre, lo \textit{score} \'e stato utilizzato anche per poter eliminare, dai record gi\'a selezionati, tutti quelli che appartengono a pazienti che hanno meno di $5$ rilevazioni di sintomi con uno \textit{score} percentuale pi\'u basso dell'$80\%$.
 
-Tutti i dati selezionati fino a questo punto, quindi, appartengono a pazienti che hanno almeno $5$ rilevazioni di sintomi ottimali.
+Tutti i dati selezionati fino a questo punto, quindi, appartengono a pazienti che hanno \textbf{almeno $5$ rilevazioni di sintomi ottimali}.
 
 \subsection{Gestione dei valori nulli}
-I valori nulli sono stati gestiti ``staticamente'', ovvero per ogni paziente sono state calcolate le medie dei valori di ogni attributo (ignorando quindi i valori nulli); in un passo successivo, sono stati scansionati tutti i record e, qualora fosse rilevato un valore nullo, \'e stato inserito il valore medio relativo al paziente associato.
+I valori nulli sono stati gestiti ``staticamente'', ovvero per ogni paziente sono state calcolate le medie dei valori di ogni attributo (ignorando i valori nulli); in un passo successivo, sono stati scansionati tutti i record e, qualora fosse rilevato un valore nullo, \'e stato inserito il valore medio relativo al paziente associato.
 
 Tutto ci\'o, tuttavia, ha portato comunque a mantenere alcuni valori nulli all'interno della base dati. Ad esempio, poche rilevazioni di sintomatologia contengono valori effettivi di \verb|KTV|, probabilmente perch\'e si tratta di una misura di difficile calcolo da parte dei medici. Tali valori sono stati gestiti diversamente (cfr. \ref{apprendimento-attributo-migliore}).
 
-Alcuni record, inoltre, non contenevano l'ID del sintomo target rilevato, e si \'e pertanto assunto che l'utente avesse erroneamente cancellato (dall'interfaccia del sistema) la dicitura ``asintomatico'', aggiungendo comunque una sintomatologia nulla (con ID uguale a $1$).
+Alcuni record, inoltre, non contenevano l'ID del sintomo target rilevato, e si \'e pertanto assunto che l'utente avesse erroneamente cancellato (dall'interfaccia del sistema) la dicitura ``asintomatico''; \'e stata pertanto aggiunta una sintomatologia nulla (ID uguale a $1$).
 
 \section{Apprendimento di regole}
 L'obiettivo del sistema \'e l'apprendimento di regole utilizzabili per fare previsioni significative. Avendo a disposizione una moltitudine di dati pre-classificati, risulta immediato pensare ad un approccio guidato che generi un albero di decisione.
 
 \subsection{Alberi di decisione}
-Nei sistemi TDIDT, il concetto \'e rappresentato in termini di un albero di decisione costruito in modalit\'a top-down con una tecnica model driven: il sistema seleziona un attributo che caratterizza correttamente tutti gli esempi, quindi procede ricorsivamente fino a raggiungere la copertura totale.
+Nei sistemi TDIDT, il concetto \'e rappresentato in termini di un albero di decisione costruito in modalit\'a top-down con una tecnica model driven: il sistema seleziona un attributo che meglio rappresenta (in qualche forma) tutti gli esempi, quindi procede ricorsivamente fino a raggiungere la copertura totale.
 
 Questi algoritmi distinguono tra uno spazio degli esempi e uno spazio delle ipotesi, riuscendo a ridurre di molto la complessità di ricerca nello spazio delle ipotesi.
 
@@ -219,18 +220,19 @@ Con riferimento alla figura \ref{fig:albero-decisione}, si nota che:
 \end{itemize}
 
 \subsection{Costruzione dell'albero di decisione}
-A partire da esempi pre-classificati in fase di training, il sistema genera un albero di decisione in cui $S_0$ è la radice. Ad ogni nodo $\sigma$ viene selezionato il miglior attributo $A^*$, in accordo a qualche criterio, per effettuare il test a quel nodo. Infine, si assegna il nome di una classe ad ogni nodo foglia.
+A partire da esempi pre-classificati in fase di training, il sistema genera un albero di decisione in cui $S_0$ è la radice. Ad ogni nodo $\sigma$ viene selezionato il \textbf{miglior attributo $A^*$}, in accordo a qualche criterio (cfr. \ref{scelta-attributo}), per effettuare il test a quel nodo. Infine, si assegna il nome di una classe ad ogni nodo foglia.
 
-L'albero può anche essere validato su un insieme di testing: si segue il cammino dalla radice ad una foglia testando ad ogni nodo il valore dell'attributo selezionato, e procedendo il cammino sul valore (o range di valori) dell'osservazione da classificare.
+L'albero può anche essere validato su un insieme di testing: si segue il cammino dalla radice ad una foglia testando ad ogni nodo il valore dell'attributo selezionato, e procedendo il cammino sul nodo con il valore (o range di valori) dell'osservazione da classificare.
 
 \subsection{Scelta dell'attributo più discriminante}
+\label{scelta-attributo}
 Esistono diversi criteri euristici per scegliere l'attributo più discriminante ad ogni livello, ognuno dei quali utilizza una misura specifica per massimizzare l'effetto discriminante:
 \begin{itemize}
 \item Massimizzazione dell'\textbf{informazione}
 	\begin{itemize}
 	\item entropia minima
-	\item rapporto di guadagno
 	\item guadagno di informazione normalizzato
+	\item rapporto di guadagno
 	\item riduzione della lunghezza della descrizione
 	\end{itemize}
 \item Minimizzazione dell'\textbf{errore}
@@ -244,14 +246,14 @@ Esistono diversi criteri euristici per scegliere l'attributo più discriminante 
 
 \subsubsection{Entropia}
 \label{entropia}
-L'entropia definisce la \textit{impurity} di un insieme arbitrario di dati $S$, contenente esempi positivi (in proporzione $p_+$) e negativi (in proporzione $p_-$):
+L'entropia definisce la \textbf{\textit{impurity} di un insieme} arbitrario di dati $S$, contenente esempi positivi (in proporzione $p_+$) e negativi (in proporzione $p_-$):
 \[ entropia(S) = -p_+ \log_2p_+ - p_- \log_2p_- \]
 In questo modo il valore dell'entropia agli estremi è:
 \begin{itemize}
-\item $0$ se c'è minima entropia, ovvero se tutti gli esempi sono positivi
-\item $1$ se c'è massima entropia, ovvero se gli esempi sono positivi e negativi in ugual numero
+\item $0$ se c'è \textbf{minima entropia}, ovvero se tutti gli esempi sono positivi o negativi
+\item $1$ se c'è \textbf{massima entropia}, ovvero se gli esempi sono positivi e negativi in ugual numero
 \end{itemize}
-La funzione entropia relativa ad una classificazione booleana varia coma la proporzione $p_+$, cioè fra $0$ e $1$.
+La funzione entropia relativa ad una classificazione booleana varia, quindi, come la proporzione $p_+$, cioè fra $0$ e $1$.
 
 Più in generale, se il concetto target può assumere $c$ valori anziché $2$, la funzione entropia diventa:
 \[ entropia(S) = \sum_{i=1}^c -p_i \log_2p_i \]
@@ -272,12 +274,12 @@ Maggiore è la riduzione dell'entropia, maggiore è il guadagno che si ottiene s
 I sistemi TDIDT sono molto efficienti, e gli alberi di decisione possono trattare sia attributi a valori categorici, gestendo più archi uscenti da ogni nodo, che continui, tramite definizione di intervalli che vanno a configurarsi come categorie.
 
 Essi sono inoltre non parametrici e non incrementali, in quanto l'introduzione di un nuovo esempio potrebbe rovinare la rigida struttura ad albero, e quindi il suo potere inferenziale.\\
-Tuttavia, nel caso di dati rumorosi, potrebbero essere generati alberi di dimensioni enormi, che andrebbero quindi gestiti con opportuni algoritmi di pruning.
+Inoltre, nel caso di dati rumorosi, potrebbero essere generati alberi di dimensioni enormi, che andrebbero quindi gestiti con opportuni algoritmi di pruning.
 
 Altri metodi, infine, rimpiazzano i nodi foglia con distribuzioni di probabilità della classe inferita, soprattutto con numerosi esempi di apprendimento.
 
 \subsection{C4.5}
-Per apprendere regole utili a classificare appositamente una seduta di dialisi si \'e scelto di implementare il funzionamento base dell'algoritmo C4.5 di Ross Quinlan \cite{Quinlan:1993:CPM:583200} \cite{Salzberg:1994:BRC:198277.637825}, estensione del precedente ID3\cite{Mitchell:1997:ML:541177}. In questo modo risulta possibile:
+Per apprendere regole utili a classificare appositamente una seduta di dialisi si \'e scelto di implementare il funzionamento base dell'algoritmo C4.5 di Ross Quinlan \cite{Quinlan:1993:CPM:583200} \cite{Salzberg:1994:BRC:198277.637825}, estensione del precedente ID3 \cite{Mitchell:1997:ML:541177}. In questo modo risulta possibile:
 \begin{itemize}
 \item utilizzare la sintomatologia come attributo target (da classificare)
 \item poter sfruttare i numerosi dati disponibili
@@ -324,30 +326,49 @@ Il metodo standard per la valutazione è il \textbf{10-fold cross-validation}, c
 
 \section{Implementazione in Prolog}
 \label{prolog}
-Il programma Prolog \'e diviso in $6$ moduli, ognuno dei quali si occupa di parti differenti del programma\footnote{Ogni regola definita nei diversi moduli \'e stata documentata. La documentazione \'e consultabile aprendo in un browser il file \texttt{doc/index.html}. Per un problema nel modulo di generazione della documentazione, i link diretti dalla \texttt{index.html} alle regole documentate non funzionano; utilizzare, invece, i collegamenti ai moduli, dai quali si pu\'o comunque accedere alla documentazione delle regole.}.
+Il programma Prolog \'e diviso in $6$ file, ognuno dei quali si occupa di parti differenti del programma\footnote{Ogni regola definita nei diversi file \'e stata documentata. La documentazione \'e consultabile aprendo in un browser il file \texttt{doc/index.html}. Per un problema nel modulo di generazione della documentazione, i link diretti dalla \texttt{index.html} alle regole documentate non funzionano; utilizzare, invece, i collegamenti ai file, dai quali si pu\'o comunque accedere alla documentazione delle regole. Alternativamente, si pu\'o consultare la documentazione in PDF, nel percorso \verb|prolog/doc/doc_full.pdf| o la stampa allegata.}.
 
 Si \'e scelto di utilizzare SWI-Prolog\cite{SWI:2014:Online} come ambiente Prolog.
 
 \subsection{Utility}
 \label{prolog-utility}
-Sono stati realizzati $2$ moduli che realizzano funzioni di utilit\'a.
+Sono stati realizzati $2$ file che realizzano funzioni di utilit\'a.
 
 \subsubsection{\texttt{util.pl}}
 \verb|util.pl| contiene brevi regole che implementano:
 \begin{itemize}
-\item timer, con avvio, lettura e stop (\verb|timer_start|, \verb|timer_get|, \verb|timer_stop|, tra gli altri)
+\item \textbf{timer generico}, con avvio, lettura e stop (\verb|timer_start|, \verb|timer_get|, \verb|timer_stop|, tra gli altri)
 \item formattazione di millisecondi (\verb|format_ms|) e secondi (\verb|format_s|) nel formato intellegibile \texttt{\{M\}m \{S\}s \{MS\}ms}
-\item stampa a video di generiche liste di elementi o di un elemento singolo, con ritorno a capo (\verb|println|)
-\item generici \textit{helper} per liste, che realizzano funzioni di minimo e massimo (\verb|list_min|, \verb|list_max|), ricerca dell'elemento pi\'u comune (\verb|list_most_common|) e dell'indice di un elemento specifico (\verb|index_of|), oltre che funzionalit\'a di aggiunta e rimozione di elementi
+\item \textbf{stampa a video} di generiche liste di elementi o di un elemento singolo, con ritorno a capo (\verb|println|)
+\item generici \textit{helper} per \textbf{liste}, che realizzano funzioni di minimo e massimo (\verb|list_min|, \verb|list_max|), ricerca dell'elemento pi\'u comune (\verb|list_most_common|) e dell'indice di un elemento specifico (\verb|index_of|), oltre che funzionalit\'a di aggi e rimozione di elementi
 \item concatenazione di elementi di una lista in una stringa
 \item realizzazione del logaritmo in base $2$ (\verb|log2|), utilizzato successivamente (cfr. \ref{prolog-learner}).
 \end{itemize}
 
+\subsubsection{\texttt{log.pl}}
+\label{prolog-utility-log}
+\verb|log.pl| implementa un sistema di \textit{logging} simile a quello di \verb|adb| per Android, ossia con pi\'u livelli e con output colorato. La necessit\'a di dover filtrare e visualizzare meglio la stampa a video deriva dai numerosi messaggi che ogni regola Prolog realizzata stampa a fini di \textit{debug}.
+
+I livelli gestiti sono $6$, in ordine di priorit\'a dalla pi\'u bassa alla pi\'u alta:
+\begin{itemize}
+\item \verb|verbose|, il livello minimo, da usare per mostrare i messaggi meno utili a fini di debug ma che possono risultare necessari per rivedere calcoli e punti di ingresso/uscita
+\item \verb|debug|, genericamente usato per mostrare informazioni di \textit{debug} di una certa rilevanza
+\item \verb|info|, di solito mostra messaggi informativi a livello utente; rappresenta il livello standard meno verboso, e non deve perci\'o essere sovraccaricato di log inutile
+\item \verb|warn|, livello che mostra gli avvisi, o condizioni inattese ma comunque gestite (esempio: ``file non trovato, utilizzo i parametri standard'')
+\item \verb|error|, mostra messaggi di errore relativamente a qualcosa che non sarebbe dovuta accadere (esempio: ``file non trovato, impossibile continuare'')
+\item \verb|assert|, anche detto livello ``wtf'', mostra errori catastrofici dai quali \'e impossibile recuperare
+\end{itemize}
+
+La classe di predicati \verb|log_X| (dove \verb|X| rappresenta uno dei livelli precedenti) scrive il messaggio di log insieme ad un eventuale \textit{tag} (se specificato), che definisce una sorta di ``titolo'' del log; generalmente il \textit{tag} \'e stato impostato al nome della regola che eseguiva la stampa del log. Se il tag \'e troppo lungo, inoltre, viene tagliato e vengono aggiunti dei punti sospensivi.
+
+Il sistema mette a disposizione la regola \verb|log_level/1| che imposta (o restituisce se il parametro non \'e istanziato) il minimo livello di logging che verr\'a effettivamente stampato da quel momento in poi; \'e la regola \verb|can_log/1| che controlla se un certo livello pu\'o essere mostrato o meno.\\
+Il codice del livello, infine, viene formattato con il colore associato (ad esempio, verde per \verb|I|, giallo per \verb|W|).
+
 \subsection{Avvio del programma}
 \label{prolog-main}
-Il programma principale \'e definito nel modulo \verb|main.pl|, che si occupa del caricamento in memoria di tutti i file Prolog necessari e di definire il metodo \verb|main(Config, Symptom)|:
+Il programma principale \'e definito nel file \verb|main.pl|, che si occupa del caricamento in memoria di tutti i file Prolog necessari e di definire il metodo \verb|main(Config, Symptom)|:
 \begin{itemize}
-\item \verb|Config| dichiara al programma qual \'e il file di configurazione con il quale si vuole accedere al database.\footnote{Alcuni file di configurazione di esempio sono presenti nella cartella \texttt{prolog/config}.}. Vedi \ref{prolog-database} per il l'accesso al database. Si \'e optato per un file di configurazione che contenesse tutti i parametri di connessione poich\'e la scrittura degli stessi ad ogni avvio del programma sarebbe risultata troppo verbosa.
+\item \verb|Config| dichiara al programma qual \'e il file di configurazione con il quale si vuole accedere al database.\footnote{Alcuni file di configurazione di esempio sono presenti nella cartella \texttt{prolog/config}.} (vedi \ref{prolog-database} per l'accesso al database). Si \'e optato per un file di configurazione che contenesse tutti i parametri di connessione poich\'e la scrittura degli stessi ad ogni avvio del programma sarebbe risultata troppo verbosa.
 \item \verb|Symptom| definisce l'ID del sintomo che si vuole utilizzare come esempio positivo per l'attributo target.
 \end{itemize}
 
@@ -360,14 +381,11 @@ Entrambi i parametri supportano i meta-valori \verb|default| e \verb|ask|: \verb
 \label{fig:prolog-start}
 \end{figure}
 
-Sono anche presenti funzioni di avvio rapido: \verb|main_def/0| (che avvia il programma con parametri di default), \verb|main/0| (che avvia in modalit\'a \verb|ask|) e \verb|make_doc/0| (che genera la documentazione HTML).
+Sono anche presenti funzioni di avvio rapido: \verb|main_def/0| (che avvia il programma con parametri di default), \verb|main/0| (che avvia in modalit\'a \verb|ask|) e \verb|make_doc/0| (che genera la documentazione HTML e \LaTeX).
 
-Il sistema di logging implementato \'e, di default, molto verboso. Se non si vuole avere in output il dettaglio completo di ci\'o che sta avvenendo nel programma, \'e possibile utilizzare le regole messe a disposizione dal modulo di logging (vedi \ref{prolog-utility}) per settare un livello di logging meno verboso:
-\begin{verbatim}
-  ?- log_level(info).
-\end{verbatim}
+Il sistema di \textit{logging} implementato \'e, di default, molto verboso. Se non si vuole avere in output il dettaglio completo di ci\'o che sta avvenendo nel programma, \'e possibile utilizzare le regole messe a disposizione dal modulo di \textit{logging} (vedi \ref{prolog-utility-log}) per settare un livello di \textit{logging} meno verboso.
 
-Per uscire dal programma e chiudere in maniera pulita la connessione, basta chiamare la regola \verb|out|.
+Per uscire dal programma e chiudere in maniera pulita la connessione, basta chiamare la regola \verb|out/0|.
 
 \subsection{Lettura dal database}
 \label{prolog-database}
@@ -386,7 +404,7 @@ La lettura del file \verb|.properties| \'e eseguita da
 che utilizza il costrutto \verb|open_table| di SWI-Prolog per leggere i campi del file di propriet\'a e unificare con le variabili passate in input.
 
 \subsubsection{Lettura sintomi}
-Il passo successivo consiste nella lettura di tutte le possibili sintomatologie che potrebbero verificarsi nel corso di una seduta di dialisi. La regola \verb|get_symptoms/0| esegue una semplice \texttt{SELECT} sulla base di dati, ottenendo, salvando in memoria e stampando a video i sintomi.
+Il passo successivo consiste nella lettura di tutte le possibili sintomatologie che potrebbero verificarsi nel corso di una seduta di dialisi. La regola \verb|get_symptoms/0| esegue una semplice \texttt{SELECT} sulla base di dati, ottenendo e salvando in memoria i sintomi.
 
 \subsubsection{Lettura degli esempi}
 La regola \verb|update_records/0| si occupa di ottenere e salvare in memoria tutti gli esempi che devono essere utilizzati per avviare il processo di apprendimento.
@@ -400,15 +418,15 @@ Il salvataggio dei record avviene andando ad asserire, nella memoria del program
 \end{verbatim}
 In questo modo \'e sempre possibile accedere a qualsiasi coppia attributo-valore di un esempio con uno specifico ID, sia esso positivo o negativo.
 
-\'E stata realizzata anche la regola
+\'E stata realizzata anche la regola:
 \begin{verbatim}
   example(Type, ID, Attribute, Value)
 \end{verbatim}
-dove \verb|Type| pu\'o essere \verb|positive| o \verb|negative|. Tramite questa modalit\'a \'e possibile accedere a tutti gli esempi prelevati dalla base di dati. Sono presenti, inoltre, regole di conteggio e di verifica di esistenza (cfr. documentazione HTML).
+dove \verb|Type| pu\'o essere \verb|positive| o \verb|negative|. Tramite questa modalit\'a \'e possibile accedere a tutti gli esempi prelevati dalla base di dati. Sono presenti, inoltre, regole di conteggio e di verifica di esistenza (cfr. la documentazione Prolog in HTML, \LaTeX o la stampa allegata).
 
 \subsection{Suddivisione attributi in range}
 \label{prolog-categories}
-Gli attributi dei dati di esempio possono essere numerici (a virgola mobile) o categorici, ma in ogni caso sono identificati da un numero. Essi sono stati dichiarati esplicitamente tramite la clausola \verb|data_type(Attribute, Type)|, che definisce quindi la tipologia per ogni attributo.
+Gli attributi dei dati di esempio possono essere numerici (a virgola mobile) o categorici, ma in ogni caso sono identificati da un numero. Essi sono stati dichiarati esplicitamente tramite la clausola \verb|data_type(Attribute, Type)|, che definisce la tipologia per ogni attributo.
 
 Per ogni attributo, quindi, si \'e avviato un processo di suddivisione (\verb|update_categories/0| e \verb|make_class/2|) in pi\'u \textit{range}, definite dal predicato \verb|class/2|:
 \begin{itemize}
@@ -424,8 +442,8 @@ Dopo aver generato le categorie, \'e possibile avviare il processo (iterativo e 
 
 Lo scopo di questa fase \'e di generare due tipi di regole:
 \begin{itemize}
-\item \verb|is_positive(ID, LearningStep| determina se, secondo le regole generate ad un certo passo \verb|LearningStep|, un esempio con un determinato \verb|ID| \'e ritenuto un positivo.
-\item \verb|test_step(LearningStep, StepData)| restituisce diverse misure relative allo step specificato, fra cui ``true positive rate'', ``false positive rate'', F-Measure, ecc.
+\item \verb|is_positive(ID, LearningStep)| determina se, secondo le regole generate ad un certo passo \verb|LearningStep|, un esempio con un determinato \verb|ID| \'e ritenuto un positivo.
+\item \verb|test_step(LearningStep, StepData)| restituisce diverse misure relative allo step specificato, fra cui \textit{true positive rate}, \textit{false positive rate}, \textit{F-Measure}, ecc.
 \end{itemize}
 
 L'iterazione principale del processo di apprendimento \'e definita dal $k$\textit{-fold cross-validation}:
@@ -443,7 +461,7 @@ L'apprendimento, per ogni fase, \'e avviato da \verb|learn(Step)|.
 \subsubsection{Suddivisione in fold}
 La suddivisione in $k$ fold distinti viene eseguita, ad ogni passo, dal predicato \verb|split_examples/2| (vedi figura \ref{fig:prolog-k-fold} per un esempio), che asserisce in memoria alcune liste di \verb|ID| di esempi. Tali liste sono poi utilizzate nel filtraggio, quando richiesto, degli esempi in \textit{training} e \textit{testing}.
 
-Nei primi test del programma, si \'e notato un bassissimo livello di distribuzione degli esempi nei diversi fold di ogni esecuzione, per cui i primi \textit{run} avevano un bassissimo livello di \textit{error rate} (spesso $0$), che cresceva con l'aumentare dell'indice del passo.\\
+Nei primi test del programma, si \'e notato un bassissimo livello di distribuzione degli esempi nei diversi fold di ogni esecuzione, per cui i primi \textit{run} avevano un bassissimo livello di \textit{FP rate} (spesso $0$), che cresceva con l'aumentare dell'indice del passo.\\
 Ci\'o era dovuto non alla generazione di regole ottimali, ma al fatto che gli esempi positivi venivano selezionati, da Prolog, sempre dopo quelli negativi, comportando un insieme di test composto, ai primi passi, da molti esempi positivi (mentre erano pochi o nulli alla fine) e da pochi negativi (mentre erano molti alla fine).
 
 Si \'e pertanto reso necessario ``forzare'' una distribuzione pi\'u o meno uniforme andando a dividere i \textit{set} di positivi e negativi in \textit{fold} separati, che sono poi stati comunque accorpati in due liste complessive, visionabili a fine step con:
@@ -539,11 +557,11 @@ Per ogni range dell'attributo si crea un nuovo nodo avente come nome il template
 \begin{verbatim}
   [ Attribute : range(Inizio, Fine) ]
 \end{verbatim}
-Si chiama, infine, la regola \verb|c45| con parametri:
+Si chiama, infine, la regola \verb|c45/3| con parametri:
 \begin{itemize}
-\item \verb|Node| il nodo appena creato
-\item \verb|ParentNode| il nodo correntemente in analisi e in ingresso al passo corrente
-\item \verb|Attributes| l'insieme di attributi in ingresso al passo corrente, eccetto l'attributo su cui \'e stato eseguito lo \textit{split}
+\item \verb|Node|, il nodo appena creato
+\item \verb|Examples|, l'insieme degli esempi in ingresso al passo corrente che soddisfano il \textit{range} selezionato
+\item \verb|Attributes|, l'insieme di attributi in ingresso al passo corrente, eccetto l'attributo su cui \'e stato eseguito lo \textit{split}
 \end{itemize}
 
 \paragraph{Terminazione locale}
@@ -556,7 +574,7 @@ Quando non ci sono pi\'u esempi da analizzare, o gli attributi su cui eseguire l
 \label{fig:prolog-le-tree}
 \end{figure}
 
-Viene quindi stampata a video, richiamando la regola \verb|print_le_tree/0|, una rappresentazione grafica e formattata dell'albero di decisione prodotto, in cui ogni elemento foglia (positivo) avr\'a un check verde (vedi figura \ref{fig:prolog-le-tree}).
+Viene quindi stampata a video, richiamando \verb|print_le_tree/0|, una rappresentazione grafica e formattata dell'albero di decisione prodotto, in cui ogni elemento foglia (positivo) avr\'a un check verde (vedi figura \ref{fig:prolog-le-tree}).
 
 \subsubsection{Generazione di regole}
 Una volta appreso l'albero di decisione ad uno specifico passo $i$, il programma genera le regole \verb|is_positive/2| andando a risalire l'albero di decisione da ogni nodo foglia positivo \verb|node_label/2|, e aggiungendo in lista una condizione di appartenenza dell'attributo su cui il nodo \'e stato ``splittato'' al range del nodo stesso\footnote{Vengono generate regole per i soli nodi foglia positivi.}.
@@ -564,7 +582,7 @@ Una volta appreso l'albero di decisione ad uno specifico passo $i$, il programma
 La regola principale che si occupa della generazione delle regole \'e \verb|gen_all_the_rulez/1|, che chiama ricorsivamente \verb|gen_rule/2| per ogni nodo foglia.
 
 \subsubsection{Test del passo}\label{test-step}
-Dopo la generazione delle regole al passo $i$, si esegue un processo di test, che asserisce in memoria (nel predicato \verb|test_step/2|) diverse informazioni relative al passo in analisi.
+Dopo la generazione delle regole al passo $i$, si esegue un processo di test, che asserisce in memoria (nel predicato \verb|test_step/2|) una lista con diverse informazioni relative al passo in analisi.
 
 I predicati \verb|p/1| e \verb|n/1| esplicitano, banalmente, il numero di positivi e negativi analizzati al passo corrente. Tali valori sono utilizzati, insieme ad altri calcoli, per generare anche:
 \begin{itemize}
@@ -587,7 +605,7 @@ recall = \frac{tp}{tp+fn}
 \]
 Tali valori vengono esposti, nella lista restituita da \verb|test_step/2|, come \verb|precision(Precision)| e \verb|recall(Recall)|.
 
-Infine, viene calcolata anche la $F_1\textnormal{-}Measure$, equivalente a:
+Infine, viene calcolata e salvata anche la $F_1\textnormal{-}Measure$, equivalente a:
 \[ F_1\textnormal{-}Measure = \frac{2*precision*recall}{precision+recall} \]
 
 \subsection{Terminazione dell'apprendimento}
@@ -595,7 +613,7 @@ Una volta che tutti i $k$ cicli di apprendimento-test sono terminati, il program
 
 \subsubsection{Generazione regole}
 \label{unione-regole}
-Tutte le regole generate ai diversi passi vengono inglobate in un unico insieme di regole, e riasserite come \verb|final_positive(ID, ListaPassi|), dove \verb|ListaPassi| \'e la lista degli indici dei passi che hanno generato quella regola.
+Tutte le regole generate ai diversi passi vengono inglobate in un unico insieme di regole e riasserite nella memoria Prolog come \verb|final_positive(ID, ListaPassi|), dove \verb|ListaPassi| \'e la lista degli indici dei passi che hanno generato quella regola.
 
 Il metodo che si occupa di unire le regole in un insieme singolo \'e \verb|purge_rules/0| che, avvalendosi dei predicati \verb|clause/2| e \verb|bagof/3|, ricerca tutti i corpi delle regole \verb|is_positive/2| e li unisce, rimuovendo i duplicati.
 
@@ -605,7 +623,7 @@ Una volta unite le regole, queste vengono applicate all'\textbf{intero insieme d
 Il test asserisce, in memoria Prolog, il fatto \verb|test_final/1|, che contiene le stesse informazioni presenti in \verb|test_step/2| (cfr. \ref{test-step}).
 
 \subsubsection{Stampa report}
-Tutte le informazioni vengono quindi stampate a schermo da \verb|print_report/0| (vedi figura \ref{fig:prolog-report}) che, avvalendosi del sistema di logging implementato, mostra sul livello \verb|info|:
+Tutte le informazioni vengono quindi stampate a schermo da \verb|print_report/0| (vedi figura \ref{fig:prolog-report}) che, avvalendosi del sistema di \textit{logging} implementato, mostra a livello \verb|info|:
 \begin{itemize}
 \item una ricapitolazione di tutte le informazioni asserite ad ogni esecuzione
 \item la media delle singole esecuzioni\footnote{Come gi\'a detto, la media potrebbe essere poco indicativa per dataset molto piccoli.}
@@ -620,12 +638,11 @@ Tutte le informazioni vengono quindi stampate a schermo da \verb|print_report/0|
 \end{figure}
 
 \subsubsection{Salvataggio log e regole}
+Al termine di ogni processo di apprendimento viene creato un file, \verb|prolog/runs/log_{ID}.csv|\footnote{Per la creazione dei file di log, \'e necessario che la cartella \verb|runs| esista gi\'a.} contenente, per ogni esecuzione, il sintomo, il passo, il numero di regole generate e altre informazioni (vedi \ref{risultati-prime-considerazioni}); infine, il file riporta il tempo di esecuzione in secondi, il numero totale di esempi positivi presenti, il numero totale di regole generate e tutti gli altri tipi di dati gi\'a riportati per ogni passo.
 
-Al termine di ogni processo di apprendimento viene creato un file, \verb|runs/log_{ID}.csv|\footnote{Per la creazione dei file di log, \'e necessario che la cartella \verb|runs| esista gi\'a.} contenente, per ogni esecuzione: il sintomo, il passo, il numero di regole generate e l'error rate; infine, il file riporta il tempo di esecuzione in secondi, il numero totale di esempi positivi presenti, il numero totale di regole generate e l'errore medio complessivo.
-
-Inoltre, tutte le regole unite alla fine dell'apprendimento (vedi \ref{unione-regole}) vengono salvate nel file \verb|runs/rules_{ID}.pl|\footnote{Per la verifica delle regole \'e necessario che sia caricato in memoria Prolog anche la regola \verb|check_condition_list/2|, che serve ad eseguire il \textit{matching} dei range descritti dalla regole generate.}, ad esempio:
+Inoltre, tutte le regole unite alla fine dell'apprendimento (vedi \ref{unione-regole}) vengono salvate nel file \verb|runs/rules_{ID}.pl|\footnote{Per la verifica delle regole \'e necessario che sia caricato in memoria Prolog anche la regola \verb|check_condition_list/2|, che serve ad eseguire il \textit{matching} dei \textit{range} descritti dalle regole generate.}, ad esempio:
 \begin{verbatim}
-final_positive(A, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) :-
+final_positive(A, [1,2,3,4,5,6,7,8,9,10]) :-
 	check_condition_list(A,
 			     
 			     [ condition('PatientAge',
@@ -644,8 +661,8 @@ Il programma \'e stato eseguito su $9$ sintomi target distinti e con un diverso 
 \end{itemize}}.
 
 \subsection{Prime considerazioni}
-
-La tabella \ref{table:risultati-ktv-qb-test} mostra un breve riepilogo dei risultati dei test (finali) eseguiti sull'intero dataset, per i sintomi $2$, $3$, $4$ ,$5$, $6$, $7$, $8$, $9$, $10$. I valori mostrati in tabella\footnote{Tutti i report delle esecuzioni, con tutti i valori calcolati, anche parziali, si trovano nella cartelle \verb|runs/| e \verb|runs_ktv_qb/|.} sono:
+\label{risultati-prime-considerazioni}
+La tabella \ref{table:risultati-ktv-qb-test} mostra un breve riepilogo dei risultati dei test (finali) eseguiti sull'intero dataset, per i sintomi $2$, $3$, $4$ ,$5$, $6$, $7$, $8$, $9$, $10$. I valori mostrati in tabella\footnote{Tutti i report delle esecuzioni, con tutti i valori calcolati, anche parziali, si trovano nella cartelle \verb|prolog/runs/| e \verb|prolog/runs_ktv_qb/|.} sono:
 \begin{itemize}
 \item \verb|ID| del sintomo analizzato
 \item Tempo di esecuzione, in secondi, del processo di apprendimento e di test con la $10$\textit{-fold cross-validation}
@@ -683,7 +700,7 @@ Si \'e quindi effettuata un'altra esecuzione del programma, sugli stessi sintomi
 
 Innanzitutto si nota che con un \textbf{basso numero di esempi positivi} vengono generate numerose regole. Tuttavia, bisogna considerare che alcune regole potrebbero essere superflue, ovvero hanno senso di esistere esclusivamente all'interno di uno specifico insieme di \textit{fold} considerato ad un passo; potrebbe capitare, infatti, che esistano regole pi\'u generali che coprano almeno gli stessi esempi di una o pi\'u regola specifica, senza introdurre grosse variazioni di precisione\footnote{In tal senso, sarebbe utile estendere il programma con una funzionalit\'a di pulizia delle regole superflue.}.
 
-Avendo a disposizione un \textbf{elevato numero di esempi positivi} (si vedano i sintomi $3$, $5$ e $8$), invece, la proporzione $regole/positivi$ si mantiene intorno allo $0.5$. Anche in questo caso, comunque, si deve fare la stessa considerazione precedente, ovvero che alcune regole potrebbero essere eliminate senza grossi problemi.
+Avendo a disposizione un \textbf{elevato numero di esempi positivi} (si vedano i sintomi $3$, $5$ e $8$), invece, la proporzione $regole/positivi$ si mantiene intorno a $0.5$. Anche in questo caso, comunque, si deve fare la stessa considerazione precedente, ovvero che alcune regole potrebbero essere eliminate senza grossi problemi.
 
 Altre regole, invece, potrebbero essere eliminate andando ad accorpare range ``adiacenti'' (immediatamente successivi) di attributi si trovano in alto nell'albero di decisione generato.
 
@@ -709,7 +726,8 @@ $10$&$51$	&$59$	&$25$	&$1$	&$0.967$	&$1$	&$0.983$	\\
 Lo stesso dataset \'e stato sottoposto ad altri sistemi di apprendimento automatico, in modo tale da poter valutare ci\'o che \'e stato realizzato, paragonandolo ad algoritmi ben pi\'u collaudati.
 
 \subsubsection{Weka}
-Il tool di Data Mining utilizzato \'e Weka\cite{Weka:2014:Online}, che mette a disposizione numerosi algoritmi pre-implementati per la classificazione e generazione di alberi di decisione (e regole).\\
+\label{altri-weka}
+Il tool di Data Mining utilizzato \'e Weka \cite{Weka:2014:Online}, che mette a disposizione numerosi algoritmi pre-implementati per la classificazione e generazione di alberi di decisione (e regole).\\
 Sono stati testati $3$ diversi algoritmi sul sintomo target $8$: J48, J48Graft e ConjunctiveRule.
 
 Per l'importazione degli esempi \'e stata eseguita la query:
@@ -739,14 +757,14 @@ WHERE
   `SYMPTOM_ID` = 8 ORDER BY `SCORE` DESC LIMIT 100)
 \end{verbatim}
 
-Una volta importati i dati del dataset di esempio in Weka Explorer (si veda \ref{appendix-weka} per una guida all'importazione e trasformazione), si possono andare a selezionare gli algoritmi da applicare.
+Una volta importati i dati del dataset di esempio in Weka Explorer (si veda \ref{appendix-weka-import} per una guida all'importazione e trasformazione), si possono andare a selezionare gli algoritmi da applicare.
 
 \paragraph{J48}
 J48 è un'implementazione in Java di C4.5 per Weka che opera applicando, all'albero di decisione generato, tecniche di \textit{pruning} per semplificarne la descrizione.
 
 Lasciando i parametri di default in Weka, selezionando la $10$\textit{-fold cross-validation} come modalit\'a di test e avviando la classificazione per il sintomo target $8$, sono stati ottenuti i risultati mostrati in tabella \ref{table:risultati-j48}.
 
-L'output di esecuzione restituito\footnote{L'output non \'e completo; per l'output completo, vedere il file \verb|weka/|} \'e il seguente:
+L'output di esecuzione restituito\footnote{L'output non \'e completo; per l'output completo, vedere il file \verb|weka/trees.J48.log|.} \'e il seguente:
 
 \begin{verbatim}
 === Classifier model (full training set) ===
@@ -810,7 +828,7 @@ fmeasure_{j48} = 0.945
 
 \paragraph{J48 Graft} J48 Graft \'e un algoritmo incluso in Weka che genera un albero di decisione con lo stesso algoritmo di J48, ma applicando la tecnica del \textit{grafting}\cite{Webb1999}, ovvero cercando di aggiungere, dove necessario, nuovi nodi all'albero prodotto per cercare di ridurre l'errore predittivo.
 
-Utilizzando lo stesso dataset precedente e la stessa modalit\'a di testing con $10$-fold cross-validation, l'output principale ottenuto \'e il seguente:
+Utilizzando lo stesso dataset precedente e la stessa modalit\'a di testing con $10$-fold cross-validation, l'output principale ottenuto\footnote{L'output completo \'e leggibile nel file \verb|weka/trees.J48graft.log|.} \'e il seguente:
 \begin{verbatim}
 === Classifier model (full training set) ===
 
@@ -862,7 +880,7 @@ L'albero di decisione generato, e le misurazioni complete mostrate in tabella \r
 Un output pi\'u simile a quello ottenuto dal programma realizzato \'e restituito dall'algoritmo Conjunctive Rule di Weka, che genera un insieme di regole composte da un antecedente (il corpo) di clausole in congiunzione ed un sequente (la testa) che corrisponde al valore classificato.\\
 Anche Conjunctive Rule calcola la misura dell'\textit{information gain} del corpo della regola generata ed esegue il \textit{pruning} in base al numero delle clausole presenti. Per la classificazione, l'informazione relativa al corpo della regola generata \'e la media pesata delle entropie degli esempi coperti dalla regola e di quelli non coperti.
 
-L'esecuzione di Conjunctive Rule sul solito dataset ha prodotto le misure in tabella \ref{table:risultati-conjunctive-rule} e il seguente output:
+L'esecuzione di Conjunctive Rule sul solito dataset ha prodotto le misure in tabella \ref{table:risultati-conjunctive-rule} e il seguente output\footnote{L'output completo \'e leggibile nel file \verb|weka/rules.ConjunctiveRule.log|.}:
 \begin{verbatim}
 === Classifier model (full training set) ===
 
@@ -925,15 +943,15 @@ final_positive(A, [1, 2, 3, 4, 5, 6, 7, 8, 10]) :-
 	check_condition_list(A,
 			     [condition('PatientAge', range(35805, 38046))]).
 \end{verbatim}
-\'e chiaramente opposta a:
+\'e chiaramente opposta all'unica regola generata:
 \begin{verbatim}
 (PATIENT_AGE <= 29653.5) => SYMPTOM_ID = 8
 \end{verbatim}
 
-Tra l'altro, la regola in esempio \'e stata generata in pi\'u passi di apprendimento, con l'unica eccezione il passo in cui tutti gli esempi che la generavano si trovavano, evidentemente, nel sottoinsieme di testing.
+Tra l'altro, la regola in esempio \'e stata generata in pi\'u passi di apprendimento, con l'unica eccezione il passo in cui alcuni esempi che la generavano si trovavano, evidentemente, nel sottoinsieme di \textit{testing}.
 
 \subsubsection{BayesDB}
-BayesDB\cite{BayesDB:2014:Online} è un ``database di tabelle bayesiane che permette di inferire le probabili implicazioni dei dati tabulati, con la stessa facilit\'a con cui si chiedono i dati ad un database SQL''. \'E un tool per inferenze molto recente, sviluppato dal MIT in collaborazione con DARPA e Google.
+BayesDB \cite{BayesDB:2014:Online} è un ``database di tabelle bayesiane che permette di inferire le probabili implicazioni dei dati tabulati, con la stessa facilit\'a con cui si chiedono i dati ad un database SQL''. \'E un tool per inferenze molto recente, sviluppato dal MIT in collaborazione con DARPA e Google.
 
 BayesDB, a partire da una tabella con qualsiasi attributo e valore, permette di:
 \begin{itemize}
@@ -946,7 +964,7 @@ BayesDB, a partire da una tabella con qualsiasi attributo e valore, permette di:
 Dopo il setup iniziale di BayesDB (vedi \ref{appendix-bayesdb}), si \'e proceduto prima all'importazione dei dati, quindi al \textit{querying} e \textit{testing}.
 
 \paragraph{Esportazione dei dati}
-La migrazione dei dati da MySQL a BayesDB \'e avvenuta\footnote{Il file di migrazione \'e gi\'a disponibile in \verb|bayesdb/learn_data.csv|.} tramite selezione di:
+La migrazione dei dati da MySQL a BayesDB \'e avvenuta\footnote{Il file di migrazione \'e disponibile in \verb|bayesdb/learn_data.csv|.} tramite selezione di:
 \begin{itemize}
 \item $100$ esempi negativi (sintomo $1$)
 \item $100$ esempi positivi (sintomo $8$)
@@ -965,16 +983,16 @@ SELECT
 INTO OUTFILE 'learn_data.csv'
 FIELDS TERMINATED BY ','
 \end{verbatim}
-\'e stato possibile generare un file \verb|csv| contenente l'\textit{header}, i dati e i campi separati da virgola, come richiesto da BayesDB.
+si genera un file \verb|csv| contenente l'\textit{header}, i dati e i campi separati da virgola, come richiesto da BayesDB.
 
 \paragraph{Importazione dei dati}
-Una volta esportati i dati, ci si \'e collegati alla macchina virtuale su cui BayesDB \'e installato e sono stati copiati i seguenti file (per la copia dei file, vedi \ref{appendix-bayesdb-trasferimento}):
+Una volta esportati i dati, ci si \'e collegati alla macchina virtuale su cui BayesDB \'e installato e sono stati copiati i seguenti file (per il collegamento vedi \ref{appendix-bayesdb-collegamento}, per la copia \ref{appendix-bayesdb-trasferimento}):
 \begin{itemize}
 \item \verb|learn_data.csv| precedentemente generato
 \item lo script python \verb|learn_data_import.py|, appositamente creato per caricare i dati
 \end{itemize}
 
-Dalla macchina virtuale (o tramite accesso SSH, vedi \ref{appendix-bayesdb-collegamento}), \'e stato eseguito il comando:
+Dalla macchina virtuale (o tramite accesso SSH), \'e stato eseguito il comando:
 \begin{verbatim}
 $ python /home/bayesdb/learn_data_import.py
 \end{verbatim}
@@ -988,7 +1006,7 @@ Lo script esegue, a catena, i seguenti comandi:
 \item analizza la tabella per $100$ iterazioni\footnote{Questa operazione potrebbe impiegare molti minuti per completare.}
 \end{enumerate}
 
-A questo punto, il modello bayesiano \'e stato costruito, ed \'e possibile andare a fare inferenze\footnote{Il modello \'e stato pre-costruito ed esportato in \verb|bayesdb/dialysisai.pkl.gz|; per importarlo, eseguire \verb|IMPORT SAMPLES dialysisai INTO dialysisai|.}.
+A questo punto, il modello bayesiano \'e stato costruito, ed \'e possibile iniziare a fare inferenze\footnote{Il modello \'e stato pre-costruito ed esportato in \verb|bayesdb/dialysisai.pkl.gz|; per importarlo, eseguire \verb|IMPORT SAMPLES dialysisai INTO dialysisai|.}.
 
 \paragraph{Stime delle probabilit\'a di dipendenza}
 Si sono volute valutare le probabilit\'a di dipendenza fra gli attributi del dataset caricato; pertanto \'e stata eseguita la \textit{query} (per conoscere come eseguire \textit{query} su BayesDB, consultare \ref{appendix-bayesdb-query}):
@@ -1029,10 +1047,10 @@ WITH CONFIDENCE 0.9;
 Il risultato restituito a video \'e la lista di tutte le predizioni dei valori di sintomatologia: dove il valore \'e stato predetto, esso \'e preceduto da un asterisco \verb|*|, altrimenti viene mostrato il valore pre-esistente.
 
 \paragraph{Test e risultati}
-Il Bayesian Query Language (BQL), linguaggio alla base di BayesDB, non \'e ancora del tutto completo\footnote{La versione utilizzata \'e la \verb|0.1.0 alpha|.}, pertanto non permette una veloce aggregazione dei risultati (conteggi, medie, ecc.).\\
+Il Bayesian Query Language (BQL), linguaggio alla base di BayesDB, non \'e ancora del tutto completo\footnote{La versione utilizzata \'e la \verb|0.1.0 alpha|.}, pertanto non permette una veloce aggregazione dei risultati (conteggi, medie, ecc.)\footnote{Tale funzionalit\'a, assieme alla possibilit\'a di eseguire \textit{query} annidate, \href{https://github.com/mit-probabilistic-computing-project/BayesDB/issues/20}{\'e stata annunciata} per la prossima release.}.\\
 Per questa ragione, \'e stato creato uno script Python\footnote{Lo script \'e \verb|bayesdb/learn_data_test.py|.} che, una volta avviato, stampa a video e su file\footnote{Il log avr\'a il nome \verb|learn_data_test.log|.} il risultato dei test sulla predizione effettuata.
 
-La query eseguita seleziona il sintomo vero, che non verr\'a modificato poich\'e sempre presente, e il sintomo da predire, che sar\'a inferito dal sistema con un livello di confidenza di $0.9$\footnote{Il valore inferito viene solo caricato e mostrato a video, la base di dati non viene modificata.}.
+La \textit{query} eseguita seleziona il sintomo vero, che non verr\'a modificato poich\'e sempre presente, e il sintomo da predire, che sar\'a inferito\footnote{Il valore inferito viene solo caricato e mostrato a video, la base di dati non viene modificata.} dal sistema con un livello di confidenza di $0.9$.
 \begin{verbatim}
 INFER real_symptom_id, symptom_id 
 FROM dialysisai
@@ -1068,16 +1086,17 @@ Inoltre, si potrebbe confrontare la precisione del programma nel caso i valori n
 
 Ad oggi, il programma gestisce gli esempi come strettamente positivi o negativi. Avendo a disposizione circa $60$ sintomi, tuttavia, potrebbe risultare utile riadattare alcune parti dell'algoritmo con il fine di classificare, in un unico albero di decisione, tutti i sintomi. Un possibile svantaggio si potrebbe avere relativamente a sintomi che hanno pochi esempi che li soddisfano, e che potrebbero non essere rappresentati da nessuna regola generata. Ci sarebbe, in questo caso, anche da valutare il costo dell'algoritmo, sicuramente pi\'u complesso (si veda il calcolo dell'entropia).
 
-Infine, vista la scarsa distribuzione delle sintomatologie per seduta di dialisi, potrebbe essere utile imporre una certa soglia di tolleranza, ad esempio andando a classificare come nodo foglia anche i nodi che contengono esempi positivi in una certa percentuale ($95\%$ anzich\'e $100\%$ come attualmente implementato). In questo modo sarebbe anche possibile definire un ordine di priorit\'a per le regole generate, da quella ``pi\'u certa'' a quella con la pi\'u bassa probabilit\'a.
+Infine, vista la scarsa distribuzione delle sintomatologie per seduta di dialisi, potrebbe essere utile imporre una certa soglia di tolleranza, ad esempio andando a classificare come nodo foglia anche i nodi che contengono esempi positivi in una certa percentuale ($95\%$ anzich\'e $100\%$ come attualmente implementato), ma comunque con pochi controesempi. In questo modo sarebbe anche possibile definire un ordine di priorit\'a per le regole generate, da quella ``pi\'u certa'' a quella con la pi\'u bassa probabilit\'a.
 
 Miglioramenti implementativi potrebbero essere:
 \begin{itemize}
 \item personalizzazione del numero dei \textit{fold} da utilizzare nella $k$\textit{-fold cross-validation}
 \item spostamento dell'intero processo di apprendimento su macchine virtuali nel cloud; \'e gi\'a in studio una migrazione su Google Compute Engine
 \item apprendimento multi-threading sui diversi split dei $k$\textit{-fold}
+\item calcolo parallelo del miglior \textit{information gain}
 \item apprendimento multi-threading sui diversi \textit{range} dell'attributo migliore ad ogni livello dell'albero 
 \item eliminazione di regole troppo lunghe o che classificano pochi elementi (necessario un set esterno di validazione)
-\item ordinamento delle regole in base all'\textit{error rate} del passo in cui sono state apprese (diretta proporzionalit\'a tra ordine regola e ordine \textit{error rate}) e alla loro semplicit\'a (minor numero di clausole, maggiore rilevanza)
+\item ordinamento delle regole in base alla \textit{F-Measure} del passo in cui sono state apprese (diretta proporzionalit\'a tra ordine regola e ordine \textit{F-Measure}) e alla loro semplicit\'a (minor numero di clausole, maggiore rilevanza)
 \end{itemize}
 
 \bibliographystyle{abbrv} % standard abbrv style
@@ -1092,12 +1111,15 @@ Quindi:
 
 \begin{enumerate}
 \item Avviare il server MySQL.
-\item Tramite il tool "Import Data" di MySQL Workbench, selezionare il file \verb|scripts/mysq-dump.sql| e avviare l'importazione dei dati.
+\item Tramite il tool ``Import Data'' di MySQL Workbench, selezionare il file \verb|scripts/mysq-dump.sql| e avviare l'importazione dei dati.
 \item Avviare lo script \verb|scripts/mysql-scores.sql| per la creazione delle \textit{view} utili.
 \end{enumerate}
 
-\section{Setup di Weka}
+\section{Weka}
 \label{appendix-weka}
+
+\subsection{Setup di Weka}
+\label{appendix-weka-setup}
 Per utilizzare Weka con i file ARFF, localizzati nella cartella \verb|weka/|, non serve nessun pre-requisito particolare. Per la connessione al database, invece, serve specificare il file \verb|DatabaseUtils.props| che contiene alcune propriet\'a per la connessione.
 
 Un file di esempio \'e \verb|weka/DatabaseUtils.props|, che permette di collegarsi a fonti dati MySQL. In particolare, le informazioni rilevanti da gestire sono:
@@ -1117,12 +1139,38 @@ cp=%CLASSPATH%;%MY_SQL_PATH%/Connector J 5.1.29/
   mysql-connector-java-5.1.29-bin.jar
 \end{verbatim}
 
+\subsection{Importazione dati in Weka}
+\label{appendix-weka-import}
+Per importare i dati di addestramento in Weka, \'e possibile operare in due modi: utilizzare il database MySQL oppure il file fornito.
+
+\subsubsection{Importazione da database}
+\label{appendix-weka-import-db}
+Per importare dal database, aprire Weka Explorer e collegarsi all'istanza del database MySQL desiderata.
+Quindi, eseguire la \textit{query} \verb|weka/weka_data_import.sql|, che non fa altro che selezionare i primi $100$ esempi (con ID sintomo uguale a $8$) e $100$ controesempi.
+
+Selezionare le $200$ righe ottenute e, in ordine:
+\begin{enumerate}
+\item Scegliere se eliminare o meno gli attributi \verb|KTV| e \verb|QB|.
+\item Convertire da tipo \verb|numeric| a \verb|category| gli attributi \verb|PATIENT_SEX|, \verb|PATIENT_RACE| e \verb|SYMPTOM_ID|.
+\end{enumerate}
+
+I dati sono quindi pronti per essere analizzati.
+
+\subsubsection{Importazione da ARFF}
+Anzich\'e selezionare il database come fonte dati, Weka Explorer permette di importare dati pre-caricati da file in formato \verb|arff|.
+
+I file disponibili per l'importazione, e pre-caricati come descritto in \ref{appendix-weka-import-db} sono:
+\begin{itemize}
+\item \verb|weka/symptom-8-raw.arff| contiene i dati grezzi, come se appena recuperati dalla base di dati. I dati devono essere filtrati come descritto in \ref{appendix-weka-import-db}.
+\item \verb|weka/symptom-8-filtered.arff| contiene i dati gi\'a filtrati, pronti all'uso come descritto in \ref{altri-weka}.
+\end{itemize}
+
 \section{BayesDB}
 
 \subsection{Installazione di BayesDB}
 \label{appendix-bayesdb}
 Per avviare una versione funzionante di BayesDB, si suggerisce di utilizzare la VirtualBox VM messa a disposizione sul \href{http://probcomp.csail.mit.edu/bayesdb/#Download}{sito ufficiale}, in quanto contiene una versione gi\'a configurata e pronta all'uso.\\
-All'avvio della VM, \'e possibile utilizzare BayesDB, essendo avviato in automatico.
+All'avvio della VM \'e gi\'a possibile utilizzare BayesDB, essendo avviato in automatico.
 
 \subsection{Collegamento alla VM}
 \label{appendix-bayesdb-collegamento}
@@ -1134,13 +1182,11 @@ $ ssh -i vm_guest_id_rsa -p 2222
   -o StrictHostKeyChecking=no bayesdb@localhost
 \end{verbatim}
 
-Su sistemi Windows, \verb|ssh| \'e incluso nella distribuzione di \href{http://git-scm.com/}{Git}.
+Su sistemi Windows, \verb|ssh| \'e incluso nella distribuzione di \href{http://git-scm.com/}{Git} e pu\'o essere utilizzato allo stesso modo.
 
 \subsection{Trasferimento da e verso BayesDB}
 \label{appendix-bayesdb-trasferimento}
-Per inviare file dalla macchina locale alla VM (e viceversa), utilizzare l'eseguibile \verb|scp| (secure \verb|cp|).
-
-Su sistemi Linux/Mac OS X, digitare in una shell:
+Per inviare file dalla macchina locale alla VM (e viceversa), utilizzare l'eseguibile \verb|scp| (secure \verb|cp|) su sistemi Linux/Mac OS X:
 \begin{verbatim}
 $ scp -r -i vm_guest_id_rsa -p 2222 
   -o StrictHostKeyChecking=no 
@@ -1155,6 +1201,8 @@ Su Windows, installare \href{http://winscp.net/eng/index.php}{WinSCP} e configur
 \item password: \verb|bayesdb|
 \item key: utilizzare la chiave \verb|vm_guest_id_rsa|, fornita nel pacchetto della VirtualBox VM scaricato dal sito di BayesDB (ignorare gli avvisi di incompatibilit\'a della chiave con Putty)
 \end{itemize}
+
+Quindi, copiare i file desiderati dalla GUI di WinSCP.
 
 \subsection{Esecuzione di query}
 \label{appendix-bayesdb-query}

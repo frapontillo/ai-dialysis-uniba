@@ -14,4 +14,4 @@ cartella doc/, come PDF doc/full_doc.pdf.
 Email:  francescopontillo@gmail.com
 Note:   in caso di problemi, o se qualche file dovesse risultare corrotto, è 
         possibile scaricare il progetto sul repository GitHub all'indirizzo: 
-        https://github.com/frapontillo/ai-dialysis-uniba
+        https://github.com/frapontillo/ai-dialysis-uniba/releases/tag/0.1.0

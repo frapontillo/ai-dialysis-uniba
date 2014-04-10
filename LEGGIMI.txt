@@ -1,0 +1,17 @@
+                          AI Dialysis Symptomatology
+                     Progetto di Intelligenza Artificiale
+                           Informatica Magistrale
+
+                      Francesco Pontillo (mat. 600119)
+                       Universitá degli Studi di Bari
+                        Dipartimento di Informatica
+                    Via E. Orabona, 4 - 70125 Bari, Italy
+
+Il report di progetto è il file PDF report/report.pdf.
+La documentazione del programma Prolog è presente in formato HTML e LaTeX nella 
+cartella doc/, come PDF doc/full_doc.pdf.
+
+Email:  francescopontillo@gmail.com
+Note:   in caso di problemi, o se qualche file dovesse risultare corrotto, è 
+        possibile scaricare il progetto sul repository GitHub all'indirizzo: 
+        https://github.com/frapontillo/ai-dialysis-uniba

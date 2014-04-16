@@ -1,1 +1,1 @@
-swipl -f main.pl -g main(default, 8)
+swipl -f main.pl -g "main(default, 8)"
